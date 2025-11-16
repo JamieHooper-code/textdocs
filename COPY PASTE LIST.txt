@@ -1,0 +1,7 @@
+400:
+	OLD: please explain this Spanish phrase in decent detail for someone learning Spanish. It often helps me if you explain basic etymologies if they share a lot in common with English words ( especially for words you think I may not know ). Also give examples of English words that show the etymology that will help me remember the Spanish words/phrase. As well as phrases/idioms.
+	
+	CURRENT: Could you explain the phrase to me, focusing on the words that might be tricky for an intermediate learner like me? If any words have interesting etymologies or connections to English, please mention those too. I’m mostly looking for help with the less common words
+	
+	
+	

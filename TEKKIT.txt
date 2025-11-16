@@ -1,0 +1,57 @@
+
+
+shield
+coal combos (energy thing)
+MFE (LV-TRansformer???) (DIFF CABLES??)
+import/exp upgrade
+obsidian chest
+charge pad
+induction furnace, rotary macerator, centrifuge extractor
+wind mills?
+
+Quarry:
+	engine EU TO RF
+	or reg engine
+	PIPES
+		iron pipe and wrench to control flow
+		wood pipe for initial energy hookup
+	(ALCH CHEST?) (ENDER CHEST?)
+	chunkloader
+	quarry fixer
+	electrical engine?????????????????
+
+
+Armor:
+	nano/composite armor
+	chainsaw/drill
+	solar helmet
+	jetpack
+	static boots
+	nano saber
+	
+Building: 	
+	@Blockcraftery
+
+
+Industrial:
+	Macerator (stone/reg)
+	BatBox (Battery)
+	Electric Furnace
+	Generator
+	Wrench
+	
+Magic:
+	Divining Rod
+	Repair Talisman
+	Transmutation Table
+	Philosopher'S Stone (Glow Stone)
+
+UI Things:
+	A to add things to list of things to make
+	@IC2 to search!!!!!!!!!!
+	
+ENDGAME:
+	Switfwolf (flight ring)
+	
+Piping:
+	Pipe pulsar: https://youtu.be/fKlaXP6SWps?list=PLvtofNrb0jGuqSQd93iOjSfVqJBZyGl5s&t=21337

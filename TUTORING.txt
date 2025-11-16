@@ -1,0 +1,62 @@
+limits and continuint
+fog(x)
+
+MACHINE LEARNING:
+	RESOURCES:
+		TECH WITH TIM
+		mlyearning book by Andrew Ng
+		CS229 ML Stanford course
+		CS230: Deep Learning https://www.youtube.com/playlist?list=PLoROMvodv4rOABXSygHTsbvUz4G_YQhOb
+		APPLIED ML: https://www.youtube.com/playlist?list=PL_pVmAaAnxIQGzQS2oI3OWEPT-dpmwTfA
+		ML SPEC ANDREW NG: https://www.youtube.com/playlist?list=PLkDaE6sCZn6FNC6YRfRQc_FbeQrF8BwGI
+	Statistics
+	
+	Data Structures And Algorithms
+	
+	Algorithms
+	
+	Preprocessing
+	
+	Neural Networks
+	
+	Deep Learning
+	
+	Reinforcement Learning
+	
+	BOOKS:
+		https://www.datacamp.com/blog/the-15-best-data-machine-learning-books-to-read-in-2022
+		https://en.wikipedia.org/wiki/The_Second_Machine_Age
+	
+	PROJECTS
+		Hurricanes
+		Atlantic Logistics
+		Elbows
+
+General:
+	Full stack web development using node and JavaScript
+		MEAN
+		MERN
+		
+		Node
+		
+		React
+		
+		Express?
+	
+		Mongo
+	
+	Database structures
+	
+	How to tutor]
+	
+	SQL
+	
+	JavaScript
+	
+	Machine Learning
+	
+	Statistics
+	
+	docker
+	
+	kubernetes

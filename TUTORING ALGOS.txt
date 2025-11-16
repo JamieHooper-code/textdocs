@@ -1,0 +1,25 @@
+Timeseries Analysis
+	Data Analysis:
+		import seasonal_decompose
+		
+		AUTOCORRELATION
+			from pandas.plotting import autocorrelation_plot
+		
+		set_index
+		to_datetime
+		
+		cross validation for timeseries
+		
+	Feature Engineering:
+		a
+	
+	Models:
+		ARIMA
+			Auto ARIMA
+			sarima
+		Recurrent Neural Networks
+		
+General Plotting:
+	sns.boxplot()
+	subplots
+	

@@ -1,0 +1,89 @@
+Make a macro to add a song to a playlist on spotify
+
+Make a macro to do corrections better in Dragon
+
+turn my foot pedal script into a switch statement
+
+make a chess puzzle macro, and a single phrase to open the chest
+
+Make macros that open different pages, wells fargo, wyzant, Discover, etc
+
+make wyzant messaging page and just make itone two or three to four messages.
+
+make a macro to go to a specific tab in Chrome depending on name.
+
+Make calendar macros for both wyzant and Google
+
+Make a macro for opening my cheat sheets in a new window or new tab
+Combine that with the macro for getting a summary of YouTube video to automatically update cheat sheets
+
+Figure out how to make bring me work
+
+Make spotify left and right arrow keys work
+does this work
+Convert my entire keyboard into a macro pad if Caps lock is on
+					
+Switch over my atom usage to VS code so that I can use github copilot
+
+make a command to copy the current URL and paste it into chat UBT and then ask for a summary of the YouTube video or a cheat sheet
+
+make a command to tab through all my YouTube videos and pause them
+
+Make auto hotkey load on Windows startup
+
+Make a shortcut for clicking on the little box in wyzant tutoringd
+
+Make a command for when I'm going to do multiple slashes in a row, it will take in my next statement and then press / again
+
+Make different auto hockey files that interpret the pedals. Switch between them to switch out macros.
+I can have a primary file and then more specific files for specific applications when I want to override all pedals.
+
+make better mouse scrolling macros, one that scrolls up a halfpage, full-page, down both of those, and one that centers the mouse beforehand
+
+a macro that starts my meditation in 20 seconds or 30 seconds or something
+
+At a macro to add pause to the caster command
+
+Make a command to open robot in the same window
+Open calendar in new window
+Open dashboard for a new window
+
+
+make a macro for creating calendar appointments
+
+message [name]
+
+Fix tutor macro
+
+Make macro start on boot
+
+Customize footpedals based on current window
+
+Open robot and current window
+
+Open cheat sheet
+
+Open online jobs in new window
+
+make macros that run if I'm on tutoring website and not in textbox. mute Mike and video
+
+make a macro that opens up my macros in atom
+
+move file in the command line
+
+make my switch window foot pedal hold alt and tab tab
+
+find a better way to search YouTube and stuff
+
+Make a command to jump to a text box
+
+WV MIC
+QW CAM
+WYZANT:
+
+CHATGPT:
+remembotron
+serach b/t chats
+jot it down
+CUSTOM CONFIG
+SENDING CHATS

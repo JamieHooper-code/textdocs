@@ -1,0 +1,11 @@
+Regularization techniques
+cross validation
+learning curves
+
+Loss function
+penalty term
+multicollinearity
+
+Validation data
+pruning
+bayesian regularization

@@ -1,0 +1,49 @@
+unmapAll
+map 8 LinkHints.activateModeToOpenInNewTab
+map / LinkHints.activateMode
+map ; LinkHints.activateMode
+map a LinkHints.activateMode
+map ` LinkHints.activateMode
+map s LinkHints.activateModeWithQueue
+
+map m nextTab
+map w nextTab
+map n previousTab
+map q previousTab
+map . goNext
+map , goPrevious
+map u copyCurrentUrl
+map y LinkHints.activateModeToCopyLinkUrl
+map v goBack
+map b goForward
+map t createTab
+map r removeTab
+
+map [ scrollPageDown
+map ] scrollPageUp
+
+
+map ? showHelp
+map h focusInput
+map z togglePinTab
+map - moveTabToNewWindow
+map p previousTab
+
+map 4 Vomnibar.activateBookmarks
+map 5 Vomnibar.activateBookmarksInNewTab
+map 3 visitPreviousTab
+map 1 firstTab
+map 2 lastTab
+map e restoreTab
+
+map ` reload 
+map \ focusInput
+map g focusInput
+map 9 duplicateTab
+map x moveTabLeft
+map c moveTabRight
+
+map 4 Vomnibar.activateBookmarksInNewTab
+map 5 Vomnibar.activateInNewTab
+
+map d LinkHints.activateModeToOpenInNewForegroundTab
