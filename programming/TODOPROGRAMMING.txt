@@ -1,4 +1,17 @@
-1. Add VS Code Codex voice commands to the list.
-2. Add icon library Stream Deck voice commands to the list.
-3. Modify stream decks more programmatically.
-4. Check about the CLAUDE.md.
+1. Add VS Code Codex voice commands
+2. Add Stream Deck icon library voice commands
+3. Improve Stream Deck programmability
+4. Review CLAUDE.md
+5. Fix AHK++ VS Code extension startup issue
+6. Make this file really easy to open
+7. Fix my VS code UI
+8. Fix my right foot pedal in VS code.
+9. Make my new tab page work from anywhere? At least speech
+
+6. Continue improving new tab page
+   a. User profiles (with Google integration)
+   b. Fix checkbox spacing
+   c. Image debugging workflow
+   d. General settings page
+   e. Finalize implementation
+   f. Make new panel of like my current YouTube links or like current tabs/activities/etc? 
