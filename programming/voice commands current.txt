@@ -1,0 +1,29 @@
+Voice Commands Current
+======================
+
+Fast Reference
+--------------
+
+VS Code
+-------
+  - Codex
+  - files
+  - find file
+  - Jump search
+  - settings
+
+Programming General
+-------------------
+  - mouse relative
+  - auto reload
+
+Display Fusion
+--------------
+  - window main
+  - window main landscape
+
+Windows
+-------
+  - begone demon
+  - begone foul demon
+  - window next desktop

@@ -1,0 +1,4 @@
+1. Add VS Code Codex voice commands to the list.
+2. Add icon library Stream Deck voice commands to the list.
+3. Modify stream decks more programmatically.
+4. Check about the CLAUDE.md.
