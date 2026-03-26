@@ -1,0 +1,54 @@
+STORAGE MANAGEMENT — C: DRIVE
+==============================
+Last updated: 2026-03-26
+
+CURRENT STATE
+-------------
+Drive size: ~240 GB
+Used: ~212 GB
+Free: ~11.5 GB (was 0 — caused VMP failure and component store corruption)
+
+WHAT WAS FIXED (2026-03-26)
+----------------------------
+- Disabled hibernation (hiberfil.sys removed) — freed 9.6 GB
+- Ran DISM /StartComponentCleanup — freed ~18 GB
+- Ran DISM /RestoreHealth — repaired corrupted component store
+- Virtual Machine Platform feature successfully enabled (reboot required)
+
+DISK BREAKDOWN (approximate)
+------------------------------
+C:\Windows              50 GB
+C:\Program Files        29 GB
+C:\Program Files (x86)  26 GB
+C:\ProgramData          22 GB
+C:\intelFPGA_lite       12 GB   -- keep if still using Quartus; delete if not
+AppData\Roaming         12 GB
+C:\Users (other)        10 GB
+C:\AMD                   5 GB   -- AMD driver installer cache, SAFE TO DELETE
+C:\cygwin64              2.6 GB
+C:\wamp64                2 GB
+AppData\Local           ~46 GB  -- NOT YET INVESTIGATED (likely biggest cleanup target)
+
+REMAINING TASKS
+---------------
+1. ✓ DONE — Deleted C:\AMD (freed 5 GB, 2026-03-26)
+
+2. Investigate AppData\Local (~46 GB unaccounted)
+   Likely culprits:
+   - npm cache         (C:\Users\Nate\AppData\Local\npm-cache)
+   - pip cache         (C:\Users\Nate\AppData\Local\pip)
+   - VS Code cache     (C:\Users\Nate\AppData\Local\Programs\Microsoft VS Code)
+   - Chrome cache      (C:\Users\Nate\AppData\Local\Google\Chrome\User Data\Default\Cache)
+   - Windows Installer (C:\Windows\Installer — often huge)
+   Run: Get-ChildItem 'C:\Users\Nate\AppData\Local' -Directory | % { $s=(gci $_.FullName -Recurse -Force -EA SilentlyContinue | ? {!$_.PSIsContainer} | measure Length -Sum).Sum; [psc]@{F=$_.Name;GB=[math]::Round($s/1GB,2)} } | sort GB -desc | select -first 15
+
+3. Evaluate C:\intelFPGA_lite (12 GB)
+   Delete if Quartus Prime / Intel FPGA tools are no longer in use.
+
+4. Set up a disk space monitor
+   Ideally get C: to 30+ GB free as a comfortable buffer.
+   Consider moving large non-system data (wamp64 databases, etc.) to another drive if available.
+
+5. Windows\Installer folder
+   Can be cleaned carefully with PatchCleaner tool (free) — do NOT delete manually,
+   some files are still needed by installed apps.
