@@ -123,7 +123,9 @@ These don't affect accessibility, install as needed:
 
 - [ ] **Anki** — log in to AnkiWeb account, decks sync from cloud
 - [ ] **Calibre** — install, point library at wherever books are stored
-- [ ] **qBittorrent** — install, restore settings if backed up
+- [ ] **qBittorrent** — install, then restore search plugins:
+  - Copy `qBittorrent_nova3` folder from `desktop-important` repo to `%LOCALAPPDATA%\qBittorrent\nova3`
+  - Includes engines: jackett, piratebay, rutracker, solidtorrents, limetorrents, eztv, torlock, torrentscsv, torrentproject
 - [ ] **Everything** (voidtools) — install, indexing runs automatically
 - [ ] **Signal** — install, link as linked device or restore from backup
 - [ ] **Kindle** — install, log in to Amazon account
@@ -160,6 +162,7 @@ Install if/when needed. None of these are required for the core accessibility st
 | Vimium | Google account sync |
 | VS Code settings | Microsoft account sync |
 | Anki decks | AnkiWeb account |
+| qBittorrent search plugins | GitHub (`desktop-important`) — `qBittorrent_nova3/` folder |
 
 ---
 
