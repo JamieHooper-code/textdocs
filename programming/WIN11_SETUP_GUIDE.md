@@ -267,10 +267,26 @@ Dragon stores the profile in OneDrive, but the profile may contain internal refe
 Check `C:\Users\Jamie\AppData\Local\caster\settings\` for any hardcoded paths after restoring. `settings.toml` and `rules.toml` may reference old paths.
 [Claude can help] Search and fix these after the new install.
 
+**Custom PATH entries to re-add**
+These were manually added and won't be set automatically. Add via System Properties > Environment Variables > User PATH:
+- `C:\Users\Jamie\bin` — personal scripts folder (rename from Nate)
+- `C:\Users\Jamie\Desktop\Important\PowershellScripts` — custom PowerShell scripts
+- `C:\Users\Jamie\Desktop\Important\AutoHotkey\Scripts` — AHK scripts (already in GitHub)
+- `C:\Program Files\AutoHotkey\v2` — set by AHK installer
+- `C:\Program Files\GitHub CLI` — set by gh installer
+- `C:\Program Files\ImageMagick-7.1.0-Q16-HDRI` — note version number may change on reinstall
+- `C:\Program Files\gs\gs10.00.0\bin` — Ghostscript, note version number
+- `C:\Program Files\Microsoft\jdk-21.0.5.11-hotspot\bin` — JDK 21, note version number
+- `C:\ProgramData\chocolatey\bin` — set by Chocolatey installer
+- `C:\Program Files\nodejs` — set by Node.js installer
+- `C:\Users\Jamie\anaconda3` + sub-paths — set by Anaconda installer
+- `E:\Program Files\Git\cmd` etc. — Git is on E: drive; if reinstalling Git, keep it on E: or update these paths
+Note: PATH currently has many duplicates — good opportunity to clean it up on the fresh install.
+
 ---
 
 ## Loose Notes
 
 **Eye/head tracking:** Tobii, eViacam, and PrecisionGazeMouse have no backups. Will need to be reconfigured from scratch after install. eViacam and PrecisionGazeMouse settings are not documented anywhere — expect to spend time re-tuning sensitivity and behavior.
 
-**SoundSwitch:** No backup. Will need to be reconfigured after install — note hotkey settings and microphone profiles before wiping.
+**SoundSwitch:** Config backed up to `Backups from old PC/SoundSwitchConfiguration.json` — see Phase 6 for restore instructions.
