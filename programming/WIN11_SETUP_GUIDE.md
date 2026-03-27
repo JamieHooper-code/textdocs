@@ -123,9 +123,14 @@ These don't affect accessibility, install as needed:
 
 - [ ] **Anki** — log in to AnkiWeb account, decks sync from cloud
 - [ ] **Calibre** — install, point library at wherever books are stored
+- [ ] **Python** — install before qBittorrent search will work (qBittorrent may prompt for this)
+- [ ] **Jackett** — install and run; it powers the jackett search engine in qBittorrent
+  - After install, open Jackett (localhost:9117), copy the API key
+  - Paste it into `%LOCALAPPDATA%\qBittorrent\nova3\engines\jackett.json` under `"api_key"`
 - [ ] **qBittorrent** — install, then restore search plugins:
   - Copy `qBittorrent_nova3` folder from `desktop-important` repo to `%LOCALAPPDATA%\qBittorrent\nova3`
-  - Includes engines: jackett, piratebay, rutracker, solidtorrents, limetorrents, eztv, torlock, torrentscsv, torrentproject
+  - Rutracker will re-authenticate automatically on first search (credentials saved in `rutracker.json`)
+  - All other engines (piratebay, solidtorrents, limetorrents, etc.) work immediately
 - [ ] **Everything** (voidtools) — install, indexing runs automatically
 - [ ] **Signal** — install, link as linked device or restore from backup
 - [ ] **Kindle** — install, log in to Amazon account
