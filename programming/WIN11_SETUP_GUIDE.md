@@ -132,7 +132,9 @@ These don't affect accessibility, install as needed:
 - [ ] **Audacity** — install, then restore settings from `Backups from old PC/Audacity/` in `desktop-important`:
   - Copy `audacity.cfg`, `pluginsettings.cfg`, `pluginregistry.cfg` to `%APPDATA%\audacity\`
 - [ ] **f.lux** — install, sign in to account (settings sync via account)
-- [ ] **ShareX** — install; no existing config to restore (first-time setup)
+- [ ] **ShareX** — installed on E: drive (keeping E: drive, so may already be present)
+  - Restore hotkeys/settings: copy `Backups from old PC/ShareX/` from `desktop-important` to `Documents\ShareX\`
+  - If reinstall needed, grab installer from E: drive or sharex.github.io
 - [ ] **ClipboardFusion** — install, then copy `Backups from old PC/clipboardfusion.db` from `desktop-important` to `%LOCALAPPDATA%\ClipboardFusion\clipboardfusion.db`
 - [ ] **KeyTik** — install, then copy `Backups from old PC/KeyTik/` from `desktop-important` to `%APPDATA%\KeyTik\` (restores pinned AHK profiles)
 - [ ] **Everything** (voidtools) — install, indexing runs automatically
@@ -177,7 +179,7 @@ Install if/when needed.
 | qBittorrent search plugins | GitHub (`desktop-important`) — `Backups from old PC/qBittorrent_nova3/` |
 | Audacity settings | GitHub (`desktop-important`) — `Backups from old PC/Audacity/` |
 | PowerToys / FancyZones | GitHub (`desktop-important`) — `Backups from old PC/PowerToys/` |
-| ShareX | No backup needed — first-time setup |
+| ShareX | GitHub (`desktop-important`) — `Backups from old PC/ShareX/` (hotkeys, app config, uploaders) |
 | ClipboardFusion | GitHub (`desktop-important`) — `Backups from old PC/clipboardfusion.db` |
 | KeyTik | GitHub (`desktop-important`) — `Backups from old PC/KeyTik/` |
 | f.lux | Account sync |
