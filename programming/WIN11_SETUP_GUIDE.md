@@ -198,7 +198,7 @@ Before cloning the SSH repos (user-caster, sublime-backup, caster-main):
 3. Then clone normally
 
 ### Notes
-- `Desktop/Important` has a `.git` folder but no remote — local-only repo, not backed up to GitHub
+- `Desktop/Important` → `github.com/JamieHooper-code/desktop-important` (HTTPS) — excludes AutoHotkey/, TEXTDOCS/, chrome-newtab/, BOOKS/, Bitwig installers
 - [Claude can help] Run the pushes for any of the uncommitted repos above
 
 ---
