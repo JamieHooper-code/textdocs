@@ -8,7 +8,7 @@
 
 These have no backups. Export/document settings now or they're gone.
 
-- [ ] **Display Fusion** — export settings via Settings > Backup > Export (no backup exists)
+- [x] **Display Fusion** — backup exported 2026-03-26 as `TEXTDOCS/programming/DisplayFusion Backup (2026-03-26).reg` (registry export, restore by double-clicking)
 - [ ] **PowerToys / FancyZones** — export via PowerToys Settings > General > Backup & Restore (no backup exists)
 - [ ] **VS Code** — Settings Sync is tied to your Microsoft/GitHub account; verify it's enabled (Settings > Turn on Settings Sync) so extensions and config restore automatically
 
@@ -147,7 +147,7 @@ Install if/when needed. None of these are required for the core accessibility st
 | Windows Virtual Desktop Enhancer | OneDrive + GitHub |
 | eViacam | **Nowhere — back up in Phase 0** |
 | PrecisionGazeMouse | **Nowhere — back up in Phase 0** |
-| Display Fusion | **Nowhere — back up in Phase 0** |
+| Display Fusion | GitHub (`desktop-important`) — `TEXTDOCS/programming/DisplayFusion Backup (2026-03-26).reg` |
 | Tobii | Likely re-downloadable; check account |
 | SoundSwitch | Check if it has export |
 | Vimium | Google account sync |
@@ -181,15 +181,12 @@ All repos are under `JamieHooper-code` on GitHub. Two repos use SSH (`git@github
 | textdocs | github.com/JamieHooper-code/textdocs | `C:\Users\Nate\Desktop\Important\TEXTDOCS` | HTTPS |
 | chrome-newtab | github.com/JamieHooper-code/new-tab | `C:\Users\Nate\Desktop\Important\chrome-newtab` | HTTPS |
 | caster-main | github.com/JamieHooper-code/caster-main | `C:\Users\Nate\Documents\Caster` | SSH |
+| claude-config-backup | github.com/JamieHooper-code/claude-config-backup | `C:\Users\Nate\.claude` | HTTPS |
+| desktop-important | github.com/JamieHooper-code/desktop-important | `C:\Users\Nate\Desktop\Important` | HTTPS |
 
 ### Uncommitted changes — push before wiping
-These repos have local changes not yet on GitHub:
-
-- **user-caster** — `rules/.claude/settings.local.json`, `rules/ahk_mainfun.py`, `rules/links_commands.py`, `settings/rules.toml`, `settings/settings.toml`
-- **streamdeck-backup** — plugin logs + cache (probably safe to ignore, but check)
-- **autohotkey** — `Helpers/LinkManager.ahk`, `INIDATA/MAINFUNCTIONS.ini`, `MAINFUNCTIONS.ahk`, and untracked `Helpers/StreamDeckManager.ahk`
-- **textdocs** — `programming/TODOPROGRAMMING.txt` and untracked files including this guide
-- **chrome-newtab** — `index.html`
+- **user-caster** — `rules/.claude/settings.local.json` (local settings file, low priority)
+- **textdocs** — this guide and other untracked files should be committed before wiping
 
 ### SSH setup on new machine
 Before cloning the SSH repos (user-caster, sublime-backup, caster-main):
@@ -200,6 +197,45 @@ Before cloning the SSH repos (user-caster, sublime-backup, caster-main):
 ### Notes
 - `Desktop/Important` → `github.com/JamieHooper-code/desktop-important` (HTTPS) — excludes AutoHotkey/, TEXTDOCS/, chrome-newtab/, BOOKS/, Bitwig installers
 - [Claude can help] Run the pushes for any of the uncommitted repos above
+
+---
+
+## Username Change: Nate → Jamie
+
+The new Windows 11 install will use `Jamie` as the username instead of `Nate`. This affects any path starting with `C:\Users\Nate\`.
+
+### Already fixed (dynamic — will just work)
+All Python/Caster rule files now use `os.environ` at load time:
+- `windows_commands.py` — all BringApp paths and Choice directory/edit_location dicts
+- `chrome_commands.py` — SAVE_THE_LISTS path
+- `command_line_commands.py` — OneDrive symlink command
+- `reading_commands.py` — user path
+
+### Needs manual attention on the new machine
+
+**Claude memory folder path**
+The memory folder is stored at a path derived from the project directory name:
+`~\.claude\projects\c--Users-Nate-AppData-Local-caster\memory\`
+On the new machine this will be `c--Users-Jamie-AppData-Local-caster`. After cloning `claude-config-backup`, manually move/rename the memory folder:
+```
+C:\Users\Jamie\.claude\projects\c--Users-Nate-AppData-Local-caster\memory\
+→ rename parent folder to: c--Users-Jamie-AppData-Local-caster
+```
+[Claude can help] I can do this rename automatically once running on the new machine.
+
+**Stream Deck button paths**
+Stream Deck buttons that call `MAINFUN.bat` use relative-style calls (just `MAINFUN.bat FunctionName`) so those should be fine. If any buttons have full absolute paths, they'll need updating. Check after setup.
+
+**App version paths in windows_commands.py**
+`BringApp` calls still contain version numbers (e.g. `Discord\app-1.0.9016`). These will likely change on reinstall — update them once apps are installed.
+[Claude can help] Run "go discord" and if it fails, update the version number in the path.
+
+**Dragon profile**
+Dragon stores the profile in OneDrive, but the profile may contain internal references to `C:\Users\Nate`. If Dragon has issues after restoring the profile, re-run acoustic training or create a new profile.
+
+**Caster settings files**
+Check `C:\Users\Jamie\AppData\Local\caster\settings\` for any hardcoded paths after restoring. `settings.toml` and `rules.toml` may reference old paths.
+[Claude can help] Search and fix these after the new install.
 
 ---
 
