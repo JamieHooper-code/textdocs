@@ -8,7 +8,7 @@
 
 These have no backups. Export/document settings now or they're gone.
 
-- [x] **Display Fusion** — backup exported 2026-03-26 as `DisplayFusion Backup (2026-03-26).reg` in root of Important folder on GitHub (`desktop-important`) (registry export, restore by double-clicking)
+- [x] **Display Fusion** — backup exported 2026-03-26 as `Backups from old PC/DisplayFusion Backup (2026-03-26).reg` in `desktop-important` (registry export, restore by double-clicking)
 - [ ] **PowerToys / FancyZones** — export via PowerToys Settings > General > Backup & Restore (no backup exists)
 - [ ] **VS Code** — Settings Sync is tied to your Microsoft/GitHub account; verify it's enabled (Settings > Turn on Settings Sync) so extensions and config restore automatically
 
@@ -81,7 +81,7 @@ Goal: Full voice command stack working so setup of everything else is faster.
 
 ### 2.4 SoundSwitch
 - [ ] Install SoundSwitch
-- [ ] Restore profile/settings from Phase 0 backup
+- [ ] Copy `Backups from old PC/SoundSwitchConfiguration.json` from `desktop-important` to `%APPDATA%\SoundSwitch\SoundSwitchConfiguration.json`
 - [ ] Verify tilde hotkey → AHK macro connection works
 
 ---
@@ -97,7 +97,7 @@ Goal: Screen layout and virtual desktops working.
     bzekhNBPDLUeUPRd1H0wDwZ18usnjKzp2HxaQ_W61kbgXcliO4f2PgkgZ3X35y4Mrc38E3
     6Y2Dl7Ndc7M1Djo8l7znOexDCgbyVR_FtwTmKFzc_DUNXb6SnaCFeRVjxcrA=
     ```
-  - Settings backup: `DisplayFusion Backup (2026-03-26).reg` in root of `desktop-important` repo
+  - Settings backup: `Backups from old PC/DisplayFusion Backup (2026-03-26).reg` in `desktop-important`
   - Configure monitor layout, taskbars, hotkeys
 - [ ] **Microsoft PowerToys / FancyZones** — install from Microsoft Store or GitHub
   - Set up zone layouts for each monitor
@@ -126,11 +126,13 @@ These don't affect accessibility, install as needed:
 - [ ] **Python** — install before qBittorrent search will work (qBittorrent may prompt for this)
 - [ ] **Jackett** — install and run; it powers the jackett search engine in qBittorrent
   - After install, open Jackett (localhost:9117), copy the API key
-  - Paste it into `%LOCALAPPDATA%\qBittorrent\nova3\engines\jackett.json` under `"api_key"`
+  - Paste it into `%LOCALAPPDATA%\qBittorrent\nova3\engines\jackett.json` under `"api_key"` (the copy in `Backups from old PC` has a placeholder — update it after Jackett install)
 - [ ] **qBittorrent** — install, then restore search plugins:
-  - Copy `qBittorrent_nova3` folder from `desktop-important` repo to `%LOCALAPPDATA%\qBittorrent\nova3`
+  - Copy `Backups from old PC/qBittorrent_nova3` folder from `desktop-important` to `%LOCALAPPDATA%\qBittorrent\nova3`
   - Rutracker will re-authenticate automatically on first search (credentials saved in `rutracker.json`)
   - All other engines (piratebay, solidtorrents, limetorrents, etc.) work immediately
+- [ ] **VoiceMeeter** — install, then copy `Backups from old PC/VoiceMeeterDefault.xml` from `desktop-important` to `%APPDATA%\VoiceMeeterDefault.xml`
+- [ ] **OpenRGB** — install, then copy `Backups from old PC/OpenRGB.json` from `desktop-important` to `%APPDATA%\OpenRGB\OpenRGB.json`
 - [ ] **Everything** (voidtools) — install, indexing runs automatically
 - [ ] **Signal** — install, link as linked device or restore from backup
 - [ ] **Kindle** — install, log in to Amazon account
@@ -161,13 +163,15 @@ Install if/when needed. None of these are required for the core accessibility st
 | Windows Virtual Desktop Enhancer | OneDrive + GitHub |
 | eViacam | **Nowhere — back up in Phase 0** |
 | PrecisionGazeMouse | **Nowhere — back up in Phase 0** |
-| Display Fusion | GitHub (`desktop-important`) — `DisplayFusion Backup (2026-03-26).reg` (root of repo) |
+| Display Fusion | GitHub (`desktop-important`) — `Backups from old PC/DisplayFusion Backup (2026-03-26).reg` |
+| SoundSwitch | GitHub (`desktop-important`) — `Backups from old PC/SoundSwitchConfiguration.json` |
+| VoiceMeeter | GitHub (`desktop-important`) — `Backups from old PC/VoiceMeeterDefault.xml` |
+| OpenRGB | GitHub (`desktop-important`) — `Backups from old PC/OpenRGB.json` |
 | Tobii | Likely re-downloadable; check account |
-| SoundSwitch | Check if it has export |
 | Vimium | Google account sync |
 | VS Code settings | Microsoft account sync |
 | Anki decks | AnkiWeb account |
-| qBittorrent search plugins | GitHub (`desktop-important`) — `qBittorrent_nova3/` folder |
+| qBittorrent search plugins | GitHub (`desktop-important`) — `Backups from old PC/qBittorrent_nova3/` |
 
 ---
 
