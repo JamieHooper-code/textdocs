@@ -8,7 +8,7 @@
 
 These have no backups. Export/document settings now or they're gone.
 
-- [x] **Display Fusion** — backup exported 2026-03-26 as `TEXTDOCS/programming/DisplayFusion Backup (2026-03-26).reg` (registry export, restore by double-clicking)
+- [x] **Display Fusion** — backup exported 2026-03-26 as `DisplayFusion Backup (2026-03-26).reg` in root of Important folder on GitHub (`desktop-important`) (registry export, restore by double-clicking)
 - [ ] **PowerToys / FancyZones** — export via PowerToys Settings > General > Backup & Restore (no backup exists)
 - [ ] **VS Code** — Settings Sync is tied to your Microsoft/GitHub account; verify it's enabled (Settings > Turn on Settings Sync) so extensions and config restore automatically
 
@@ -147,7 +147,7 @@ Install if/when needed. None of these are required for the core accessibility st
 | Windows Virtual Desktop Enhancer | OneDrive + GitHub |
 | eViacam | **Nowhere — back up in Phase 0** |
 | PrecisionGazeMouse | **Nowhere — back up in Phase 0** |
-| Display Fusion | GitHub (`desktop-important`) — `TEXTDOCS/programming/DisplayFusion Backup (2026-03-26).reg` |
+| Display Fusion | GitHub (`desktop-important`) — `DisplayFusion Backup (2026-03-26).reg` (root of repo) |
 | Tobii | Likely re-downloadable; check account |
 | SoundSwitch | Check if it has export |
 | Vimium | Google account sync |
