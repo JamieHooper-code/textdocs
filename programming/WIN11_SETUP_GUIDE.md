@@ -9,7 +9,7 @@
 These have no backups. Export/document settings now or they're gone.
 
 - [x] **Display Fusion** — backup exported 2026-03-26 as `Backups from old PC/DisplayFusion Backup (2026-03-26).reg` in `desktop-important` (registry export, restore by double-clicking)
-- [ ] **PowerToys / FancyZones** — export via PowerToys Settings > General > Backup & Restore (no backup exists)
+- [x] **PowerToys / FancyZones** — settings backed up 2026-03-26 to `Backups from old PC/PowerToys/` in `desktop-important` (FancyZones layouts, hotkeys, all module settings)
 - [ ] **VS Code** — Settings Sync is tied to your Microsoft/GitHub account; verify it's enabled (Settings > Turn on Settings Sync) so extensions and config restore automatically
 
 Verify GitHub/OneDrive has latest versions of:
@@ -95,7 +95,8 @@ Goal: Screen layout and virtual desktops working.
   - Settings backup: `Backups from old PC/DisplayFusion Backup (2026-03-26).reg` in `desktop-important`
   - Configure monitor layout, taskbars, hotkeys
 - [ ] **Microsoft PowerToys / FancyZones** — install from Microsoft Store or GitHub
-  - Set up zone layouts for each monitor
+  - Restore settings: copy contents of `Backups from old PC/PowerToys/` from `desktop-important` to `%LOCALAPPDATA%\Microsoft\PowerToys\`
+  - FancyZones layouts, hotkeys, and all module settings will be restored
 - [ ] **Windows Virtual Desktop Enhancer** — pull from OneDrive/GitHub and install
   - Verify virtual desktop hotkeys work with AHK
 
@@ -128,6 +129,11 @@ These don't affect accessibility, install as needed:
   - All other engines (piratebay, solidtorrents, limetorrents, etc.) work immediately
 - [ ] **VoiceMeeter** — install, then copy `Backups from old PC/VoiceMeeterDefault.xml` from `desktop-important` to `%APPDATA%\VoiceMeeterDefault.xml`
 - [ ] **OpenRGB** — install, then copy `Backups from old PC/OpenRGB.json` from `desktop-important` to `%APPDATA%\OpenRGB\OpenRGB.json`
+- [ ] **Audacity** — install, then restore settings from `Backups from old PC/Audacity/` in `desktop-important`:
+  - Copy `audacity.cfg`, `pluginsettings.cfg`, `pluginregistry.cfg` to `%APPDATA%\audacity\`
+- [ ] **f.lux** — install, sign in to account (settings sync via account)
+- [ ] **Greenshot** — install, then copy `Backups from old PC/Greenshot.ini` from `desktop-important` to `%APPDATA%\Greenshot\Greenshot.ini` (restores hotkeys and capture settings)
+- [ ] **KeyTik** — install, then copy `Backups from old PC/KeyTik/` from `desktop-important` to `%APPDATA%\KeyTik\` (restores pinned AHK profiles)
 - [ ] **Everything** (voidtools) — install, indexing runs automatically
 - [ ] **Signal** — install, link as linked device or restore from backup
 - [ ] **Kindle** — install, log in to Amazon account
@@ -168,6 +174,11 @@ Install if/when needed.
 | VS Code settings | Microsoft account sync |
 | Anki decks | AnkiWeb account |
 | qBittorrent search plugins | GitHub (`desktop-important`) — `Backups from old PC/qBittorrent_nova3/` |
+| Audacity settings | GitHub (`desktop-important`) — `Backups from old PC/Audacity/` |
+| PowerToys / FancyZones | GitHub (`desktop-important`) — `Backups from old PC/PowerToys/` |
+| Greenshot | GitHub (`desktop-important`) — `Backups from old PC/Greenshot.ini` |
+| KeyTik | GitHub (`desktop-important`) — `Backups from old PC/KeyTik/` |
+| f.lux | Account sync |
 
 ---
 
