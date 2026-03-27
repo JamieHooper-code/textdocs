@@ -91,6 +91,13 @@ Goal: Full voice command stack working so setup of everything else is faster.
 Goal: Screen layout and virtual desktops working.
 
 - [ ] **Display Fusion** — install, import settings from Phase 0 backup
+  - License: Jamie Hooper
+    ```
+    101-02-MOAPT66FCF-PQLQIBC3DF-zyd03mTZJQd/D17fzXmsrR_Vpzfqz1tICOSqLDrPz
+    bzekhNBPDLUeUPRd1H0wDwZ18usnjKzp2HxaQ_W61kbgXcliO4f2PgkgZ3X35y4Mrc38E3
+    6Y2Dl7Ndc7M1Djo8l7znOexDCgbyVR_FtwTmKFzc_DUNXb6SnaCFeRVjxcrA=
+    ```
+  - Settings backup: `DisplayFusion Backup (2026-03-26).reg` in root of `desktop-important` repo
   - Configure monitor layout, taskbars, hotkeys
 - [ ] **Microsoft PowerToys / FancyZones** — install from Microsoft Store or GitHub
   - Set up zone layouts for each monitor
