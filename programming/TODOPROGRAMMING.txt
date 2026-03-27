@@ -19,12 +19,14 @@
 14. Make my dictation box right foot pedal Press the choose one button
 15. 
 
-6. Continue improving new tab page
+1. Make my stream deck copying from a to B system work better and more fluidly. 
+
+2. Continue improving new tab page
    a. User profiles (with Google integration)
    b. Fix checkbox spacing
    c. Image debugging workflow
    d. General settings page
-   e. Finalize implementation
+   e. Fingalize implementation
    f. Make new panel of like my current YouTube links or like current tabs/activities/etc? 
    g. Make my new tab page work from anywhere? At least speech
    h. Make my new tab page able to implement things like a poem a day or quote of the day. And make it dynamically pulled them from other websites.

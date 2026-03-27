@@ -2,6 +2,10 @@
 > Organized by priority: get accessible first, then everything else.
 > Items marked [Claude can help] are ones I can assist with directly.
 
+## Note for Claude
+
+This guide is a complete inventory, not a to-do list — not everything here will be installed. Work through it collaboratively: handle technical steps (file copies, config edits, path fixes) as they come up, but check in before installing apps since Jamie wants to keep the new machine uncluttered. When in doubt, ask.
+
 ---
 
 ## PHASE 0 — Before You Start
@@ -112,8 +116,9 @@ Two monitors — only one is a touchscreen. Windows 11 sometimes assigns touch i
 - [ ] Copy `E:\Old PC Backups\StartupOrder.bat` to the Startup folder on the new machine:
   `C:\Users\Jamie\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\`
 - [ ] The bat uses `%USERPROFILE%` so paths will resolve correctly for the `Jamie` username automatically — no edits needed
-- [ ] Verify Caster shortcut exists at `C:\Users\Jamie\Desktop\Important\Caster` (or update the path in the bat if not)
-- [Claude can help] Copy the file and verify paths once on the new machine
+- [ ] Recreate the `Caster.lnk` shortcut on the new machine — it must point to `C:\Users\Jamie\Documents\Caster\Run_Caster_DNS.bat` with working directory `C:\Users\Jamie\Documents\Caster`, and be saved to `C:\Users\Jamie\Desktop\Important\Caster.lnk`
+  - The bat itself is fine — it uses `%~dp0` (self-relative path), no edits needed
+- [Claude can help] Create the shortcut programmatically once on the new machine
 
 ---
 
@@ -307,7 +312,7 @@ Install if/when needed.
 - Caster rules are at `C:\Users\Jamie\AppData\Local\caster\rules\` (new machine) / `C:\Users\Nate\AppData\Local\caster\rules\` (current machine)
 - All rule files use `castervoice.lib.*` imports — no migration needed on that front
 - Stream Deck profiles are in GitHub; edits go to ProfilesV3 (not V2)
-- User goes by Jamie; file paths use Nate on current machine (legacy), will use Jamie on new machine
+- User is Jamie (she/her); file paths use Nate on current machine (legacy), will use Jamie on new machine
 - Default to Deck A for Stream Deck operations unless Deck B is specified
 - Complex voice command logic belongs in AHK, not Caster Python files
 - `settings.toml` has many hardcoded `C:\Users\Nate` paths that need updating to `C:\Users\Jamie` on the new machine
@@ -414,6 +419,8 @@ These are done — no further action needed before wiping.
 ---
 
 ## Loose Notes
+
+**Foot pedal (Savant Elite 2):** No driver needed — plug-and-play HID. All programming is stored on the pedal's onboard memory, so just plug it in and it works. SmartSet App (for reprogramming) is available at kinesis-ergo.com/support/savant-elite2/ if needed, no account required.
 
 **Eye/head tracking:** Tobii, eViacam, and PrecisionGazeMouse have no backups. Will need to be reconfigured from scratch after install. eViacam and PrecisionGazeMouse settings are not documented anywhere — expect to spend time re-tuning sensitivity and behavior.
 
