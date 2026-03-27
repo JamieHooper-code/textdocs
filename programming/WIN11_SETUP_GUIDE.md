@@ -79,11 +79,6 @@ Goal: Full voice command stack working so setup of everything else is faster.
 - [ ] Verify buttons on both Deck A and Deck B
   - [Claude can help] Add or fix any buttons programmatically
 
-### 2.4 SoundSwitch
-- [ ] Install SoundSwitch
-- [ ] Copy `Backups from old PC/SoundSwitchConfiguration.json` from `desktop-important` to `%APPDATA%\SoundSwitch\SoundSwitchConfiguration.json`
-- [ ] Verify tilde hotkey → AHK macro connection works
-
 ---
 
 ## PHASE 3 — Display & Window Management
@@ -139,10 +134,11 @@ These don't affect accessibility, install as needed:
 
 ---
 
-## PHASE 6 — Optional: Eye/Head Tracking
+## PHASE 6 — Optional
 
-Install if/when needed. None of these are required for the core accessibility stack.
+Install if/when needed.
 
+- [ ] **SoundSwitch** — install, copy `Backups from old PC/SoundSwitchConfiguration.json` from `desktop-important` to `%APPDATA%\SoundSwitch\SoundSwitchConfiguration.json`
 - [ ] **Tobii** — install drivers + software (hardware dependency)
 - [ ] **eViacam** — install and reconfigure (no backup; settings were not exported)
 - [ ] **PrecisionGazeMouse** — install and reconfigure (no backup; settings were not exported)
