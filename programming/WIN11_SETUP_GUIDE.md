@@ -132,7 +132,8 @@ These don't affect accessibility, install as needed:
 - [ ] **Audacity** — install, then restore settings from `Backups from old PC/Audacity/` in `desktop-important`:
   - Copy `audacity.cfg`, `pluginsettings.cfg`, `pluginregistry.cfg` to `%APPDATA%\audacity\`
 - [ ] **f.lux** — install, sign in to account (settings sync via account)
-- [ ] **Greenshot** — install, then copy `Backups from old PC/Greenshot.ini` from `desktop-important` to `%APPDATA%\Greenshot\Greenshot.ini` (restores hotkeys and capture settings)
+- [ ] **ShareX** — install; no existing config to restore (first-time setup)
+- [ ] **ClipboardFusion** — install, then copy `Backups from old PC/clipboardfusion.db` from `desktop-important` to `%LOCALAPPDATA%\ClipboardFusion\clipboardfusion.db`
 - [ ] **KeyTik** — install, then copy `Backups from old PC/KeyTik/` from `desktop-important` to `%APPDATA%\KeyTik\` (restores pinned AHK profiles)
 - [ ] **Everything** (voidtools) — install, indexing runs automatically
 - [ ] **Signal** — install, link as linked device or restore from backup
@@ -176,7 +177,8 @@ Install if/when needed.
 | qBittorrent search plugins | GitHub (`desktop-important`) — `Backups from old PC/qBittorrent_nova3/` |
 | Audacity settings | GitHub (`desktop-important`) — `Backups from old PC/Audacity/` |
 | PowerToys / FancyZones | GitHub (`desktop-important`) — `Backups from old PC/PowerToys/` |
-| Greenshot | GitHub (`desktop-important`) — `Backups from old PC/Greenshot.ini` |
+| ShareX | No backup needed — first-time setup |
+| ClipboardFusion | GitHub (`desktop-important`) — `Backups from old PC/clipboardfusion.db` |
 | KeyTik | GitHub (`desktop-important`) — `Backups from old PC/KeyTik/` |
 | f.lux | Account sync |
 
