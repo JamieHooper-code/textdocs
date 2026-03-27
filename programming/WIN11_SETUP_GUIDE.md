@@ -4,19 +4,12 @@
 
 ---
 
-## PHASE 0 — DO BEFORE YOU WIPE (critical)
+## PHASE 0 — Before You Start
 
-These have no backups. Export/document settings now or they're gone.
+> Note: The old SSD is staying — nothing is being destroyed. This is a new SSD install. Everything on the old drive remains recoverable if needed, just inconvenient.
 
-- [x] **Display Fusion** — backup exported 2026-03-26 as `Backups from old PC/DisplayFusion Backup (2026-03-26).reg` in `desktop-important` (registry export, restore by double-clicking)
-- [x] **PowerToys / FancyZones** — settings backed up 2026-03-26 to `Backups from old PC/PowerToys/` in `desktop-important` (FancyZones layouts, hotkeys, all module settings)
-- [ ] **VS Code** — Settings Sync is tied to your Microsoft/GitHub account; verify it's enabled (Settings > Turn on Settings Sync) so extensions and config restore automatically
-
-Verify GitHub/OneDrive has latest versions of:
-- [ ] Caster rules (rules/ folder) — push any uncommitted changes
-- [ ] AutoHotkey files
-- [ ] Startup program
-- [ ] Stream Deck profiles (already in GitHub per notes)
+- [ ] **Push everything** — do a final commit and push on all repos before switching over
+- [ ] **Anything else?** — take a moment to think if there's anything not in GitHub/OneDrive/E: that you'd miss
 
 ---
 
@@ -35,20 +28,92 @@ Goal: Be able to control the computer without constant pain.
 - [ ] **Vimium** should restore from Chrome sync; verify it loaded
 - [ ] Confirm Vimium keybinds are correct (they sync with Google account)
 
-### 1.3 Dragon NaturallySpeaking
-- [ ] Install Dragon NaturallySpeaking 15
-- [ ] Restore profile from OneDrive (should be at known path in OneDrive)
-- [ ] Run through Dragon's microphone check
-- [ ] Test basic dictation before moving on
+### 1.3 Claude
 
-### 1.4 Claude
 - [ ] Open claude.ai in Chrome — usable immediately, no install needed
-- [ ] Install Claude Code extension in VS Code once VS Code is up (Phase 4)
+- [ ] **Claude desktop app** — download and install from claude.ai/download
+  - Lets you use Claude outside of the browser, with file access and better OS integration
+- [ ] **Claude Code** (CLI) — install via terminal once Node.js is available:
+  ```
+  npm install -g @anthropic-ai/claude-code
+  ```
+  - Can also wait until Phase 4 when dev tools are set up
+- [ ] **Claude Code VS Code extension** — install from the VS Code marketplace once VS Code is up (Phase 4)
 
-### 1.5 AutoHotkey
+---
+
+### 1.4 Touchscreen
+
+Two monitors — only one is a touchscreen. Windows 11 sometimes assigns touch input to the wrong display, and sometimes fails to recognize the touchscreen at all on fresh installs.
+
+**Step 1: Check if Windows detects it**
+- Open Device Manager (`Win + X` → Device Manager)
+- Look under **Human Interface Devices** for entries like "HID-compliant touch screen"
+- If it's there with no warning icon, touch is likely working — test it before going further
+
+**Step 2: If touch isn't working**
+- In Device Manager, right-click the touchscreen entry → **Update driver** → Search automatically
+- If no entry exists at all: Action → **Scan for hardware changes**
+- If there's a yellow warning icon: right-click → **Uninstall device** → restart — Windows will reinstall the driver on reboot
+
+**Step 3: If driver install fails or touch is still broken**
+- Go to the manufacturer's website for your touchscreen/monitor and download the driver manually
+- Alternatively: Windows Update sometimes has the driver — Settings → Windows Update → Advanced options → Optional updates
+
+**Step 4: Calibrate if needed**
+- Search "Calibrate the screen for pen or touch input" in Start
+- Run the touch calibration wizard
+
+**Step 5: If touch works but registers on the wrong monitor**
+- Search "Tablet PC Settings" → Display tab → **Setup** → follow the prompt to tap the correct screen
+- Then Calibrate → Touch to fine-tune accuracy
+
+> [Claude can help] If Device Manager shows the device but touch still isn't responding, share what the device entry says and I can help diagnose.
+
+---
+
+### 1.5 Dragon — UPGRADE TO DRAGON PROFESSIONAL v16
+
+> **Dragon 15 will NOT work long-term on Windows 11.** Dragon 15 uses the Windows `JournalPlaybackHook` API to inject dictated text into apps. Microsoft deprecated this in Windows 11 and is removing it with each feature update. As of 24H2, dictation in browser address bars and many apps is already broken; it will get worse. Dragon 16 was rebuilt for Windows 11 and does not have this dependency.
+>
+> **You must buy Dragon Professional v16** (upgrade pricing is available from Dragon 15). The "Dragon Professional Anywhere" cloud product is NOT what you want — that's an enterprise server product. You want **Dragon Professional v16** (standalone desktop). Latest version as of early 2026 is approximately 16.10.x.
+
+**Installer location:** `E:\Downloads\Important\Nuance Dragon Professional VLA 16.10.200.044` — already on E: drive, no purchase needed.
+
+> This entire section is handled by Jamie, not Claude. Dragon installation and profile setup is a manual process.
+
+**Install steps:**
+- [ ] Run the Dragon installer from `E:\Downloads\Important\Nuance Dragon Professional VLA 16.10.200.044`
+- [ ] Restore profile: copy `%APPDATA%\Nuance\NaturallySpeaking15\` backup from Phase 0 → place in `%APPDATA%\Nuance\NaturallySpeaking16\` (Dragon 16 can import Dragon 15 profiles)
+  - Alternatively: if the profile import fails or Dragon behaves oddly, delete it and run the New User Wizard fresh — the acoustic model will adapt quickly
+- [ ] Run Dragon's microphone check
+- [ ] Test basic dictation before moving on
+- [ ] Do NOT install Natlink yet — come back to that in Phase 2.1
+
+**If you temporarily must use Dragon 15 on Windows 11** (e.g., while waiting for v16 to arrive):
+- Avoid Windows 11 feature updates until Dragon 16 is installed
+- Known broken in 23H2+: dictation in Chrome address bar, PDFs, file rename dialogs
+- Workaround: use Dragon's "Dictation Box" and paste — unreliable but functional
+
+### 1.6 AutoHotkey
 - [ ] Install AutoHotkey (needed for Caster to function fully)
 - [ ] Clone or pull AHK repo from GitHub (or let OneDrive restore it)
 - [ ] Do NOT start MAINFUNCTIONS.ahk yet — wait until Caster is set up
+
+### 1.7 Startup Program
+
+`StartupOrder.bat` runs at login and launches Caster, AHK scripts, and other essentials in the correct order with delays between them.
+
+**What it does:**
+- Waits 10 seconds, then launches Caster
+- Waits 95 more seconds, then launches `STARTUP.ahk`, `PARENTAUTOHOTKEY.ahk`, and `Footpedals.ahk`
+
+**Restore steps:**
+- [ ] Copy `E:\Old PC Backups\StartupOrder.bat` to the Startup folder on the new machine:
+  `C:\Users\Jamie\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\`
+- [ ] The bat uses `%USERPROFILE%` so paths will resolve correctly for the `Jamie` username automatically — no edits needed
+- [ ] Verify Caster shortcut exists at `C:\Users\Jamie\Desktop\Important\Caster` (or update the path in the bat if not)
+- [Claude can help] Copy the file and verify paths once on the new machine
 
 ---
 
@@ -56,13 +121,61 @@ Goal: Be able to control the computer without constant pain.
 
 Goal: Full voice command stack working so setup of everything else is faster.
 
-### 2.1 Python + Caster Dependencies
-- [ ] Install Python (check which version Caster requires — likely 3.x)
-- [ ] Install Caster and dragonfly2 via pip
-- [ ] Restore both Caster folders from OneDrive/GitHub:
-  - AppData Caster folder (user data/settings)
-  - Rules folder (the GitHub repo at `c:\Users\Nate\AppData\Local\caster\rules`)
-- [ ] Verify `settings/rules.toml` has all rules listed in `_enabled_ordered`
+### 2.1 Python + Natlink + Caster
+
+> This section is the most technically involved part of the whole setup. Read it fully before starting. The order matters.
+
+#### Why Python must be 32-bit
+Natlink is the bridge between Dragon and Python. Dragon's plugin API is 32-bit, so Natlink must be 32-bit, which means Python must also be 32-bit. This is true even on a 64-bit machine. You can have a 64-bit Python for other things (e.g., Anaconda, VS Code) — they coexist fine — but Natlink and Caster must run on the 32-bit Python.
+
+**Required Python version: 3.10.x 32-bit** (the Natlink installer may handle this automatically, but if not, get it from python.org — make sure to select the "Windows installer (32-bit)" option for Python 3.10)
+
+---
+
+#### Step-by-step install order
+
+**Step 1: Install Python 3.10 32-bit**
+- [ ] Go to python.org → Downloads → Python 3.10.x → scroll to "Files" → download **"Windows installer (32-bit)"**
+- [ ] During install: check "Add Python to PATH" — but note this is the 32-bit Python, and you may not want it as the system default if you have other Python installs
+- [ ] Verify after install: `py -3.10-32 --version` should return `Python 3.10.x`
+- [Claude can help] Verify the Python architecture: `py -3.10-32 -c "import struct; print(struct.calcsize('P')*8)"` should print `32`
+
+**Step 2: Install Natlink v5.5.7**
+- [ ] Download from: github.com/dictation-toolbox/natlink/releases (get the latest `.exe` installer)
+- [ ] Run the installer — it will detect your Dragon install and your Python 3.10 32-bit
+- [ ] After install, open the Natlink configuration GUI (it creates a Start Menu entry: "Configure NatLink via GUI")
+- [ ] In the GUI: click **(re)Register NatLink** — this registers Natlink as a Dragon plugin
+- [ ] Restart Dragon — if Natlink is working, Dragon's splash screen will mention Natlink loading, and a "Messages from NatLink" window may appear
+
+> **If Natlink doesn't register:** This usually means either (a) wrong Python architecture — Natlink found a 64-bit Python instead of 32-bit, or (b) Dragon wasn't fully closed when you ran the installer. Close Dragon completely, re-run the Natlink installer, re-register via GUI.
+
+**Step 3: Clone the Caster repos from GitHub**
+- [ ] Clone `user-caster` (your rules + settings) to `C:\Users\Jamie\AppData\Local\caster` via SSH
+- [ ] Clone `caster-main` (the Caster source) to `C:\Users\Jamie\Documents\Caster` via SSH
+  - SSH must be set up first — see the SSH section below
+
+**Step 4: Install Caster Python dependencies**
+- [ ] Using the **32-bit pip** (important!): `py -3.10-32 -m pip install -r C:\Users\Jamie\Documents\Caster\requirements.txt`
+- [ ] If `wxpython` install fails, try: `py -3.10-32 -m pip install wxpython` (without a pinned version)
+- [Claude can help] Debug any pip install failures
+
+**Step 5: Update settings.toml**
+- [ ] Open `C:\Users\Jamie\AppData\Local\caster\settings\settings.toml`
+- [ ] Update all `C:\Users\Nate` references → `C:\Users\Jamie`
+  - Specifically: `USER_DIR`, `BASE_PATH`, `ENGINE_PATH`, `REBOOT_PATH`, `AHK_PATH`, `DLL_PATH`, and all other path entries
+  - `ENGINE_PATH` should now point to Dragon 16: `C:\Program Files (x86)\Nuance\NaturallySpeaking16\Program\natspeak.exe` (verify the actual install path)
+- [Claude can help] Do the full search-and-replace on settings.toml once you're on the new machine
+
+**Step 6: Verify rules are enabled**
+- [ ] Open `C:\Users\Jamie\AppData\Local\caster\settings\rules.toml`
+- [ ] Confirm all your rule names are listed in `_enabled_ordered`
+- [Claude can help] Compare the rules.toml list against the actual .py files in the rules/ folder
+
+**Step 7: Test Caster**
+- [ ] Start Dragon first, then Caster (or use your startup program)
+- [ ] Say the test phrase from the first rule in any file (each rule has a debug entry at the top — e.g., "Example Commands are working")
+- [ ] If a rule fails to load, Dragon or the Natlink Messages window will show the Python error
+- [Claude can help] Debug any rule load errors — most are import path issues or settings.toml path problems
 
 ### 2.2 Startup Program
 - [ ] Pull startup program from OneDrive/GitHub
@@ -158,7 +271,7 @@ Install if/when needed.
 
 | Tool | Backup Location |
 |---|---|
-| Dragon profile | OneDrive |
+| Dragon profile | Phase 0 backup to `desktop-important` + OneDrive. Lives at `%APPDATA%\Nuance\NaturallySpeaking15\` (Dragon 15) or `\NaturallySpeaking16\` (Dragon 16) |
 | Caster rules folder | OneDrive + GitHub |
 | Caster AppData folder | OneDrive + GitHub |
 | Startup program | OneDrive + GitHub |
@@ -188,13 +301,16 @@ Install if/when needed.
 
 ## Notes for Claude
 
-- This system uses Dragon NaturallySpeaking 15 + Caster/dragonfly2
+- This system uses Dragon Professional v16 + Natlink v5.5.7 + Caster/dragonfly2 (on the new machine; currently Dragon 15 on Windows 10)
+- Python for Caster/Natlink must be **32-bit, specifically Python 3.10.x 32-bit** — do not use 64-bit Python for Caster-related tasks
 - AHK is called via `MAINFUN.bat` → `MAINFUNCTIONS.ahk` which `#Include`s helper files
-- Caster rules are at `c:\Users\Nate\AppData\Local\caster\rules\`
+- Caster rules are at `C:\Users\Jamie\AppData\Local\caster\rules\` (new machine) / `C:\Users\Nate\AppData\Local\caster\rules\` (current machine)
+- All rule files use `castervoice.lib.*` imports — no migration needed on that front
 - Stream Deck profiles are in GitHub; edits go to ProfilesV3 (not V2)
-- User goes by Jamie; file paths use Nate (legacy)
+- User goes by Jamie; file paths use Nate on current machine (legacy), will use Jamie on new machine
 - Default to Deck A for Stream Deck operations unless Deck B is specified
 - Complex voice command logic belongs in AHK, not Caster Python files
+- `settings.toml` has many hardcoded `C:\Users\Nate` paths that need updating to `C:\Users\Jamie` on the new machine
 
 ---
 
@@ -264,8 +380,8 @@ Stream Deck buttons that call `MAINFUN.bat` use relative-style calls (just `MAIN
 Dragon stores the profile in OneDrive, but the profile may contain internal references to `C:\Users\Nate`. If Dragon has issues after restoring the profile, re-run acoustic training or create a new profile.
 
 **Caster settings files**
-Check `C:\Users\Jamie\AppData\Local\caster\settings\` for any hardcoded paths after restoring. `settings.toml` and `rules.toml` may reference old paths.
-[Claude can help] Search and fix these after the new install.
+`settings.toml` has many hardcoded `C:\Users\Nate` paths that all need updating to `C:\Users\Jamie`. Specifically: `USER_DIR`, `BASE_PATH`, `ENGINE_PATH`, `REBOOT_PATH`, `AHK_PATH`, `DLL_PATH`, and others. Also update `ENGINE_PATH` to point to Dragon 16 (`NaturallySpeaking16`) instead of Dragon 15 (`NaturallySpeaking15`).
+[Claude can help] Do a full search-and-replace on settings.toml — just say "fix settings.toml paths" and I'll handle it.
 
 **Custom PATH entries to re-add**
 These were manually added and won't be set automatically. Add via System Properties > Environment Variables > User PATH:
@@ -285,8 +401,40 @@ Note: PATH currently has many duplicates — good opportunity to clean it up on 
 
 ---
 
+## Completed Pre-Wipe Backups
+
+These are done — no further action needed before wiping.
+
+| Item | Backup Location | Restore Instructions |
+|---|---|---|
+| **Display Fusion** | `desktop-important/Backups from old PC/DisplayFusion Backup (2026-03-26).reg` + `E:\Old PC Backups\` | Double-click the `.reg` file after installing Display Fusion |
+| **PowerToys / FancyZones** | `desktop-important/Backups from old PC/PowerToys/` + `E:\Old PC Backups\` | Copy contents to `%LOCALAPPDATA%\Microsoft\PowerToys\` after installing PowerToys |
+| **Dragon profile** | `E:\Old PC Backups\Nate_DgnRenamed_DgnRenamed_DgnRenamed\` (1.1 GB, from `C:\ProgramData\Nuance\NaturallySpeaking15\Users\`) | Dragon menu → Manage User Profiles → Restore User Profile → point at `E:\Old PC Backups\Nate_DgnRenamed_DgnRenamed_DgnRenamed\` |
+
+---
+
 ## Loose Notes
 
 **Eye/head tracking:** Tobii, eViacam, and PrecisionGazeMouse have no backups. Will need to be reconfigured from scratch after install. eViacam and PrecisionGazeMouse settings are not documented anywhere — expect to spend time re-tuning sensitivity and behavior.
 
 **SoundSwitch:** Config backed up to `Backups from old PC/SoundSwitchConfiguration.json` — see Phase 6 for restore instructions.
+
+---
+
+## Future Consideration: Talon Voice
+
+> This is not an action item. Just something to be aware of for the long term.
+
+The Dragon + Natlink + Caster stack that this setup uses is aging. As of early 2026:
+
+- **Caster** is in maintenance mode — sporadic bug fixes, no new development, last formal release was 2019
+- **Dragon Professional v16** will likely be the last standalone desktop Dragon ever released — Nuance (now owned by Microsoft) is investing in cloud/enterprise products, not the desktop version
+- **The whole dependency chain** (Dragon → Natlink → Dragonfly2 → Caster) is low-activity; any link could break on a future Windows update with a slow or no fix
+
+**Talon Voice** (talonvoice.com) is where the voice coding community has largely moved. Key points:
+- Does not require Dragon — has its own built-in speech engine (Conformer D), competitive with Dragon for command recognition
+- Actively developed, large community, free at the base tier
+- Works on Windows 11, macOS, and Linux
+- Your existing Caster rules can't be mechanically ported — the syntax is different — but the concepts map directly and the rewrite would take days, not weeks
+
+**The realistic timeline:** Dragon 16 + Caster will likely continue working for another 2–4 years before something breaks irreparably. No need to act now. But if there's ever a moment where Dragon or Caster breaks badly and requires significant debugging, that's the natural time to evaluate switching rather than fighting to fix legacy infrastructure.
