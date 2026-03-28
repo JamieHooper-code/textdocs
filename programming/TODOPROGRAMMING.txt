@@ -1,3 +1,4 @@
+1. Add spotify voice commands for all of my playlists and stuff. Spot blank 
 3. Improve Stream Deck programmability
    - RESEARCH DONE: Elgato officially does not support switching user profiles externally.
    - The switchToProfile WebSocket API only works with read-only profiles bundled inside a plugin — not your existing profiles.

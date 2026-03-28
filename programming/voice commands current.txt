@@ -23,11 +23,30 @@ Display Fusion
   - window main
   - window main landscape
 
+Chrome
+------
+  Tab splitting: split left/right/main/top/bot/twin
+
 Windows
 -------
   - begone demon
   - begone foul demon
   - window next desktop
+  Snapping: snap left/right/main/top/bot/twin
   Open system: "open <item> [<dest>]"
     Items:  to do, desktop, explorer, everything, important, text
     Dests:  left, right, main, top, bot, twin
+
+Spotify (Global)
+----------------
+  spot swallow <text>      — save current URL under key (snake_case)
+  spot [spit] <text>       — open saved URL in Chrome new tab
+  spot swallow <genre>     — add current URL to genre pool
+  spot <genre>             — open random URL from genre pool
+  Genres: ambient, folk punk, indie folk, sad boi, funk, dance,
+          hip hop, Spanish, miscellaneous, local, harmony
+
+Footpedals
+----------
+  Modes: "mode page"  — left/right pedals = PgUp/PgDn
+         "mode main"  — restore app-specific behavior
