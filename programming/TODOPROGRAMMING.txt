@@ -1,5 +1,3 @@
-1. Add VS Code Codex voice commands
-2. Add Stream Deck icon library voice commands
 3. Improve Stream Deck programmability
    - RESEARCH DONE: Elgato officially does not support switching user profiles externally.
    - The switchToProfile WebSocket API only works with read-only profiles bundled inside a plugin — not your existing profiles.
@@ -7,21 +5,17 @@
      a. Dummy .exe approach: create a silent exe, assign it a Smart Profile in Stream Deck, have AHK run/kill it to trigger the switch. Hacky but no plugin needed.
      b. Custom Node.js plugin: export YouTube profile into a plugin bundle, plugin listens for an external trigger (file/socket) and calls switchToProfile. Cleanest solution but requires building a plugin.
    - Pressing the native Switch Profile button on the deck (6,3 of VS Code profile) already works for manual switching.
-4. Review CLAUDE.md
-5. Fix AHK++ VS Code extension startup issue
-6. Make this file really easy to open
-7. Fix my VS code UI
 8. Fix my right foot pedal in VS code.
 10. Try to click next unread in Google voice
 11. Work through the Claude Google Chrome extension and see what the possibilities are.
 12. With the Google Chrome extension try to extract all of the resources out of a page that someone sent me and then add them to that specific list for that person.
 13. Make a specific panel on my new tab page as a programming checklist to check in with my body and mind when doing longform programming.
-14. Make my dictation box right foot pedal Press the choose one button
 15. 
 
 1. Make my stream deck copying from a to B system work better and more fluidly. 
 
 2. Continue improving new tab page
+   a. Make a version that has tasks that you can check off as completed and they will reset to zero days. So like journaling mmight say five days
    a. User profiles (with Google integration)
    b. Fix checkbox spacing
    c. Image debugging workflow

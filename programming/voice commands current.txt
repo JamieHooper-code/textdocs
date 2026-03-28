@@ -6,10 +6,12 @@ Fast Reference
 
 VS Code
 -------
+  Layout:     fix view
   Navigation: go <n>, go files, find file, file <textnv>, Jump search, palette, settings
   Tabs:       tab <n>, [tab] next/previous, focus, switch, reopen, kill
   AI/Diff:    Codex, robotic, accept, accept all, reject
   Running:    run
+  Claude:     chat kill, chat new, chat search
 
 Programming General
 -------------------
@@ -26,3 +28,6 @@ Windows
   - begone demon
   - begone foul demon
   - window next desktop
+  Open system: "open <item> [<dest>]"
+    Items:  to do, desktop, explorer, everything, important, text
+    Dests:  left, right, main, top, bot, twin
