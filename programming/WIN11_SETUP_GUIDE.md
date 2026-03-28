@@ -1,4 +1,4 @@
-# Windows 11 Fresh Install — Setup Guide
+ Windows 11 Fresh Install — Setup Guide
 > Organized by priority: get accessible first, then everything else.
 > Items marked [Claude can help] are ones I can assist with directly.
 
@@ -120,9 +120,18 @@ Two monitors — only one is a touchscreen. Windows 11 sometimes assigns touch i
   - The bat itself is fine — it uses `%~dp0` (self-relative path), no edits needed
 - [Claude can help] Create the shortcut programmatically once on the new machine
 
+### 1.8 Stream Deck
+- [ ] Install Elgato Stream Deck software
+- [ ] **Quit Stream Deck before restoring profiles**
+- [ ] Pull Stream Deck profiles from GitHub
+- [ ] Copy profiles to `%APPDATA%\Elgato\StreamDeck\ProfilesV3\`
+- [ ] Open Stream Deck — it reads from disk on startup
+- [ ] Verify buttons on both Deck A and Deck B
+  - [Claude can help] Add or fix any buttons programmatically
+
 ---
 
-## PHASE 2 — Voice Commands: Caster + Stream Deck
+## PHASE 2 — Voice Commands: Caster
 
 Goal: Full voice command stack working so setup of everything else is faster.
 
@@ -187,15 +196,6 @@ Natlink is the bridge between Dragon and Python. Dragon's plugin API is 32-bit, 
 - [ ] Run it — this should start Dragon, Caster, AHK, and other components together
 - [ ] Test a few voice commands to confirm Caster + AHK bridge is working
   - [Claude can help] Debug any rule or AHK wiring issues
-
-### 2.3 Stream Deck
-- [ ] Install Elgato Stream Deck software
-- [ ] **Quit Stream Deck before restoring profiles**
-- [ ] Pull Stream Deck profiles from GitHub
-- [ ] Copy profiles to `%APPDATA%\Elgato\StreamDeck\ProfilesV3\`
-- [ ] Open Stream Deck — it reads from disk on startup
-- [ ] Verify buttons on both Deck A and Deck B
-  - [Claude can help] Add or fix any buttons programmatically
 
 ---
 

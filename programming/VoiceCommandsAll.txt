@@ -1020,15 +1020,34 @@ visual rules
 File: vscode_commands.py
 
 Commands
-  - run
-  - main code
-  - terminal
-  - accept
-  - Codex
-  - files
-  - find file
-  - Jump search
-  - settings
+  Navigation
+    - main code
+    - terminal
+    - go files
+    - find file
+    - Jump search
+    - settings
+    - go <n>
+    - file <textnv>
+    - palette
+  Tabs
+    - tab <n>
+    - [tab] next
+    - [tab] previous
+    - focus
+    - switch
+    - reopen
+    - kill
+  Running
+    - run
+  AI / Diff
+    - accept
+    - accept all
+    - reject
+    - Codex
+    - robotic
+  Debug
+    - Visual Commands
 
 windows rules
 -------------

@@ -1,0 +1,195 @@
+================================================================================
+  HOTKEY REGISTRY
+  Master reference for all hotkeys across the entire setup.
+  Update this file whenever adding, changing, or removing any hotkey anywhere.
+================================================================================
+
+NAMESPACE KEY
+─────────────
+  GLOBAL-F      F1–F12 remaps (AHK GENERALMACROSALWAYSON.ahk)
+  GLOBAL-CAPS   CapsLock layer (AHK CapsLockMacroPad.ahk)
+  GLOBAL-CTL    Ctrl+Alt+Shift hotkeys (AHK MAINFUNCTIONS.ahk)
+  DF-SNAP       Win+Ctrl+Alt+number (DisplayFusion — window snapping)
+  DF-OTHER      Other DisplayFusion hotkeys
+  WIN           Windows native hotkeys
+  APP-*         Program-specific hotkeys (Chrome, VS Code, etc.)
+
+MODIFIER CONVENTIONS
+────────────────────
+  Two-modifier combos  (e.g. Ctrl+Alt, Alt+Shift)   → Reserved for LOCAL / app-specific
+  Three-modifier combos (Ctrl+Alt+Shift)             → AHK global functions
+  Win + two modifiers  (Win+Ctrl+Alt)                → DisplayFusion global functions
+  F-keys remapped                                    → AHK global convenience shortcuts
+  CapsLock layer                                     → CapsLock macro pad
+
+================================================================================
+  GLOBAL-F  —  F-key remaps  (GENERALMACROSALWAYSON.ahk)
+================================================================================
+  F1        → Ctrl+Shift+Alt+N   → DF: MoveMonitorSize (move+resize to next monitor)
+  F2        → Ctrl+Shift+Alt+M   → DF: MoveMonitorMaximize (move to next + maximize)
+             ⚠️ BROKEN: DF hotkey for MoveMonitorMaximize was changed to Win+Ctrl+Alt+8.
+                Fix: restore DF hotkey OR update F2 to send Win+Ctrl+Alt+8.
+  F3        → Ctrl+Tab           → Next tab
+  F4        → Alt+F4             → Close window
+  F8        → Alt+Tab            → App switcher
+  F9        → Alt+Tab            → App switcher (duplicate)
+  F10       → Mouse click at 25% of screen (center-left)
+  F12       → Mouse click at 75% of screen (center-right)
+  ScrollLock→ Ctrl+Shift+Alt+Q   → MouseMoverEyes: mouse jiggle + triple-click
+  Pause     → Alt+L              → (unknown — check usage)
+  Backtick ` → Ctrl+Alt+Shift+D  → Microphone toggle
+
+================================================================================
+  GLOBAL-CAPS  —  CapsLock layer  (CapsLockMacroPad.ahk)
+================================================================================
+  CapsLock           → Toggle CapsLock layer on/off
+  [CapsLock] + c     → Ctrl+C (copy)
+  [CapsLock] + v     → Ctrl+V (paste)
+  [CapsLock] + r     → Ctrl+W (close tab)
+  [CapsLock] + t     → Ctrl+T (new tab)
+  [CapsLock] + ,     → Alt+F4 (close window)
+  [CapsLock] + Tab   → Alt+Tab
+  [CapsLock] + F4    → Alt+F4
+  [CapsLock] + Right → Shift+Right
+  [CapsLock] + Left  → Shift+Left
+  [CapsLock] + Up    → Shift+Up
+  [CapsLock] + Down  → Shift+Down
+  [CapsLock] + z     → Ctrl+Alt+Shift+D (mic toggle)
+  [CapsLock] + f     → F11 (fullscreen)
+  [CapsLock] + q     → Scroll up (center of active window)
+  [CapsLock] + w     → Scroll down (center of active window)
+  [CapsLock] + a     → Alt+Tab
+  [CapsLock] + p     → Media play/pause
+
+================================================================================
+  GLOBAL-CTL  —  Ctrl+Alt+Shift hotkeys  (MAINFUNCTIONS.ahk — SwitchThree)
+================================================================================
+  Ctrl+Alt+Shift+7   → SwitchThree(7) — context-aware:
+                          DictationBox: (none)
+                          YouTube: Seek back
+                          Chess: Previous move
+                          Kindle: Previous page
+                          VS Code: ClaudeCodeAccept(false)
+                          VLC: Seek back
+                          Chrome: (varies)
+                          Default: (none)
+  Ctrl+Alt+Shift+8   → SwitchThree(8) — context-aware:
+                          DictationBox: Alt+T
+                          YouTube: Play/pause
+                          Kindle: Alt+Tab
+                          VS Code: Ctrl+Shift+8
+                          VLC: Play/pause
+                          Default: Alt+Tab
+  Ctrl+Alt+Shift+9   → SwitchThree(9) — context-aware:
+                          DictationBox: Alt+1
+                          YouTube: Seek forward
+                          Kindle: Next page
+                          VS Code: ClaudeCodeAccept(true)
+                          VLC: Seek forward
+                          Default: (none)
+
+  Ctrl+Alt+Shift+N   → (received by DF) MoveMonitorSize — used by F1
+  Ctrl+Alt+Shift+M   → (received by DF) MoveMonitorMaximize — used by F2 ⚠️ BROKEN
+  Ctrl+Alt+Shift+L   → (received by DF) LoadNextMonitorProfile
+
+  Ctrl+Alt+N         → Mouse click at 25% of screen (center-left)
+  Ctrl+Alt+M         → Mouse click at 75% of screen (center-right)
+
+  Ctrl+Alt+Shift+Q   → MouseMoverEyes: mouse jiggle + triple-click
+  Ctrl+Alt+Shift+W   → MouseMoverEyes: toggle mic 1/2
+
+================================================================================
+  DF-SNAP  —  DisplayFusion window snapping  (registry: HotKeys)
+================================================================================
+  Win+Ctrl+Alt+1     → Move window to primary monitor          (WindowPrimaryMonitor)
+  Win+Ctrl+Alt+2     → Move window to next monitor             (MoveMonitor)
+  Win+Ctrl+Alt+3     → Snap left half of current monitor       (SizeLeft)
+  Win+Ctrl+Alt+4     → Snap right half of current monitor      (SizeRight)
+  Win+Ctrl+Alt+5     → Snap top half of current monitor        (SizeTop)
+  Win+Ctrl+Alt+6     → Snap bottom half of current monitor     (SizeBottom)
+  Win+Ctrl+Alt+7     → Maximize on current monitor             (WindowCurrentMonitorMaximize)
+  Win+Ctrl+Alt+8     → Move to next monitor + maximize         (MoveMonitorMaximize)
+
+  AHK voice/snap functions built on top of these:
+    SnapPrimaryLeft    = Win+Ctrl+Alt+1, then Win+Ctrl+Alt+3
+    SnapPrimaryRight   = Win+Ctrl+Alt+1, then Win+Ctrl+Alt+4
+    SnapPrimaryMain    = Win+Ctrl+Alt+1, then Win+Ctrl+Alt+7
+    SnapSecondaryTop   = Win+Ctrl+Alt+1, Win+Ctrl+Alt+2, then Win+Ctrl+Alt+5
+    SnapSecondaryBottom= Win+Ctrl+Alt+1, Win+Ctrl+Alt+2, then Win+Ctrl+Alt+6
+    SnapSecondaryMain  = Win+Ctrl+Alt+1, Win+Ctrl+Alt+2, then Win+Ctrl+Alt+7
+
+================================================================================
+  DF-OTHER  —  Other DisplayFusion hotkeys
+================================================================================
+  Ctrl+Shift+Alt+N   → MoveMonitorSize (move+resize to next monitor)   [used by F1]
+  Ctrl+Shift+Alt+M   → MoveMonitorMaximize  ⚠️ OVERRIDDEN — now Win+Ctrl+Alt+8
+  Ctrl+Shift+Alt+L   → LoadNextMonitorProfile
+
+================================================================================
+  WIN  —  Windows native hotkeys
+================================================================================
+  Win+Left/Right     → Snap window to left/right half (Windows Snap)
+  Win+Up             → Maximize window
+  Win+Down           → Restore/minimize window
+  Win+Shift+Left/Right → Move window to previous/next monitor
+  Win+Ctrl+Left/Right  → Switch virtual desktop
+  Win+Ctrl+1–9       → Jump to virtual desktop N
+  Win+D              → Show desktop
+  Win+Tab            → Task view
+  Win+L              → Lock screen
+  Win+V              → Clipboard history
+  Win+1–9            → Launch/focus taskbar app N
+  Win+R              → Run dialog
+  Win+E              → File Explorer
+  Win+S              → Search
+
+================================================================================
+  APP-CHROME
+================================================================================
+  Ctrl+T             → New tab
+  Ctrl+W             → Close tab
+  Ctrl+Tab           → Next tab
+  Ctrl+Shift+Tab     → Previous tab
+  Ctrl+N             → New window
+  Ctrl+Shift+N       → Incognito window
+  Ctrl+L             → Focus address bar
+  Ctrl+F             → Find in page
+  Ctrl+R             → Reload
+
+================================================================================
+  APP-VSCODE
+================================================================================
+  (fill in as needed)
+
+================================================================================
+  RESERVED / DO NOT USE
+================================================================================
+  Win+Ctrl+Alt+1–8   → Reserved for DF-SNAP (fully occupied)
+  Ctrl+Alt+Shift+7/8/9 → Reserved for SwitchThree (MAINFUNCTIONS.ahk)
+  F1–F4, F8–F10, F12  → Reserved for GLOBAL-F remaps
+
+================================================================================
+  STREAM DECK HOTKEY BUTTONS (direct keystrokes, not MAINFUN.bat)
+================================================================================
+  NOTE: Stream Deck buttons that send hotkeys directly are vulnerable to breakage
+  when DF hotkeys are reassigned. Always check here before changing DF hotkeys.
+
+  Win+Ctrl+Alt+8    → 9 Stream Deck pages (MoveMonitorMaximize) — updated from Ctrl+Shift+Alt+M
+  Ctrl+Shift+Alt+N  → 2 Stream Deck pages (MoveMonitorSize) — still working
+  Ctrl+Alt+M        → 54 Stream Deck pages (AHK: mouse click 75% — NOT DF)
+  Ctrl+Alt+N        → 54 Stream Deck pages (AHK: mouse click 25% — NOT DF)
+  Alt+Tab           → 58 Stream Deck pages (window switcher)
+  F13               → 20 Stream Deck pages
+  F14               → 20 Stream Deck pages
+  Ctrl+Shift+S      → 12 Stream Deck pages
+
+================================================================================
+  KNOWN CONFLICTS / ISSUES
+================================================================================
+  ✅  F2 FIXED: F2 now sends Win+Ctrl+Alt+8 directly (was Ctrl+Shift+Alt+M → broken DF hotkey).
+      All 9 Stream Deck buttons that sent Ctrl+Shift+Alt+M updated to send Win+Ctrl+Alt+8.
+
+  ⚠️  F1 dependency: F1 → Ctrl+Shift+Alt+N → DF MoveMonitorSize. This was NOT
+      changed so F1 still works — but note the dependency (2 SD pages also use it).
+
+================================================================================

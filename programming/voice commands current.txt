@@ -6,11 +6,10 @@ Fast Reference
 
 VS Code
 -------
-  - Codex
-  - files
-  - find file
-  - Jump search
-  - settings
+  Navigation: go <n>, go files, find file, file <textnv>, Jump search, palette, settings
+  Tabs:       tab <n>, [tab] next/previous, focus, switch, reopen, kill
+  AI/Diff:    Codex, robotic, accept, accept all, reject
+  Running:    run
 
 Programming General
 -------------------

@@ -1,0 +1,88 @@
+ATLANTIC LOGISTICS
+Programming Possibilities
+========================================
+
+== STRENGTHS ==
+
+AUTOMATION
+- Workflow automation: turning repetitive manual steps into scripts or macros
+- GUI automation (controlling applications programmatically)
+- Backend automation: scheduled tasks, file processing, data pipelines
+- General macro/hotkey systems for productivity
+- Web scraping and data collection from external sources
+- Familiar with:
+  PowerShell, Python, Bash, AutoHotkey, frontend and backend automated testing
+
+MACHINE LEARNING / AI
+- Building and applying ML models and neural networks
+- Using AI APIs and tools for practical applications
+- Knowing when ML is the right tool and when it isn't
+
+DATA ANALYSIS
+- Taking a spreadsheet or dataset and finding patterns, summaries, anomalies
+- Visualizing data in a readable, useful way
+- Cleaning and transforming messy data
+- Familiar with:
+  pandas, NumPy, matplotlib, seaborn, Plotly, CSV/JSON processing, regex
+
+WEB / UI DEVELOPMENT
+- Building web-based interfaces and dashboards
+- Data visualization in the browser
+- Full-stack capable -- comfortable on both frontend and backend, not a specialist in either
+- Familiar with:
+  HTML, CSS, JavaScript, PHP, Python, Django
+
+DATABASES
+- Querying and manipulating data with SQL
+- Familiar with:
+  MySQL, SQLite
+
+RESEARCH
+- Evaluating tools and libraries for a given problem
+- Comparing options, trying things out, making a recommendation
+- Figuring out what's possible and what the tradeoffs are
+
+
+== MY IDEAL SCENARIO ==
+
+BEST FIT
+- Analyzing datasets, spreadsheets, or documents and building on top of them
+- Working entirely on my own Windows PC
+- Building a UI or dashboard to visualize logistics data
+- Working as part of a team or independently
+
+ALSO SOLID
+- Scripting something that runs on a schedule or in response to events
+- Connecting to an API and doing something useful with the data
+- Researching and recommending a technical approach
+
+
+== LIMITATIONS ==
+
+PHYSICAL SETUP
+- I have a hand disability and use voice control + a custom macro system to code
+- I'm highly functional when tasks are aligned with the abilities of my setup
+- I take longer to onboard to new tools since I need to build macros for them first
+
+REMOTE ACCESS
+- RDP is not practical -- my macro setup doesn't carry over to remote desktops
+- SSH / command line is likely fine, though may have a learning curve depending on the task
+- Best case: work is done locally or through APIs, not by remoting into their systems
+
+UNFAMILIAR UIs
+- Tasks requiring manual operation of software I've never used will have a slower ramp-up
+- There's always an initial ramp-up, but once I'm set up I move quickly
+
+WHAT TO CLARIFY EARLY
+- What does the actual workflow look like? (Files? API access? Direct DB access?)
+- Will I need to remote into their systems or can I work from my own machine?
+- What format is the data in?
+
+
+== LOGISTICS-SPECIFIC ANGLES ==
+
+- Analyzing route/load data to find inefficiencies and summarize performance
+- Generating dashboards or reports from raw trucking/dispatch data
+- Automating document processing (invoices, load confirmations, etc.)
+- Integrating with external freight tools or APIs
+- Building internal tools to reduce manual data entry or lookups
