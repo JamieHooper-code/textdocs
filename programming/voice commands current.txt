@@ -27,6 +27,24 @@ Chrome
 ------
   Tab splitting: split left/right/main/top/bot/twin
 
+  Web opener (all modes available for any site):
+    <site>              — open in new Chrome tab
+    <site> same         — navigate current tab
+    <site> split        — new Chrome window (snaps right)
+    <site> split <pos>  — new window + snap (left/right/main/top/bot/twin)
+
+  Sites: cally, robotic, tranny, wells, Discover, Instagram, E-mail,
+         E-mail two, Returns And Orders, Jobs, meditate, Polly Secure,
+         voice, Gmail, spotify
+
+Google Voice
+------------
+  jump unread              — click first unread conversation (UIA-based)
+  text <name>              — navigate to contact's thread via URL
+  Messages / Calls         — switch to Messages or Calls tab
+  reset [voice]            — reload Google Voice URL
+  Mac Call [<name>]        — place a call
+
 Windows
 -------
   - begone demon
@@ -45,6 +63,28 @@ Spotify (Global)
   spot <genre>             — open random URL from genre pool
   Genres: ambient, folk punk, indie folk, sad boi, funk, dance,
           hip hop, Spanish, miscellaneous, local, harmony
+
+  Music page links (spot spit <name>):
+    weaving, mixes, more, discover, today, for you, recent, bandcamp, capacity
+
+  Ambient zones (spot <name>):
+    fjord, durotar, un goro, iron forge, elwynn, elwynn two, uldum,
+    dun morogh, redridge, stranglethorn, stranglethorn two, needles,
+    barrens, thunder bluff, mulgore, mulgore two, mulgore three,
+    ashenvale, teldrassil, teldrassil two, vashj ir, olympus
+
+Stack
+-----
+  stack that                 — grab entire focused field, push to stack (deletes field contents)
+  pop it                     — paste top stack item into focused field
+  open stack [key] [pos]     — open stack file in Notepad++ on secondary monitor
+    pos: top / bot (default) / full
+    e.g. "open stack", "open stack top", "open stack research", "open stack research top"
+  save stack <key>           — copy current stack to named file (does not switch)
+  switch stack <key>         — change active stack (e.g. "switch stack research", "switch stack main")
+  dump stack                 — delete entire current stack
+  list stack                 — show all stack names (current marked with *)
+  Stack files: C:\Users\Nate\Desktop\Important\TEXTDOCS\programming\stacks\
 
 Footpedals
 ----------

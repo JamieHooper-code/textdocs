@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Windows 11 Fresh Install — Setup Guide</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: Arial, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.45;
+    color: #000;
+    background: #fff;
+    padding: 0.6in 0.75in;
+    max-width: 9in;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 16pt;
+    border-bottom: 2px solid #000;
+    padding-bottom: 4px;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    font-size: 9.5pt;
+    color: #444;
+    margin-bottom: 20px;
+  }
+
+  h2 {
+    font-size: 13pt;
+    margin: 20px 0 6px;
+    border-bottom: 1px solid #999;
+    padding-bottom: 2px;
+  }
+  h3 {
+    font-size: 11pt;
+    margin: 14px 0 4px;
+  }
+  h4 {
+    font-size: 10.5pt;
+    margin: 10px 0 4px;
+    font-style: italic;
+  }
+
+  p { margin: 5px 0; }
+
+  ul, ol {
+    margin: 4px 0 4px 1.4em;
+  }
+  li { margin: 2px 0; }
+
+  .checklist { list-style: none; margin-left: 0; }
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin: 4px 0;
+  }
+  .checklist li input[type="checkbox"] {
+    margin-top: 2px;
+    flex-shrink: 0;
+    width: 13px;
+    height: 13px;
+  }
+
+  blockquote {
+    border-left: 3px solid #bbb;
+    padding: 4px 10px;
+    margin: 8px 0;
+    color: #333;
+    font-size: 9.5pt;
+    background: #f9f9f9;
+  }
+  blockquote.warn {
+    border-color: #c00;
+    background: #fff5f5;
+  }
+
+  code {
+    font-family: "Courier New", monospace;
+    font-size: 9pt;
+    background: #f0f0f0;
+    padding: 1px 3px;
+    border-radius: 2px;
+  }
+  pre {
+    font-family: "Courier New", monospace;
+    font-size: 8.5pt;
+    background: #f0f0f0;
+    padding: 8px 10px;
+    margin: 6px 0;
+    border-left: 2px solid #ccc;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 8px 0;
+    font-size: 9.5pt;
+  }
+  th {
+    background: #e8e8e8;
+    border: 1px solid #bbb;
+    padding: 4px 8px;
+    text-align: left;
+  }
+  td {
+    border: 1px solid #bbb;
+    padding: 4px 8px;
+    vertical-align: top;
+  }
+  td:first-child { white-space: nowrap; }
+
+  .tag-claude {
+    font-size: 8.5pt;
+    color: #555;
+    font-style: italic;
+  }
+
+  hr { border: none; border-top: 1px solid #ddd; margin: 18px 0; }
+
+  .phase-header {
+    margin-top: 0;
+  }
+
+  /* Print rules */
+  @media print {
+    body { padding: 0; }
+    h2 { page-break-before: always; }
+    h2.no-break { page-break-before: avoid; }
+    pre, blockquote, table { page-break-inside: avoid; }
+    input[type="checkbox"] { -webkit-appearance: none; appearance: none; border: 1px solid #000; width: 10px; height: 10px; display: inline-block; }
+    input[type="checkbox"]:checked::after { content: "✓"; font-size: 8pt; line-height: 10px; display: block; text-align: center; }
+    @page { margin: 0.75in 0.8in; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Windows 11 Fresh Install — Setup Guide</h1>
+<div class="subtitle">Organized by priority: get accessible first, then everything else. Items marked <em>[Claude can help]</em> are ones Claude can assist with directly.</div>
+<blockquote>The old SSD is staying — nothing is being destroyed. This is a new SSD install. Everything on the old drive remains recoverable if needed, just inconvenient.</blockquote>
+
+<!-- ============================================================ -->
+<h2 class="no-break">PHASE 0 — Before You Start</h2>
+
+<ul class="checklist">
+  <li><input type="checkbox"> <span><strong>Push everything</strong> — do a final commit and push on all repos before switching over</span></li>
+  <li><input type="checkbox"> <span><strong>Anything else?</strong> — take a moment to think if there's anything not in GitHub/OneDrive/E: that you'd miss</span></li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>PHASE 1 — First Hour: Get Input Working</h2>
+<p>Goal: Be able to control the computer without constant pain.</p>
+
+<h3>1.1 Windows + Microsoft Account</h3>
+<ul class="checklist">
+  <li><input type="checkbox"> Install Windows 11</li>
+  <li><input type="checkbox"> Sign in to Microsoft account → OneDrive starts syncing in background</li>
+  <li><input type="checkbox"> Let OneDrive sync before doing anything that depends on it</li>
+</ul>
+
+<h3>1.2 Chrome + Google Account</h3>
+<ul class="checklist">
+  <li><input type="checkbox"> Install Chrome</li>
+  <li><input type="checkbox"> Sign in to Google account → bookmarks, extensions restore automatically</li>
+  <li><input type="checkbox"> <strong>Vimium</strong> should restore from Chrome sync; verify it loaded</li>
+  <li><input type="checkbox"> Confirm Vimium keybinds are correct (they sync with Google account)</li>
+</ul>
+
+<h3>1.3 Claude</h3>
+<ul class="checklist">
+  <li><input type="checkbox"> Open claude.ai in Chrome — usable immediately, no install needed</li>
+  <li><input type="checkbox"> <strong>Claude desktop app</strong> — download and install from claude.ai/download</li>
+  <li><input type="checkbox"> <strong>Claude Code</strong> (CLI) — install via terminal once Node.js is available:<br>
+    <code>npm install -g @anthropic-ai/claude-code</code><br>
+    <span class="tag-claude">(Can also wait until Phase 4 when dev tools are set up)</span>
+  </li>
+  <li><input type="checkbox"> <strong>Claude Code VS Code extension</strong> — install from VS Code marketplace once VS Code is up (Phase 4)</li>
+</ul>
+
+<h3>1.4 Touchscreen</h3>
+<p>Two monitors — only one is a touchscreen. Windows 11 sometimes assigns touch input to the wrong display.</p>
+
+<h4>Step 1: Check if Windows detects it</h4>
+<ul>
+  <li>Open Device Manager (<code>Win + X</code> → Device Manager)</li>
+  <li>Look under <strong>Human Interface Devices</strong> for "HID-compliant touch screen"</li>
+  <li>If it's there with no warning icon, touch is likely working — test before going further</li>
+</ul>
+
+<h4>Step 2: If touch isn't working</h4>
+<ul>
+  <li>Right-click the touchscreen entry → <strong>Update driver</strong> → Search automatically</li>
+  <li>If no entry exists: Action → <strong>Scan for hardware changes</strong></li>
+  <li>If yellow warning icon: right-click → <strong>Uninstall device</strong> → restart</li>
+</ul>
+
+<h4>Step 3: If driver install fails</h4>
+<ul>
+  <li>Go to the monitor manufacturer's website and download the driver manually</li>
+  <li>Or: Settings → Windows Update → Advanced options → Optional updates</li>
+</ul>
+
+<h4>Step 4: Calibrate if needed</h4>
+<ul>
+  <li>Search "Calibrate the screen for pen or touch input" in Start</li>
+</ul>
+
+<h4>Step 5: If touch registers on the wrong monitor</h4>
+<ul>
+  <li>Search "Tablet PC Settings" → Display tab → <strong>Setup</strong> → tap the correct screen</li>
+  <li>Then Calibrate → Touch to fine-tune accuracy</li>
+</ul>
+<p class="tag-claude">[Claude can help] If Device Manager shows the device but touch still isn't responding, share what the device entry says.</p>
+
+<h3>1.5 Dragon — UPGRADE TO DRAGON PROFESSIONAL v16</h3>
+<blockquote class="warn">
+  <strong>Dragon 15 will NOT work long-term on Windows 11.</strong> Dragon 15 uses the deprecated <code>JournalPlaybackHook</code> API. As of 24H2, dictation in browser address bars and many apps is already broken. Dragon 16 was rebuilt for Windows 11.<br><br>
+  Buy <strong>Dragon Professional v16</strong> (standalone desktop) — NOT "Dragon Professional Anywhere" (that's enterprise cloud).<br><br>
+  <strong>Installer location:</strong> <code>E:\Downloads\Important\Nuance Dragon Professional VLA 16.10.200.044</code> — already on E: drive.
+</blockquote>
+
+<ul class="checklist">
+  <li><input type="checkbox"> Run the Dragon installer from <code>E:\Downloads\Important\Nuance Dragon Professional VLA 16.10.200.044</code></li>
+  <li><input type="checkbox"> Restore profile: copy <code>%APPDATA%\Nuance\NaturallySpeaking15\</code> backup → place in <code>%APPDATA%\Nuance\NaturallySpeaking16\</code></li>
+  <li><input type="checkbox"> Run Dragon's microphone check</li>
+  <li><input type="checkbox"> Test basic dictation before moving on</li>
+  <li><input type="checkbox"> <strong>Do NOT install Natlink yet</strong> — come back to that in Phase 2.1</li>
+</ul>
+
+<blockquote>
+  <strong>If you temporarily must use Dragon 15 on Windows 11:</strong><br>
+  Avoid Windows 11 feature updates. Known broken in 23H2+: dictation in Chrome address bar, PDFs, file rename dialogs. Workaround: use Dragon's "Dictation Box" and paste.
+</blockquote>
+
+<h3>1.6 AutoHotkey</h3>
+<ul class="checklist">
+  <li><input type="checkbox"> Install AutoHotkey (needed for Caster to function fully)</li>
+  <li><input type="checkbox"> Clone or pull AHK repo from GitHub (or let OneDrive restore it)</li>
+  <li><input type="checkbox"> <strong>Do NOT start MAINFUNCTIONS.ahk yet</strong> — wait until Caster is set up</li>
+</ul>
+
+<h3>1.7 Startup Program</h3>
+<p><code>StartupOrder.bat</code> runs at login and launches Caster, AHK scripts, and other essentials in order. It waits 10s, launches Caster, then 95s later launches <code>STARTUP.ahk</code>, <code>PARENTAUTOHOTKEY.ahk</code>, and <code>Footpedals.ahk</code>.</p>
+<ul class="checklist">
+  <li><input type="checkbox"> Copy <code>E:\Old PC Backups\StartupOrder.bat</code> to:<br>
+    <code>C:\Users\Jamie\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\</code></li>
+  <li><input type="checkbox"> Uses <code>%USERPROFILE%</code> — no edits needed for Jamie username</li>
+  <li><input type="checkbox"> Recreate <code>Caster.lnk</code> shortcut pointing to <code>C:\Users\Jamie\Documents\Caster\Run_Caster_DNS.bat</code>, saved to <code>C:\Users\Jamie\Desktop\Important\Caster.lnk</code></li>
+</ul>
+<p class="tag-claude">[Claude can help] Create the shortcut programmatically once on the new machine.</p>
+
+<h3>1.8 Stream Deck</h3>
+<ul class="checklist">
+  <li><input type="checkbox"> Install Elgato Stream Deck software</li>
+  <li><input type="checkbox"> <strong>Quit Stream Deck before restoring profiles</strong></li>
+  <li><input type="checkbox"> Pull Stream Deck profiles from GitHub</li>
+  <li><input type="checkbox"> Copy profiles to <code>%APPDATA%\Elgato\StreamDeck\ProfilesV3\</code></li>
+  <li><input type="checkbox"> Open Stream Deck — it reads from disk on startup</li>
+  <li><input type="checkbox"> Verify buttons on both Deck A and Deck B</li>
+</ul>
+<p class="tag-claude">[Claude can help] Add or fix any buttons programmatically.</p>
+
+<!-- ============================================================ -->
+<h2>PHASE 2 — Voice Commands: Caster</h2>
+<p>Goal: Full voice command stack working so setup of everything else is faster.</p>
+
+<h3>2.1 Python + Natlink + Caster</h3>
+<blockquote>This section is the most technically involved part of the whole setup. Read it fully before starting. The order matters.</blockquote>
+
+<p><strong>Why Python must be 32-bit:</strong> Natlink bridges Dragon (32-bit plugin API) to Python. Even on a 64-bit machine, Natlink and Caster must use 32-bit Python. A 64-bit Python can coexist for other things — just keep them separate.</p>
+<p><strong>Required: Python 3.10.x 32-bit</strong></p>
+
+<h4>Step 1: Install Python 3.10 32-bit</h4>
+<ul class="checklist">
+  <li><input type="checkbox"> python.org → Downloads → Python 3.10.x → "Windows installer (32-bit)"</li>
+  <li><input type="checkbox"> Check "Add Python to PATH" during install</li>
+  <li><input type="checkbox"> Verify: <code>py -3.10-32 --version</code> → <code>Python 3.10.x</code></li>
+</ul>
+<p class="tag-claude">[Claude can help] Verify architecture: <code>py -3.10-32 -c "import struct; print(struct.calcsize('P')*8)"</code> → should print <code>32</code></p>
+
+<h4>Step 2: Install Natlink v5.5.7</h4>
+<ul class="checklist">
+  <li><input type="checkbox"> Download from github.com/dictation-toolbox/natlink/releases (latest <code>.exe</code> installer)</li>
+  <li><input type="checkbox"> Run installer — it will detect Dragon and Python 3.10 32-bit</li>
+  <li><input type="checkbox"> Open Natlink config GUI (Start Menu → "Configure NatLink via GUI")</li>
+  <li><input type="checkbox"> Click <strong>(re)Register NatLink</strong></li>
+  <li><input type="checkbox"> Restart Dragon — splash screen should mention Natlink loading</li>
+</ul>
+<blockquote>If Natlink doesn't register: usually wrong Python architecture (64-bit found instead of 32-bit), or Dragon wasn't fully closed. Close Dragon, re-run installer, re-register via GUI.</blockquote>
+
+<h4>Step 3: Clone Caster repos from GitHub (SSH required)</h4>
+<ul class="checklist">
+  <li><input type="checkbox"> Clone <code>user-caster</code> (rules + settings) to <code>C:\Users\Jamie\AppData\Local\caster</code></li>
+  <li><input type="checkbox"> Clone <code>caster-main</code> (Caster source) to <code>C:\Users\Jamie\Documents\Caster</code></li>
+</ul>
+
+<h4>Step 4: Install Caster Python dependencies</h4>
+<ul class="checklist">
+  <li><input type="checkbox"> <code>py -3.10-32 -m pip install -r C:\Users\Jamie\Documents\Caster\requirements.txt</code></li>
+  <li><input type="checkbox"> If <code>wxpython</code> fails: <code>py -3.10-32 -m pip install wxpython</code> (no pinned version)</li>
+</ul>
+<p class="tag-claude">[Claude can help] Debug any pip install failures.</p>
+
+<h4>Step 5: Update settings.toml</h4>
+<ul class="checklist">
+  <li><input type="checkbox"> Open <code>C:\Users\Jamie\AppData\Local\caster\settings\settings.toml</code></li>
+  <li><input type="checkbox"> Replace all <code>C:\Users\Nate</code> → <code>C:\Users\Jamie</code> (USER_DIR, BASE_PATH, ENGINE_PATH, REBOOT_PATH, AHK_PATH, DLL_PATH, etc.)</li>
+  <li><input type="checkbox"> Update ENGINE_PATH to Dragon 16: <code>C:\Program Files (x86)\Nuance\NaturallySpeaking16\Program\natspeak.exe</code></li>
+</ul>
+<p class="tag-claude">[Claude can help] Do the full search-and-replace on settings.toml — just say "fix settings.toml paths".</p>
+
+<h4>Step 6: Verify rules are enabled</h4>
+<ul class="checklist">
+  <li><input type="checkbox"> Open <code>C:\Users\Jamie\AppData\Local\caster\settings\rules.toml</code></li>
+  <li><input type="checkbox"> Confirm all rule names are listed in <code>_enabled_ordered</code></li>
+</ul>
+<p class="tag-claude">[Claude can help] Compare rules.toml list against actual .py files in rules/ folder.</p>
+
+<h4>Step 7: Test Caster</h4>
+<ul class="checklist">
+  <li><input type="checkbox"> Start Dragon first, then Caster (or use startup program)</li>
+  <li><input type="checkbox"> Say the test phrase from the first rule in any file (e.g., "Example Commands are working")</li>
+  <li><input type="checkbox"> If a rule fails, Dragon/Natlink Messages window will show the Python error</li>
+</ul>
+<p class="tag-claude">[Claude can help] Debug any rule load errors — most are import path issues or settings.toml path problems.</p>
+
+<h3>2.2 Startup Program</h3>
+<ul class="checklist">
+  <li><input type="checkbox"> Pull startup program from OneDrive/GitHub</li>
+  <li><input type="checkbox"> Run it — should start Dragon, Caster, AHK, and other components together</li>
+  <li><input type="checkbox"> Test a few voice commands to confirm Caster + AHK bridge is working</li>
+</ul>
+<p class="tag-claude">[Claude can help] Debug any rule or AHK wiring issues.</p>
+
+<!-- ============================================================ -->
+<h2>PHASE 3 — Display &amp; Window Management</h2>
+<p>Goal: Screen layout and virtual desktops working.</p>
+
+<ul class="checklist">
+  <li><input type="checkbox"> <strong>Display Fusion</strong> — install, import settings from Phase 0 backup<br>
+    License: Jamie Hooper<br>
+    <pre>101-02-MOAPT66FCF-PQLQIBC3DF-zyd03mTZJQd/D17fzXmsrR_Vpzfqz1tICOSqLDrPz
+bzekhNBPDLUeUPRd1H0wDwZ18usnjKzp2HxaQ_W61kbgXcliO4f2PgkgZ3X35y4Mrc38E3
+6Y2Dl7Ndc7M1Djo8l7znOexDCgbyVR_FtwTmKFzc_DUNXb6SnaCFeRVjxcrA=</pre>
+    Settings backup: <code>Backups from old PC/DisplayFusion Backup (2026-03-26).reg</code> in <code>desktop-important</code>
+  </li>
+  <li><input type="checkbox"> <strong>Microsoft PowerToys / FancyZones</strong> — install from Microsoft Store or GitHub<br>
+    Restore settings: copy <code>Backups from old PC/PowerToys/</code> from <code>desktop-important</code> to <code>%LOCALAPPDATA%\Microsoft\PowerToys\</code>
+  </li>
+  <li><input type="checkbox"> <strong>Windows Virtual Desktop Enhancer</strong> — pull from OneDrive/GitHub and install</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>PHASE 4 — Development Tools</h2>
+
+<ul class="checklist">
+  <li><input type="checkbox"> <strong>VS Code</strong> — install, sign in to sync → extensions/settings restore automatically<br>
+    Verify Claude Code extension is installed</li>
+  <li><input type="checkbox"> <strong>Notepad++</strong> — pull config from GitHub, install plugins if needed</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>PHASE 5 — Remaining Apps</h2>
+<p>These don't affect accessibility — install as needed.</p>
+
+<ul class="checklist">
+  <li><input type="checkbox"> <strong>Anki</strong> — log in to AnkiWeb account, decks sync from cloud</li>
+  <li><input type="checkbox"> <strong>Calibre</strong> — install, point library at wherever books are stored</li>
+  <li><input type="checkbox"> <strong>Python</strong> (64-bit/Anaconda) — install before qBittorrent search will work</li>
+  <li><input type="checkbox"> <strong>Jackett</strong> — install and run (localhost:9117), copy API key<br>
+    Paste into <code>%LOCALAPPDATA%\qBittorrent\nova3\engines\jackett.json</code> under <code>"api_key"</code></li>
+  <li><input type="checkbox"> <strong>qBittorrent</strong> — install, then copy <code>Backups from old PC/qBittorrent_nova3</code> to <code>%LOCALAPPDATA%\qBittorrent\nova3</code></li>
+  <li><input type="checkbox"> <strong>VoiceMeeter</strong> — install, copy <code>Backups from old PC/VoiceMeeterDefault.xml</code> to <code>%APPDATA%\VoiceMeeterDefault.xml</code></li>
+  <li><input type="checkbox"> <strong>OpenRGB</strong> — install, copy <code>Backups from old PC/OpenRGB.json</code> to <code>%APPDATA%\OpenRGB\OpenRGB.json</code></li>
+  <li><input type="checkbox"> <strong>Audacity</strong> — install, copy <code>audacity.cfg</code>, <code>pluginsettings.cfg</code>, <code>pluginregistry.cfg</code> to <code>%APPDATA%\audacity\</code></li>
+  <li><input type="checkbox"> <strong>f.lux</strong> — install, sign in to account (settings sync via account)</li>
+  <li><input type="checkbox"> <strong>ShareX</strong> — on E: drive (may already be present)<br>
+    Restore: copy <code>Backups from old PC/ShareX/</code> to <code>Documents\ShareX\</code></li>
+  <li><input type="checkbox"> <strong>ClipboardFusion</strong> — install, copy <code>Backups from old PC/clipboardfusion.db</code> to <code>%LOCALAPPDATA%\ClipboardFusion\clipboardfusion.db</code></li>
+  <li><input type="checkbox"> <strong>KeyTik</strong> — install, copy <code>Backups from old PC/KeyTik/</code> to <code>%APPDATA%\KeyTik\</code></li>
+  <li><input type="checkbox"> <strong>Everything</strong> (voidtools) — install, indexing runs automatically</li>
+  <li><input type="checkbox"> <strong>Signal</strong> — install, link as linked device or restore from backup</li>
+  <li><input type="checkbox"> <strong>Kindle</strong> — install, log in to Amazon account</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>PHASE 6 — Optional</h2>
+<p>Install if/when needed.</p>
+
+<ul class="checklist">
+  <li><input type="checkbox"> <strong>SoundSwitch</strong> — install, copy <code>Backups from old PC/SoundSwitchConfiguration.json</code> to <code>%APPDATA%\SoundSwitch\SoundSwitchConfiguration.json</code></li>
+  <li><input type="checkbox"> <strong>Tobii</strong> — install drivers + software (hardware dependency)</li>
+  <li><input type="checkbox"> <strong>eViacam</strong> — install and reconfigure (no backup; settings not exported)</li>
+  <li><input type="checkbox"> <strong>PrecisionGazeMouse</strong> — install and reconfigure (no backup; settings not exported)</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Reference: Where Everything Lives</h2>
+
+<table>
+  <tr><th>Tool</th><th>Backup Location</th></tr>
+  <tr><td>Dragon profile</td><td><code>E:\Old PC Backups\Nate_DgnRenamed_...\</code> — restore via Dragon menu → Manage User Profiles → Restore</td></tr>
+  <tr><td>Caster rules + AppData</td><td>OneDrive + GitHub</td></tr>
+  <tr><td>Startup program</td><td>OneDrive + GitHub</td></tr>
+  <tr><td>AutoHotkey</td><td>GitHub</td></tr>
+  <tr><td>Stream Deck profiles</td><td>GitHub (ProfilesV3 only)</td></tr>
+  <tr><td>Display Fusion</td><td><code>desktop-important/Backups from old PC/DisplayFusion Backup (2026-03-26).reg</code></td></tr>
+  <tr><td>PowerToys / FancyZones</td><td><code>desktop-important/Backups from old PC/PowerToys/</code></td></tr>
+  <tr><td>SoundSwitch</td><td><code>desktop-important/Backups from old PC/SoundSwitchConfiguration.json</code></td></tr>
+  <tr><td>VoiceMeeter</td><td><code>desktop-important/Backups from old PC/VoiceMeeterDefault.xml</code></td></tr>
+  <tr><td>OpenRGB</td><td><code>desktop-important/Backups from old PC/OpenRGB.json</code></td></tr>
+  <tr><td>ShareX</td><td><code>desktop-important/Backups from old PC/ShareX/</code></td></tr>
+  <tr><td>ClipboardFusion</td><td><code>desktop-important/Backups from old PC/clipboardfusion.db</code></td></tr>
+  <tr><td>KeyTik</td><td><code>desktop-important/Backups from old PC/KeyTik/</code></td></tr>
+  <tr><td>qBittorrent plugins</td><td><code>desktop-important/Backups from old PC/qBittorrent_nova3/</code></td></tr>
+  <tr><td>Audacity settings</td><td><code>desktop-important/Backups from old PC/Audacity/</code></td></tr>
+  <tr><td>Notepad++ config</td><td>GitHub</td></tr>
+  <tr><td>VS Code settings</td><td>Microsoft account sync</td></tr>
+  <tr><td>Vimium keybinds</td><td>Google account sync</td></tr>
+  <tr><td>Anki decks</td><td>AnkiWeb account</td></tr>
+  <tr><td>f.lux</td><td>Account sync</td></tr>
+  <tr><td>Tobii</td><td>Re-downloadable; check account</td></tr>
+  <tr><td>eViacam</td><td><strong>No backup — reconfigure from scratch</strong></td></tr>
+  <tr><td>PrecisionGazeMouse</td><td><strong>No backup — reconfigure from scratch</strong></td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h2>Git Repositories</h2>
+<p>All repos under <strong>JamieHooper-code</strong> on GitHub. Repos marked SSH need SSH keys set up before cloning.</p>
+
+<table>
+  <tr><th>Repo</th><th>Clone path (new machine)</th><th>Protocol</th></tr>
+  <tr><td>user-caster</td><td><code>C:\Users\Jamie\AppData\Local\caster</code></td><td>SSH</td></tr>
+  <tr><td>caster-main</td><td><code>C:\Users\Jamie\Documents\Caster</code></td><td>SSH</td></tr>
+  <tr><td>sublime-backup</td><td><code>%APPDATA%\Sublime Text\Packages\User</code></td><td>SSH</td></tr>
+  <tr><td>streamdeck-backup</td><td><code>%APPDATA%\Elgato\StreamDeck</code></td><td>HTTPS</td></tr>
+  <tr><td>autohotkey</td><td><code>C:\Users\Jamie\Desktop\Important\AutoHotkey</code></td><td>HTTPS</td></tr>
+  <tr><td>textdocs</td><td><code>C:\Users\Jamie\Desktop\Important\TEXTDOCS</code></td><td>HTTPS</td></tr>
+  <tr><td>chrome-newtab</td><td><code>C:\Users\Jamie\Desktop\Important\chrome-newtab</code></td><td>HTTPS</td></tr>
+  <tr><td>claude-config-backup</td><td><code>C:\Users\Jamie\.claude</code></td><td>HTTPS</td></tr>
+  <tr><td>desktop-important</td><td><code>C:\Users\Jamie\Desktop\Important</code></td><td>HTTPS</td></tr>
+</table>
+
+<h4>SSH setup on new machine (before cloning SSH repos)</h4>
+<ol>
+  <li>Generate key: <code>ssh-keygen -t ed25519 -C "your_email"</code></li>
+  <li>Add public key to GitHub → Settings → SSH Keys</li>
+  <li>Then clone normally</li>
+</ol>
+
+<h4>Uncommitted changes — push before wiping</h4>
+<ul>
+  <li><strong>user-caster</strong> — <code>rules/.claude/settings.local.json</code></li>
+  <li><strong>textdocs</strong> — this guide and other untracked files</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Username Change: Nate → Jamie</h2>
+<p>New install uses <code>Jamie</code> as username. All <code>C:\Users\Nate\</code> paths must become <code>C:\Users\Jamie\</code>.</p>
+
+<h4>Already fixed (auto-resolves)</h4>
+<p>All Python/Caster rule files now use <code>os.environ</code> at load time for paths — no manual changes needed there.</p>
+
+<h4>Needs manual attention</h4>
+<ul>
+  <li><strong>Claude memory folder</strong> — rename <code>c--Users-Nate-AppData-Local-caster</code> → <code>c--Users-Jamie-AppData-Local-caster</code> in <code>C:\Users\Jamie\.claude\projects\</code><br>
+    <span class="tag-claude">[Claude can help] Do this rename automatically once running on the new machine.</span></li>
+  <li><strong>settings.toml</strong> — replace all <code>C:\Users\Nate</code> with <code>C:\Users\Jamie</code>, and update ENGINE_PATH to Dragon 16<br>
+    <span class="tag-claude">[Claude can help] Say "fix settings.toml paths".</span></li>
+  <li><strong>App version paths in windows_commands.py</strong> — BringApp calls contain version numbers (e.g. <code>Discord\app-1.0.9016</code>) that will change on reinstall<br>
+    <span class="tag-claude">[Claude can help] If "go discord" fails, say so and I'll update the path.</span></li>
+  <li><strong>Dragon profile</strong> — if Dragon has issues after restoring profile, re-run acoustic training or create a new profile</li>
+</ul>
+
+<h4>Custom PATH entries to re-add manually</h4>
+<p>Via System Properties → Environment Variables → User PATH:</p>
+<ul>
+  <li><code>C:\Users\Jamie\bin</code></li>
+  <li><code>C:\Users\Jamie\Desktop\Important\PowershellScripts</code></li>
+  <li><code>C:\Users\Jamie\Desktop\Important\AutoHotkey\Scripts</code></li>
+  <li><code>C:\Program Files\AutoHotkey\v2</code></li>
+  <li><code>C:\Program Files\GitHub CLI</code></li>
+  <li><code>C:\Program Files\ImageMagick-7.1.0-Q16-HDRI</code> <em>(version may change)</em></li>
+  <li><code>C:\Program Files\gs\gs10.00.0\bin</code> <em>(version may change)</em></li>
+  <li><code>C:\Program Files\Microsoft\jdk-21.0.5.11-hotspot\bin</code> <em>(version may change)</em></li>
+  <li><code>C:\ProgramData\chocolatey\bin</code></li>
+  <li><code>C:\Program Files\nodejs</code></li>
+  <li>Anaconda paths — set by Anaconda installer</li>
+  <li><code>E:\Program Files\Git\cmd</code> — Git is on E: drive; keep there or update paths</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Completed Pre-Wipe Backups</h2>
+<p>These are done — no further action needed before wiping.</p>
+
+<table>
+  <tr><th>Item</th><th>Backup Location</th><th>Restore Instructions</th></tr>
+  <tr><td><strong>Display Fusion</strong></td><td><code>desktop-important/Backups from old PC/DisplayFusion Backup (2026-03-26).reg</code> + <code>E:\Old PC Backups\</code></td><td>Double-click the .reg file after installing Display Fusion</td></tr>
+  <tr><td><strong>PowerToys / FancyZones</strong></td><td><code>desktop-important/Backups from old PC/PowerToys/</code> + <code>E:\Old PC Backups\</code></td><td>Copy contents to <code>%LOCALAPPDATA%\Microsoft\PowerToys\</code> after install</td></tr>
+  <tr><td><strong>Dragon profile</strong></td><td><code>E:\Old PC Backups\Nate_DgnRenamed_DgnRenamed_DgnRenamed\</code> (1.1 GB)</td><td>Dragon menu → Manage User Profiles → Restore User Profile → point at E: backup</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h2>Loose Notes</h2>
+
+<p><strong>Foot pedal (Savant Elite 2):</strong> No driver needed — plug-and-play HID. All programming is stored on onboard memory. SmartSet App available at kinesis-ergo.com/support/savant-elite2/ if reprogramming needed.</p>
+
+<p><strong>Eye/head tracking:</strong> Tobii, eViacam, and PrecisionGazeMouse have no backups. Will need to be reconfigured from scratch. Expect to spend time re-tuning sensitivity and behavior.</p>
+
+<p><strong>SoundSwitch:</strong> Config backed up to <code>Backups from old PC/SoundSwitchConfiguration.json</code> — see Phase 6.</p>
+
+</body>
+</html>

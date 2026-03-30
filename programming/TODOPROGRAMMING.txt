@@ -1,32 +1,51 @@
-1. Add spotify voice commands for all of my playlists and stuff. Spot blank 
+--- ATLANTIC LOGISTICS ---
+
+1. New Outlook Inbox Automation Project
+   - Auto-delete emails from certain senders after a defined time period
+   - Move emails to specific folders after a time period if they meet certain parameters (sender, subject, keywords, etc.)
+
+2. Automation of email information/metadata modification when sending (e.g. auto-populate fields, formatting, signatures based on context)
+
+3. Tools to evaluate:
+   - Power Automate (primary candidate — already in Microsoft ecosystem)
+   - Look into what they are currently using for any existing automation
+   - RPA (Robotic Process Automation) — e.g. UiPath, Automation Anywhere, Power Automate Desktop
+   - DPA (Digital Process Automation) — broader workflow orchestration, evaluate fit vs RPA for this use case
+
+---
+
+1. Make my stream deck copying from A to B system work better and more fluidly.
+
+2. Continue improving new tab page
+   a. Make a version that has tasks that you can check off as completed and they will reset to zero days. So like journaling might say five days
+   b. User profiles (with Google integration)
+   c. Image debugging workflow
+   d. General settings page
+   e. Make new panel of like my current YouTube links or like current tabs/activities/etc?
+   f. Make my new tab page work from anywhere? At least speech
+   g. Make my new tab page able to implement things like a poem a day or quote of the day. And make it dynamically pulled from other websites.
+   h. Possibly even a weather panel?
+   i. For different panels like that make them easy to add as different options to different boards.
+   j. Make a specific panel type where I can have recurring events or tasks and then I just check them and it resets the timer. So like journaling it'll say five days or something.
+   k. Possibly make my to do list live portably from somewhere else? maybe
+   l. Make it so that my checklists can be nested, so that I can click on one and it will have tasks inside of it.
+
 3. Improve Stream Deck programmability
    - RESEARCH DONE: Elgato officially does not support switching user profiles externally.
-   - The switchToProfile WebSocket API only works with read-only profiles bundled inside a plugin — not your existing profiles.
+   - The switchToProfile WebSocket API only works with read-only profiles bundled inside a plugin, not your existing profiles.
    - Best options to pursue:
      a. Dummy .exe approach: create a silent exe, assign it a Smart Profile in Stream Deck, have AHK run/kill it to trigger the switch. Hacky but no plugin needed.
      b. Custom Node.js plugin: export YouTube profile into a plugin bundle, plugin listens for an external trigger (file/socket) and calls switchToProfile. Cleanest solution but requires building a plugin.
    - Pressing the native Switch Profile button on the deck (6,3 of VS Code profile) already works for manual switching.
-8. Fix my right foot pedal in VS code.
-10. Try to click next unread in Google voice
-11. Work through the Claude Google Chrome extension and see what the possibilities are.
-12. With the Google Chrome extension try to extract all of the resources out of a page that someone sent me and then add them to that specific list for that person.
-13. Make a specific panel on my new tab page as a programming checklist to check in with my body and mind when doing longform programming.
-15. 
 
-1. Make my stream deck copying from a to B system work better and more fluidly. 
+4. Make certain auto hotkey commands like my opening YouTube once mute my microphone
 
-2. Continue improving new tab page
-   a. Make a version that has tasks that you can check off as completed and they will reset to zero days. So like journaling mmight say five days
-   a. User profiles (with Google integration)
-   b. Fix checkbox spacing
-   c. Image debugging workflow
-   d. General settings page
-   e. Fingalize implementation
-   f. Make new panel of like my current YouTube links or like current tabs/activities/etc? 
-   g. Make my new tab page work from anywhere? At least speech
-   h. Make my new tab page able to implement things like a poem a day or quote of the day. And make it dynamically pulled them from other websites.
-   i. Possibly even a weather panel if I really want one?
-   j. For different panels like that make them easy to add as different options to different boards.
-   k. Make a specific panel type where I can have recurring events or tasks and then I just checked them and it reset the timer. So like journaling it'll say five days or something.
-   l. Possibly make my to do list live in portable from somewhere else?maybe
-   m. Make it so that my checklists can be like sub, so that I can click on one and it will have tasks inside of it.
+4. Explore Claude Code skills
+   - Skills are reusable prompt templates invocable via /skill-name in Claude Code
+   - Investigate what custom skills could be built for this workflow (voice commands, Stream Deck edits, AHK functions, etc.)
+   - See existing skills: update-config, keybindings-help, simplify, loop, schedule, claude-api
+
+5. Fix my right foot pedal in VS Code.
+
+7. Work through the Claude Google Chrome extension and see what the possibilities are.
+   a. Try to extract all of the resources out of a page that someone sent me and then add them to that specific list for that person.
