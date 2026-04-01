@@ -1,3 +1,47 @@
+--- NEW COMPUTER SETUP ---
+
+1. Improve Dragon kill/restart function
+   - Current kill is unsafe — investigate a cleaner approach
+   - Options to explore: Dragon's own programmatic shutdown API, UI automation (clicking through Dragon menus to exit gracefully), or a staged kill that waits for Natlink to unload first
+   - Also hide/close the Natlink window as part of the shutdown sequence
+   - Goal: a reliable, safe kill that avoids the frozen-state backlog problem and leaves no orphaned processes
+
+2. Fix  paths in bulk
+
+3. Fix Anki 
+
+4. Fix the Spanish thing. 
+
+3. Improve login/startup time
+   - Identify what is slow on login (Dragon startup, Natlink load, AHK scripts, other startup items)
+   - Reduce time to voice-ready state
+
+4. Fix random broken buttons and paths in voice commands
+   - Audit commands for stale/incorrect paths or button references
+   - Correct any that are broken
+
+5. Fix email button and variably-resolved paths
+   - Email-related button is broken
+   - Some paths are being resolved incorrectly or inconsistently — find root cause and fix
+
+6. Review setup guide end-to-end
+   - Read through the full Natlink/Caster/Dragon setup guide
+   - Make sure all important steps, settings, and recommendations were followed
+   - Note anything missed or worth revisiting
+
+7. Figuring out Chrome Tabs
+
+8. Make my monitors centered when I make the resolution smaller.  will probably have to reengineer that because new graphics.
+
+9.  figure out if I want to install my new graphics card.
+
+8. calibre ebook viewer
+
+2. Diagnose and fix Natlink/Dragon freezing issue
+   - Diagnostic information contained in Dragon_NATLINK_debugging.txt 
+
+---
+
 --- ATLANTIC LOGISTICS ---
 
 1. New Outlook Inbox Automation Project

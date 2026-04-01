@@ -1,0 +1,257 @@
+DRAGON 16 + NATLINK + CASTER — FREEZING & RESTART DEBUGGING NOTES
+==================================================================
+Documented: 2026-03-31
+
+SYMPTOM
+-------
+- Setup freezes when using Dragon's native free dictation (saying text into a text box)
+- Custom Caster grammar commands (like "mouse mice", "abcd") continue working during/after freeze
+- After Dragon is restarted, Caster commands still work but dictation remains broken
+- Requires a full reboot to restore dictation
+
+ENVIRONMENT
+-----------
+- Dragon NaturallySpeaking 16.10.200.044
+- Natlink 5.5.7 (Python 3.10.11 32-bit)
+- Caster 1.6.16
+- Dragon log: C:\ProgramData\Nuance\NaturallySpeaking16\logs\jamie\Dragon.log
+- System log: C:\ProgramData\Nuance\NaturallySpeaking16\logs\system\Dragon.log
+
+KEY DRAGON PROCESSES
+--------------------
+- natspeak.exe      — main Dragon UI process
+- dragonbar.exe     — Dragon toolbar
+- dgnuiasvr.exe     — UI Automation Server (32-bit) — handles text injection for dictation
+- dgnuiasvr_x64.exe — UI Automation Server (64-bit) — handles text injection for 64-bit apps
+- dgnsvc.exe        — Dragon background service (session 0, system service)
+
+WHY CASTER COMMANDS WORK BUT DICTATION DOESN'T
+-----------------------------------------------
+Caster grammar commands:
+  speech -> Dragon recognizes -> fires Python gotResults() callback via Natlink -> AHK/key actions
+  No UI Automation needed. Purely callback-based.
+
+Dragon native dictation:
+  speech -> Dragon recognizes -> NatText component tries to inject text into focused window
+  Requires dgnuiasvr.exe (UI Automation Server) to find the target text field and insert text.
+  If dgnuiasvr.exe is dead or broken, dictation silently fails or hangs.
+
+TEXT INJECTION METHOD BY APP TYPE
+----------------------------------
+Not all apps use the same injection path. This explains why Notepad works when Chrome doesn't:
+
+  Win32 EDIT controls (classic Notepad, legacy apps):
+    Dragon injects text via WM_SETTEXT / WM_CHAR messages directly to the window.
+    Does NOT use dgnuiasvr.exe. Works even when UIA servers are broken.
+
+  Microsoft Word:
+    Dragon uses its own COM API. Does not use dgnuiasvr HOOKDLL.
+
+  Modern apps (Chrome, VS Code, Electron, Explorer, Notepad++):
+    Dragon uses dgnuiasvr.exe + HOOKDLL + SendInput thread to inject keystrokes.
+    If dgnuiasvr.exe's SendInput thread is dead, ALL of these fail silently.
+
+CONFIRMED: Notepad (classic Win32) works after crash/restart. Chrome fails.
+This is NOT an orphan DLL problem — it is a dead dgnuiasvr.exe SendInput thread.
+
+WHAT THE LOGS SHOW (2026-03-31, 17:22-17:31 — Session 1)
+----------------------------------------------------------
+Sequence of 4 Dragon sessions:
+
+SESSION 1 (PID 9952) — clean exit
+  17:22:50 — "user canceled recognition" + 12x Recognition Failed (user interrupted processing)
+  17:22:52 — SaveSpeaker (Dragon saving profile)
+  17:22:53 — "Exit selected from menu" (user quit Dragon cleanly)
+  17:22:56 — Dragon disconnected
+  NOTE: This was NOT a crash. Dragon exited normally but slowly (~30-40 sec freeze was earlier).
+
+SESSION 2 (PID 27896) — started ~20 seconds after session 1
+  17:25:38 — 12x Recognition Failed immediately (processing stale audio backlog from session 1)
+  No dgnuiasvr.exe hook installation logged — UIA servers never came up
+  Session fails/exits quickly
+
+SESSION 3 (PID 22116) — started ~20 seconds after session 2
+  17:25:58 — Dragon starts
+  17:26:26 — HOOKDLL PostThreadMessage Failed (Error Code = 0x800705a4 = ERROR_INVALID_THREAD_ID)
+             Dragon's SendInput thread can't be reached — text injection broken from start
+  17:27:48 — "HookGetPlaybackCount() returned unexpected value (0x80010108)"
+             0x80010108 = RPC_E_DISCONNECTED — COM object has disconnected
+  17:27:48 — "ERROR: UI Automation Server is not running" (x2)
+  Dictation completely broken. dgnuiasvr.exe never started.
+
+SESSION 4 (PID 15992) — started ~2.5 MINUTES after session 3 (longer gap!)
+  17:30:34 — dgnuiasvr.exe (PID 31720) starts and installs hook — UIA server UP
+  17:31:02 — dgnuiasvr_x64.exe (PID 13992) starts — x64 UIA server UP
+  Everything works. Currently running.
+
+WHAT THE LOGS SHOW (2026-03-31, ~19:00-19:15 — Session 2, live capture)
+-------------------------------------------------------------------------
+User triggered a crash at ~19:02 by killing dgnuiasvr processes. Live log read confirmed
+the full sequence. Key events:
+
+  19:02:24 — User killed dgnuiasvr.exe and dgnuiasvr_x64.exe.
+             x64 reports "Terminating due becoming orphaned."
+             HOOKDLL floods 0x800706ba (RPC_S_SERVER_UNAVAILABLE) errors.
+
+  19:04:04 — Dragon auto-respawns UIA servers: dgnuiasvr PID 3740, x64 PID 15568.
+
+  19:04:21 — Brief failed natspeak.exe PID 13648 — connected and disconnected in same second.
+
+  19:04:48 — Both UIA servers disconnect ("becoming orphaned") — caused by the brief failed
+             natspeak connection. HOOKDLL floods 0x800706ba again.
+
+  19:04:59 — NatText reports "Error installing key hook: 0x800706ba"
+             and "Error installing mouse hook: 0x800706ba"
+
+  19:05:15-19:06:57 — "ERROR: UI Automation Server is not running" repeated.
+
+  19:07:54 — UIA servers self-recover: dgnuiasvr PID 7396, x64 PID 5656.
+             Both report "The server has started with Integrity Access Level: <3>".
+
+  19:08:24 — *** SMOKING GUN ***
+             HOOKDLL|7396|...|Error: PostThreadMessage Failed to post data to SendInput thread,
+             Error Code = 0x800705a4
+             The SendInput thread inside dgnuiasvr.exe PID 7396 is ALREADY DEAD —
+             only 30 seconds after dgnuiasvr PID 7396 started at 19:07:54.
+             The thread failed to initialize properly in this instance.
+             (There may have been a natspeak instance connected at this point — the UIA servers
+             self-recovered because natspeak requested them. The key point is not the timing
+             relative to any specific natspeak PID, but that the SendInput thread died within
+             30 seconds of dgnuiasvr starting, making that entire dgnuiasvr instance broken.)
+
+  19:09:10 — natspeak PID 9880 starts and connects to the already-broken dgnuiasvr PID 7396.
+             natspeak has no way to know dgnuiasvr's SendInput thread is dead.
+
+  19:15:10.711 — NatText recognized speech (Reject='0') — Dragon heard the dictation correctly.
+
+  19:15:10.719 — HOOKDLL|7396|...|PostThreadMessage Failed to post data to SendInput thread,
+                 Error Code = 0x800705a4
+                 Text injection FAILED. 8ms between recognition and failure.
+
+CONFIRMED ROOT CAUSE
+--------------------
+dgnuiasvr.exe (32-bit, PID 7396) had a dead SendInput thread.
+
+The thread failed to properly initialize when dgnuiasvr auto-restarted at 19:07:54.
+The 0x800705a4 error appeared at 19:08:24 — only 30 seconds after dgnuiasvr started —
+meaning any natspeak connecting to that instance (whether before or after PID 9880) would
+be connecting to a broken UIA server. Dragon recognized speech perfectly at 19:15:10.711
+but text injection failed 8ms later with the same error.
+
+WHY ONLY REBOOT FIXED IT
+-------------------------
+Before this session's investigation, RebootDragon() killed dgnuiasvr_x64.exe but NOT
+dgnuiasvr.exe (32-bit). The 32-bit server survived every soft restart, holding its dead
+SendInput thread state. When natspeak relaunched, it found the existing dgnuiasvr.exe and
+reused it — inheriting the broken state. A full system reboot killed everything, forcing
+a clean dgnuiasvr initialization.
+
+DISPROVED THEORIES
+------------------
+1. ROT/COM stale registration: DISPROVED.
+   Waited 5+ minutes, killed all processes including dgnsvc.exe — still broken.
+
+2. HOOKDLL orphaned in target processes: PARTIALLY DISPROVED.
+   A fresh Chrome instance (never had Dragon's DLL injected) also fails.
+   Notepad works (different injection path — WM_ messages, not UIA).
+   The failure is in dgnuiasvr.exe itself, not in target app processes.
+
+3. DragonSvc service holding stale state: DISPROVED.
+   Stop/start DragonSvc had no effect. dgnsvc.exe is not involved in UIA server state.
+
+NOTE ON dgnsvc.exe:
+  dgnsvc.exe is a Windows Service — when killed with taskkill, the Service Control Manager
+  automatically restarts it within seconds. It cannot be "cleared" by killing it.
+
+THE FIX
+-------
+The fix is to kill BOTH dgnuiasvr.exe (32-bit) and dgnuiasvr_x64.exe before relaunching
+natspeak. When natspeak starts with no existing dgnuiasvr.exe, it spawns a fresh one that
+properly initializes its SendInput thread.
+
+SoftRebootDragon() — Current Status (2026-03-31)
+  File: C:\Users\jamie\Desktop\Important\AutoHotkey\Helpers\OpeningAndClosingFunctions.ahk
+
+  The function was updated to kill both UIA servers BEFORE right-clicking the Dragon tray icon.
+  Uses ProcessExist() to check if alive, taskkill /f to kill, ProcessWaitClose() to confirm dead.
+  (Note: WinWaitClose was wrong here — dgnuiasvr has no window. ProcessWaitClose polls the
+  process list directly.)
+
+  BLOCKED: Killing dgnuiasvr.exe requires admin privileges (it runs elevated).
+  Confirmed 2026-03-31: AHK is NOT running as admin (A_IsAdmin = 0).
+  The kill blocks are commented out in the function until AHK is relaunched as admin.
+
+  TODO: Update the AHK launch mechanism (scheduled task or shortcut) to run as administrator.
+  Once that is done, uncomment the dgnuiasvr kill blocks in SoftRebootDragon().
+
+RebootDragon() — Hard Kill Improvement (still worth doing for frozen-Dragon scenarios)
+  Current code kills dgnuiasvr_x64.exe but NOT dgnuiasvr.exe (32-bit). Fix:
+    Run "taskkill /IM natspeak.exe /f", , "Hide"
+    Run "taskkill /IM dragonbar.exe /f", , "Hide"
+    Run "taskkill /IM dgnuiasvr.exe /f", , "Hide"        <- ADD THIS (32-bit)
+    Run "taskkill /IM dgnuiasvr_x64.exe /f", , "Hide"
+    Run "taskkill /IM dnsspserver.exe /f", , "Hide"
+    WinWaitClose("ahk_exe natspeak.exe", , 15)
+    WinWaitClose("ahk_exe dgnuiasvr.exe", , 10)          <- use WinWaitClose for processes with windows
+    Sleep(4000)
+    Run natspeak.exe
+  Note: RebootDragon() also has no admin check — same issue may apply.
+
+KNOWN ERROR CODES IN LOGS
+--------------------------
+0x800705a4 = ERROR_INVALID_THREAD_ID (Win32 1444)
+  -> PostThreadMessage failed because the target thread is dead
+  -> Dragon's SendInput thread is gone (dgnuiasvr.exe crashed or not running)
+
+0x80010108 = RPC_E_DISCONNECTED
+  -> COM object has disconnected from its clients
+  -> Dragon is calling a COM method on an object that's no longer alive (dead UIA server)
+
+0x800706ba = RPC_S_SERVER_UNAVAILABLE
+  -> RPC server unavailable — floods the log when dgnuiasvr.exe is killed while Dragon is running
+
+0x80020003 = DISP_E_MEMBERNOTFOUND
+  -> Dragon's hook DLL trying to call IAccessible on a Windows Shell control that doesn't have that method
+  -> Seen in ShellExperienceHost Dragon.log — not a crash-causing error, just cosmetic
+
+DEBUGGING STEPS
+---------------
+1. Check Dragon log after failed restart:
+   C:\ProgramData\Nuance\NaturallySpeaking16\logs\jamie\Dragon.log
+   Look for: "PostThreadMessage Failed" and "UI Automation Server is not running"
+   The 0x800705a4 error tells you dgnuiasvr.exe's SendInput thread is dead.
+
+2. Test Notepad vs Chrome after a crash+restart:
+   -> Notepad works, Chrome fails = SendInput thread dead (UIA path broken)
+   -> Both fail = something deeper
+
+3. tasklist snapshot command (run after crash/restart to see Dragon process state):
+   tasklist | findstr /i "natspeak dgn dragon"
+
+4. Check if AHK is running as admin:
+   Add temporarily to any AHK function: ToolTip("IsAdmin=" A_IsAdmin, , , 19)
+   Must be 1 to kill elevated processes like dgnuiasvr.exe.
+
+ALTERNATIVE THEORY: CORRUPTED USER PROFILE
+-------------------------------------------
+User profile was migrated from NS15 -> NS16.
+Profile corruption could cause issues, but this pattern (Caster works, dictation crashes, only reboot fixes)
+is unlikely to be profile-based — profile is loading fine if Caster recognition works.
+Profile corruption typically manifests as accuracy issues or specific command failures, not full crashes.
+Worth investigating separately but probably not the root cause of this specific pattern.
+
+CASTER LOG LOCATION
+-------------------
+C:\Users\jamie\AppData\Local\caster\log.txt
+(Currently shows a tomlkit ParseError on empty key — not crash-related but worth monitoring)
+
+NATLINK INI
+-----------
+C:\Users\jamie\.natlink\natlink.ini
+caster = C:\Users\Jamie\Documents\Caster   <- core Caster framework
+User rules: C:\Users\jamie\AppData\Local\caster\rules\
+
+RELATED VOICE COMMANDS
+-----------------------
+"save reboot"        -> saves current file, moves Natlink window to next desktop, calls RebootDragon()
+"dragon soft reboot" -> calls SoftRebootDragon() (right-clicks tray icon, user selects Exit)
