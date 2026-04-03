@@ -35,12 +35,12 @@ REMAINING TASKS
 
 2. Investigate AppData\Local (~46 GB unaccounted)
    Likely culprits:
-   - npm cache         (C:\Users\Nate\AppData\Local\npm-cache)
-   - pip cache         (C:\Users\Nate\AppData\Local\pip)
-   - VS Code cache     (C:\Users\Nate\AppData\Local\Programs\Microsoft VS Code)
-   - Chrome cache      (C:\Users\Nate\AppData\Local\Google\Chrome\User Data\Default\Cache)
+   - npm cache         (C:\Users\jamie\AppData\Local\npm-cache)
+   - pip cache         (C:\Users\jamie\AppData\Local\pip)
+   - VS Code cache     (C:\Users\jamie\AppData\Local\Programs\Microsoft VS Code)
+   - Chrome cache      (C:\Users\jamie\AppData\Local\Google\Chrome\User Data\Default\Cache)
    - Windows Installer (C:\Windows\Installer — often huge)
-   Run: Get-ChildItem 'C:\Users\Nate\AppData\Local' -Directory | % { $s=(gci $_.FullName -Recurse -Force -EA SilentlyContinue | ? {!$_.PSIsContainer} | measure Length -Sum).Sum; [psc]@{F=$_.Name;GB=[math]::Round($s/1GB,2)} } | sort GB -desc | select -first 15
+   Run: Get-ChildItem 'C:\Users\jamie\AppData\Local' -Directory | % { $s=(gci $_.FullName -Recurse -Force -EA SilentlyContinue | ? {!$_.PSIsContainer} | measure Length -Sum).Sum; [psc]@{F=$_.Name;GB=[math]::Round($s/1GB,2)} } | sort GB -desc | select -first 15
 
 3. Evaluate C:\intelFPGA_lite (12 GB)
    Delete if Quartus Prime / Intel FPGA tools are no longer in use.

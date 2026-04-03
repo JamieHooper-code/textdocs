@@ -1,0 +1,1 @@
+understanding how arguments are passed from caster to AutoHotkey  should be super obvious from the documentation. if it is not currently obvious please make it so.

@@ -1,0 +1,215 @@
+MICROSOFT AUTOMATION TOOLS — REFERENCE FOR DEVELOPERS NEW TO M365
+=================================================================
+Audience: Developer/scripter familiar with Python, AHK, scripting tools
+Context: Contract work in a logistics company Microsoft environment
+Date: April 2026
+
+
+1. POWER AUTOMATE (CLOUD)
+-------------------------
+Power Automate (formerly Microsoft Flow) is a cloud-hosted workflow automation
+platform that connects Microsoft 365 services (Outlook, SharePoint, Teams,
+Excel, Dataverse) and hundreds of third-party connectors (Salesforce, Slack,
+ServiceNow, HTTP endpoints, etc.) via a no-code/low-code UI.
+
+What it does well:
+- Event-driven workflows: "When email arrives with attachment, save to
+  SharePoint and post to Teams"
+- Approvals: multi-stage human-in-the-loop approval chains built in
+- Scheduled data movement: pull from a REST API, transform, write to Excel
+  or Dataverse on a timer
+- M365 glue logic: anything that connects two Microsoft products together
+
+Licensing:
+- Included at a limited capacity in M365 Business/Enterprise plans (standard
+  connectors only -- Outlook, SharePoint, Teams, OneDrive)
+- Premium connectors (Dataverse, SQL, custom HTTP) require Power Automate
+  Premium (~$15/user/month as of 2025)
+- Per-flow plans exist for high-volume unattended scenarios
+
+Limitations:
+- Runs in Microsoft's cloud only -- can't touch local file systems or
+  non-networked resources without a gateway
+- Logic is visual/JSON under the hood; not easily version-controlled or
+  programmatically generated
+- Debugging is poor compared to writing code -- error messages are often vague
+- Complex branching logic becomes visually unwieldy fast
+
+
+2. POWER AUTOMATE DESKTOP (PAD)
+--------------------------------
+PAD is a separate product from cloud PA -- it is an RPA (robotic process
+automation) tool that runs locally on a Windows machine and automates the
+UI of desktop applications (clicking buttons, reading screen text, filling
+forms), not just web APIs.
+
+Key distinction from cloud PA:
+- Cloud PA connects services via APIs. PAD controls what's on screen --
+  it can automate apps that have no API at all (legacy ERP systems, thick
+  clients, terminal emulators).
+
+Attended vs Unattended:
+- Attended: a human is at the machine while the bot runs -- user triggers it,
+  bot assists with repetitive steps
+- Unattended: runs on a VM in the background with no human present --
+  requires the more expensive unattended licensing
+
+Licensing:
+- PAD is free to use in attended mode on Windows 10/11 with a Microsoft
+  account (as of 2025)
+- Unattended and centrally-managed deployments require Power Automate Premium
+  or Process licenses (~$150+/bot/month for unattended)
+
+How it compares to AutoHotkey:
+- AHK is code-first, precise, fast to write if you know it, and gives full
+  control. PAD is GUI-first, designed for non-programmers, with a recorder
+  that watches you click and generates steps automatically.
+- PAD has better OCR, image recognition, and UI element detection out of
+  the box. AHK requires manual coordinate hunting or third-party libraries.
+  For a developer, AHK is often faster to build and easier to maintain --
+  but PAD's element detection handles dynamic UIs (like web apps) more
+  reliably in some cases.
+- AHK scripts are plain text files, trivially version-controlled and
+  portable. PAD flows are stored in Dataverse or local files -- less
+  convenient for code review.
+- Bottom line: for a logistics company with legacy desktop apps and
+  non-technical staff who need to maintain automations, PAD is the better
+  fit. For a solo developer who is comfortable scripting, AHK or Python
+  with pywinauto will get you there faster.
+
+
+3. ENTERPRISE RPA: UIPATH AND AUTOMATION ANYWHERE
+--------------------------------------------------
+UiPath and Automation Anywhere are enterprise RPA platforms -- essentially
+PAD with an enterprise operations layer on top: centralized orchestration
+servers, robot fleets, monitoring dashboards, process mining, and audit trails.
+
+What they add over PAD:
+- Orchestrator (UiPath) or Control Room (AA): deploy bots across hundreds
+  of machines, queue work items, monitor failures, schedule at scale
+- Governance and compliance features required in regulated industries
+- Professional services ecosystems, certification programs, integration
+  with SAP/Oracle enterprise systems
+
+When they're overkill:
+- A single company running <10 automations on a few machines -- PAD or
+  Python will do it cheaper and faster
+- Any scenario where a developer is already involved -- you're paying for
+  drag-and-drop tooling you won't use
+
+When they're appropriate:
+- 50+ robots, multi-department deployments, strict audit requirements
+- IT-managed unattended bots at scale, especially in finance/logistics/
+  healthcare where process compliance is audited
+
+Cost: UiPath starts around $420/month for a basic attended bot license,
+scaling steeply. Total cost of ownership at enterprise scale is significant.
+Automation Anywhere is similarly priced. Both require implementation effort
+that dwarfs PAD.
+
+
+4. DIGITAL PROCESS AUTOMATION (DPA)
+------------------------------------
+DPA (sometimes called iBPMS -- Intelligent Business Process Management Suites)
+is distinct from RPA. RPA automates tasks by mimicking user interactions with
+existing systems. DPA redesigns and orchestrates entire business processes,
+typically replacing or wrapping the underlying system rather than bolting
+automation on top.
+
+Key distinction:
+- RPA: the invoice arrives in email, a bot reads it and enters it into the
+  ERP because the ERP has no API. The ERP is unchanged.
+- DPA: replace the fragile email+ERP handoff with a proper workflow system
+  that has structured intake, routing, approvals, SLAs, and audit trails
+  built in.
+
+Example tools:
+- Microsoft Power Platform (Power Automate + Power Apps + Dataverse) -- the
+  accessible, M365-native option
+- Appian, Pega, ServiceNow -- enterprise-grade BPM platforms used in
+  large logistics, insurance, and government contexts
+- Camunda -- developer-friendly, open-source BPM engine (BPMN diagrams as
+  code, REST API first -- very scriptable)
+
+When DPA is right:
+- The process involves multiple people, departments, or systems with defined
+  handoffs, approvals, and exceptions
+- You need an auditable process record, not just task automation
+- The company is willing to change how the process works, not just automate
+  the current broken version
+
+
+5. COMPARISON TO FAMILIAR TOOLS
+---------------------------------
+Power Automate vs Python scripts:
+- PA excels when the work is connecting M365 services -- calling the Graph
+  API from Python is doable but PA has the connectors pre-built and handles
+  OAuth token refresh automatically
+- Python wins when: the logic is complex, you need real error handling,
+  you want version control, you're processing data in bulk, or you're
+  calling non-Microsoft APIs
+- A practical heuristic: if a non-developer colleague might need to modify
+  or maintain it, PA. If it's yours to own and it has any real logic, Python.
+
+PAD vs AutoHotkey:
+- See section 2. For a developer, AHK is faster to build and easier to
+  debug. PAD's advantage is the GUI recorder for onboarding non-developers
+  and its more robust UI element detection on modern web apps.
+- For a logistics company: automate a browser-based WMS with PAD (element
+  detection is better), automate a local desktop utility with AHK (faster
+  to script, easier to maintain).
+
+
+6. SCRIPTABILITY AND AI INTEGRATION
+-------------------------------------
+Power Automate API:
+- There is a Power Automate Management API and an environment management
+  API, but they are not designed for programmatic flow creation. Flows can
+  be exported as JSON packages and re-imported, which is as close as you
+  get to "create a flow from a script."
+- Cloud flows can be triggered via HTTP (the "When an HTTP request is
+  received" trigger) -- so you can call a PA flow from Python with a simple
+  requests.post(), making it callable from any script or AHK.
+
+Claude / AI integration:
+- Claude can read and generate Power Automate flow JSON (the exported format)
+  with reasonable accuracy, but flow JSON is complex and not well-documented
+  -- treat AI-generated flows as a starting point that needs manual review
+  in the PA designer.
+- PAD flows are stored in a proprietary binary/JSON format that is much
+  harder for AI to work with reliably.
+- For practical AI-assisted automation, Python scripts are the most
+  productive surface -- Claude can write, debug, and extend Python cleanly.
+  Use PA as the trigger/glue layer and Python (via Azure Functions or a
+  local HTTP listener) as the logic layer if you want AI to be able to
+  help maintain it.
+
+
+7. PRACTICAL GUIDANCE -- WHAT TO LEARN FIRST
+---------------------------------------------
+Given your background, the fastest path to productivity:
+
+Start with cloud Power Automate (1-2 days):
+  Learn the trigger/action/condition model. Build one flow that connects
+  two M365 services. This is the most common thing a logistics company will
+  ask for and the skills transfer directly to understanding PA's limitations.
+
+Learn to HTTP-trigger PA from Python:
+  This unlocks using PA as an M365 integration layer while writing real
+  logic in Python. Best of both worlds for a developer.
+
+PAD only when you have a specific UI automation target:
+  Don't learn PAD speculatively. Learn it when you're facing a legacy app
+  with no API. If you already know AHK well, PAD will feel slow -- use it
+  for the element detection and recorder, not as your primary scripting tool.
+
+Skip enterprise RPA unless the client asks:
+  UiPath/AA are vendor-specific and expensive. If the company already has
+  a license and existing bot infrastructure, learn just enough to maintain
+  what's there.
+
+Watch for DPA opportunities:
+  Logistics companies often have fragile email-based processes that are
+  genuinely DPA candidates. If you see a workflow that involves 3+ people
+  and a chain of emails/spreadsheets, that's a Power Apps + Power Automate
+  replacement conversation, not a "let's automate the email" conversation.

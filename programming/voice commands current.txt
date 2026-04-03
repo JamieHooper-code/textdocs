@@ -11,7 +11,12 @@ VS Code
   Tabs:       tab <n>, [tab] next/previous, focus, switch, reopen, kill
   AI/Diff:    Codex, robotic, accept, accept all, reject
   Running:    run
-  Claude:     chat kill, chat new, chat search
+  Claude:     chat kill, chat new, chat search, compact that / pack that
+
+Notepad++
+---------
+  Navigation: go [line] <n>, go <textnv>
+              (both center the found line on screen)
 
 Programming General
 -------------------
@@ -84,9 +89,14 @@ Stack
   switch stack <key>         — change active stack (e.g. "switch stack research", "switch stack main")
   dump stack                 — delete entire current stack
   list stack                 — show all stack names (current marked with *)
-  Stack files: C:\Users\Nate\Desktop\Important\TEXTDOCS\programming\stacks\
+  Stack files: C:\Users\jamie\Desktop\Important\TEXTDOCS\programming\stacks\
 
 Footpedals
 ----------
   Modes: "mode page"  — left/right pedals = PgUp/PgDn
          "mode main"  — restore app-specific behavior
+
+Text / Dictation
+----------------
+  all types             — select all, then open Dragon dictation box
+  open Accuracy Center  — open Dragon Accuracy Center

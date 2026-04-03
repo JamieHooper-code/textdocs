@@ -1,0 +1,127 @@
+EMAIL AUTOMATION SETUP GUIDE
+=============================
+Atlantic Logistics — Outlook Email Cleanup
+Date: April 2026
+
+
+== WHAT THIS DOES ==
+
+Two automated flows run in the background and clean up your inbox on a schedule:
+
+  Flow 1 — "Email Cleanup: Apply Rules"
+    Runs every few hours. Moves emails matching your rules to designated folders
+    or to a staging folder ("Pending Delete") to await deletion.
+
+  Flow 2 — "Email Cleanup: Hard Delete Staged"
+    Runs once daily. Processes the staging folder — by default, moves emails
+    to a "Deleted by Script" folder instead of permanently deleting them.
+    Nothing is permanently deleted unless you explicitly turn that on.
+
+All rules and settings are controlled through a single Excel file on OneDrive.
+No technical knowledge is needed to add, change, or disable rules.
+
+
+== WHAT YOU NEED ==
+
+  - email_cleanup_config.xlsx (provided — upload this to OneDrive)
+  - Two .zip files: the exported flows (provided)
+  - Access to Power Automate (make.powerautomate.com) with your work account
+  - Microsoft Outlook (new Outlook / Microsoft 365)
+
+
+== STEP 1 — CREATE TWO FOLDERS IN OUTLOOK ==
+
+These folders need to exist before the flows run.
+
+  1. Open Outlook
+  2. In the left sidebar, right-click your mailbox name (the top-level item,
+     usually your email address) and choose "New folder"
+  3. Create a folder named:  Pending Delete
+  4. Repeat and create a folder named:  Deleted by Script
+
+
+== STEP 2 — UPLOAD THE EXCEL FILE TO ONEDRIVE ==
+
+  1. Open OneDrive
+  2. Navigate to Documents (or create a folder called "Email Cleanup" to keep
+     things tidy)
+  3. Upload email_cleanup_config.xlsx
+  4. Note the exact folder path — you will need it in Step 4
+
+
+== STEP 3 — IMPORT THE FLOWS INTO POWER AUTOMATE ==
+
+Do this twice — once for each .zip file provided.
+
+  1. Go to make.powerautomate.com and sign in with your work account
+  2. In the left sidebar, click "My flows"
+  3. Click "Import" at the top, then "Import Package (Legacy)"
+  4. Upload the .zip file
+  5. When prompted, click "Select during import" next to each connection
+     (Outlook, Excel) and sign in with your work account
+  6. Click Import
+  7. Repeat for the second .zip file
+
+
+== STEP 4 — UPDATE THE EXCEL FILE PATH IN EACH FLOW ==
+
+After importing, each flow needs to know where your Excel file is on OneDrive.
+
+  1. Open the flow (My flows > click the flow name)
+  2. Click Edit
+  3. Find any step that references the Excel file
+     (look for steps named "List rows" or "Add a row")
+  4. Click the step and update the File field to point to your uploaded
+     email_cleanup_config.xlsx
+  5. Save the flow
+  6. Repeat for the second flow
+
+
+== STEP 5 — TEST IN DRY RUN MODE ==
+
+The flows start with DryRunMode turned on — they will log what they would do
+but will not move or delete anything. This lets you verify everything looks
+correct before enabling for real.
+
+  1. Trigger Flow 1 manually:
+     My flows > "Email Cleanup: Apply Rules" > Run
+  2. Wait for it to complete, then open email_cleanup_config.xlsx
+  3. Check the "Run Log" sheet — you should see rows for emails that
+     WOULD have been moved, with the rule that matched and the destination folder
+  4. Confirm the right emails are showing up and the ages look correct
+  5. Repeat for Flow 2
+
+
+== STEP 6 — ENABLE THE FLOWS ==
+
+Once the Run Log looks correct:
+
+  1. Open email_cleanup_config.xlsx
+  2. Go to the Settings sheet
+  3. Change DryRunMode from "yes" to "no"
+  4. Save and re-upload the file to OneDrive (overwrite the existing one)
+  5. Run Flow 1 manually once more and check that emails actually moved in Outlook
+  6. Check the Run Log again to confirm
+
+The flows will now run automatically on schedule.
+
+
+== DAY-TO-DAY CHANGES ==
+
+The only file you ever need to touch is email_cleanup_config.xlsx.
+
+  To add a rule:     Add a row to the Rules sheet
+  To disable a rule: Change Enabled from "yes" to "no"
+  To delete a rule:  Delete the row
+  To change a setting: Edit the Value column in the Settings sheet
+
+After any change: save the file and re-upload it to OneDrive (overwrite).
+No changes needed in Power Automate.
+
+
+== IF SOMETHING GOES WRONG ==
+
+  - Check the Run Log sheet for a record of what the flow did
+  - Turn DryRunMode back to "yes" to pause all actions while you investigate
+  - The "Deleted by Script" folder in Outlook holds everything the flow has
+    processed — nothing is permanently gone unless NeverHardDelete was set to "no"

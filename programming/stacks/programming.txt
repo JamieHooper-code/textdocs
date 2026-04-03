@@ -1,0 +1,1 @@
+Make my Claude button open or focused VS code and also add it to my second stream decks

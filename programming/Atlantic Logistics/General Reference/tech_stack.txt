@@ -1,0 +1,61 @@
+ATLANTIC LOGISTICS — TECH STACK RESEARCH
+=========================================
+Date: April 2026
+Source: Public records, job postings, company website (shipatlantic.com)
+
+
+== COMPANY OVERVIEW ==
+
+Atlantic Logistics LLC (most likely match)
+- 3PL / freight broker, Jacksonville FL
+- Founded 2001, woman-owned (Evie & Bob Hooper), CEO Robert Hooper Jr.
+- ~121 employees, 8,500+ carrier partners
+- 2024 Inc. 5000 honoree (~$47M freight value/year)
+- HQ: 3003 Claire Ln, Jacksonville FL; second branch in Keystone Heights, FL
+- Website: shipatlantic.com
+
+
+== CONFIRMED TECH STACK ==
+
+CORE OPERATIONS
+- McLeod PowerBroker    Primary TMS (Transportation Management System) — deployed 2010
+                        Industry-standard for mid-size freight brokers
+                        Has built-in CRM module (likely replaces a separate CRM)
+- McLeod IQ             Analytics/reporting add-on — added 2018
+- Load Pay              Carrier payment software — added 2018
+- Project44             Shipment tracking/visibility platform — partnership 2023
+
+BUSINESS / HR
+- Paylocity             HR, payroll, recruiting (confirmed — active hiring portal)
+- Microsoft Office 365  Outlook, Word, Excel — explicitly required in job postings
+
+INFERRED (not confirmed)
+- Microsoft Teams       Likely given M365 footprint, not explicitly named
+- SharePoint / OneDrive Possible, common with M365 at this size
+- No separate ERP found (McLeod handles most operational data at this size)
+
+
+== WHAT THIS MEANS FOR WORK ==
+
+McLeod PowerBroker context:
+- McLeod has a REST API (McLeod API / McLeod Web Services) — may be accessible
+  depending on their license tier and IT permissions
+- McLeod IQ is the reporting layer — if they need custom reports, this is where
+  the data lives
+- Data export from McLeod is typically CSV/Excel or via ODBC — Python pandas
+  work is likely viable if they can grant read access
+
+Microsoft 365 context:
+- Power Automate is available (included with M365 at some capacity tier)
+- Graph API access is possible if IT grants app permissions
+- Outlook rules, signatures, and add-ins are all on the table
+
+Project44 context:
+- Project44 has a well-documented REST API for shipment visibility
+- Could be a source for real-time tracking data if that becomes relevant
+
+Key unknowns to clarify early:
+- What license tier of M365? (Determines Power Automate and Purview access)
+- Is McLeod API access available? (Determines what's possible for TMS integration)
+- Is there an IT department or is it self-managed?
+- Do they use SharePoint / Teams internally?

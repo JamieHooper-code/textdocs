@@ -1,0 +1,146 @@
+================================================================================
+ATLANTIC LOGISTICS — AI LOAD EMAIL PROCESSING PROJECT
+================================================================================
+Date first discussed: 2026-04-02
+Source: Email forwarded by Nate Hooper (natehoop@gmail.com) → jamieeehooper@gmail.com
+Original sender: Robert Hooper Jr., Ph.D., CEO — Atlantic Logistics
+CC: Alex Rodriguez (alex@shipatlantic.com)
+
+--------------------------------------------------------------------------------
+ORIGINAL EMAIL (from Robert Hooper Jr.)
+--------------------------------------------------------------------------------
+
+Jamie (cc: Alex),
+
+I thought of the project that might be perfect for you.
+
+It is an AI/LLM project. We get emails from customers with loads. If we could
+process those loads to post them through the Mcleod API, we could save a lot of
+time and post a lot more loads and update them much faster than a human could.
+
+We could set up an email box that we simply forward these emails to from distros.
+We could prime it with certain info by customer email (trailer type that this
+customer typically uses, e.g.). You could check Mcleod for who to post the load
+as. We would create Subject Orders in McLeod. They would need to be constantly
+updated as new emails come in (remove missing ones, know that the difference
+between a new load or an entire new load list, i.e., delete all others and post
+the new ones or add a new single load).
+
+This could be a quick ROI for us. It would involve LLM, AI, API, etc.
+
+Is this something that might be a fit for you? See email below as an example load
+offering. We will soon have a pricing API where we can say what we should try to
+move the load at (and figure out if there would be margin in the load to be worth
+posting).
+
+R
+
+Robert Hooper Jr., Ph.D.    CEO
+Atlantic Logistics | Ready. Set. Delivered.
+P 904.886.1110 | C 904.477.4762 | shipatlantic.com
+
+--------------------------------------------------------------------------------
+EXAMPLE LOAD EMAIL (forwarded from Optimus Steel, April 1, 2026)
+--------------------------------------------------------------------------------
+From: Customer Pickup <logistics.communications@optimus-steelusa.com>
+Sent: Wednesday, April 1, 2026 4:39 PM
+
+Load type: STRAIGHT REBAR - FLATBED 48' - 53' WITHOUT HEADBOARD
+           & 12 PCS OF DUNNAGE 4x4x8 EACH - 12 STRAPS
+
+ORIGIN      DESTINATION  ZIPCODE  MILES  RATE   TARPS  REMARKS        REBAR LENGTH - WEIGHT
+VIDOR, TX   CONROE, TX   77385    130    $550   N      MUST PU ASAP   20FT - 48,000 LBS
+
+Facility: Optimus Steel LLC, 100 US-90, Vidor, TX 77662
+Loading Hours: 24/7 by appt, 1 hour gap from appt time
+Security Phone: 409-769-1006
+Contact: Mario Vidal, Logistics Dept — (409) 292-9124, mario.vidal@optimus-steelusa.com
+
+Screenshot saved: see email screenshot in email dated 2026-04-02 in Gmail inbox
+(subject: "Fwd: Fw: OPTIMUS STEEL REBAR LOAD LIST")
+
+--------------------------------------------------------------------------------
+CLAUDE'S ANALYSIS (2026-04-02)
+--------------------------------------------------------------------------------
+
+WHAT THEY'RE ASKING FOR:
+  - A dedicated email inbox where customer load emails get forwarded
+  - LLM parses each email → extracts structured load data
+  - Posts loads to McLeod TMS (Transportation Management System) via API
+  - Creates "Subject Orders" in McLeod
+  - Keeps orders current as new emails arrive:
+      * New single load → add it
+      * Replacement load list → delete old ones, post new ones
+  - Customer profiles: pre-fill defaults per sender (e.g., trailer type)
+  - Future phase: pricing API integration to check margin before posting
+
+WHY IT'S A GOOD OPPORTUNITY:
+  - Clear, measurable ROI — freight brokers post dozens of load lists daily
+  - The Optimus Steel example is a structured HTML table — easy for LLMs to parse
+  - Well-scoped: email → parse → API post is a standard pipeline
+  - Phase 2 (pricing API) is a natural extension already mentioned by client
+
+TECHNICAL STACK (recommended):
+  - Email monitoring: Gmail API or dedicated forwarding inbox (e.g., SendGrid inbound parse)
+  - LLM parsing: Claude API (claude-sonnet-4-6 or haiku for cost)
+  - TMS posting: McLeod REST API → Subject Orders endpoints
+  - State tracking: simple database (SQLite or Postgres) to track what's been posted per customer
+  - Customer profiles: JSON or DB table mapping sender email → defaults (trailer type, broker ID, etc.)
+
+KEY TECHNICAL CHALLENGES:
+  1. IDEMPOTENCY / LIST DIFFING — hardest problem
+     - Must determine: "is this a full replacement list or an additive single load?"
+     - Approach: LLM classifies email intent + compare against current posted loads for that sender
+
+  2. EMAIL FORMAT VARIABILITY
+     - Optimus Steel has a clean HTML table (easy)
+     - Other customers may send: messy Word docs, PDFs, image attachments, free-form text
+     - Need robust extraction that handles multiple formats
+
+  3. McLEOD API ACCESS
+     - Need API docs + sandbox credentials from Atlantic Logistics before scoping
+     - McLeod's API (PowerBroker/LoadMaster) can vary by version/config
+     - This is the critical dependency — confirm before committing to timeline
+
+  4. ERROR HANDLING + HUMAN REVIEW
+     - A misread rate or wrong origin/destination could cause real business problems
+     - Consider: low-confidence extractions → flag for human review before posting
+     - Confidence threshold + review queue recommended
+
+QUESTIONS TO ASK ROBERT BEFORE STARTING:
+  1. Do you have McLeod API access + docs + sandbox environment?
+  2. What version of McLeod are you running (PowerBroker? LoadMaster?)
+  3. How many customer distros are we talking about initially? 5? 50?
+  4. Are all customer emails as clean/structured as Optimus Steel, or is there variety?
+  5. Who posts loads in McLeod manually today? (to understand the "post as" user/auth)
+  6. Is human review acceptable, or must this be fully automated?
+  7. What's the expected email volume per day?
+  8. Pricing API — when is that available, and do we build for it now or add later?
+
+SUGGESTED APPROACH / PHASES:
+  Phase 1 — MVP:
+    - Single customer (Optimus Steel as pilot)
+    - Gmail API polling every 5-10 min
+    - Claude extracts load data from email
+    - Manual review step before McLeod post
+    - McLeod API: create Subject Orders
+
+  Phase 2 — Full Automation:
+    - Multi-customer support with profiles
+    - Automatic list diffing (new vs. replacement)
+    - Auto-post high-confidence results, flag low-confidence
+    - Handling PDF/image attachments (vision API)
+
+  Phase 3 — Pricing Integration:
+    - Call pricing API before posting
+    - Only post if margin threshold met
+    - Reporting dashboard
+
+CONTACTS:
+  Robert Hooper Jr., Ph.D. — CEO, Atlantic Logistics
+  rob@shipatlantic.com | 904.886.1110 | 904.477.4762
+
+  Alex Rodriguez — CC'd on original email
+  alex@shipatlantic.com
+
+================================================================================

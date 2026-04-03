@@ -1,0 +1,138 @@
+ATLANTIC LOGISTICS — OUTLOOK AUTOMATION OPTIONS
+================================================
+Date: April 2026
+Context: New Outlook (web app / new Outlook for Windows 2024+) on Microsoft 365
+
+
+== TASK 1: AUTO-DELETE / AUTO-MOVE WITH TIME-BASED TRIGGERS ==
+
+The core challenge: new Outlook rules fire on arrival only — there is no native
+time-delayed or scheduled execution built into the rules engine.
+
+OPTION A: OUTLOOK RULES (built-in, no extra licensing)
+  What they can do:
+  - Match on: sender, subject, keywords, recipient, message headers
+  - Actions: move to folder, delete, categorize, flag, forward, mark as read
+  - Rules sync server-side (apply even when client is closed)
+  What they CANNOT do:
+  - No time delay — fires immediately on arrival, not after X days
+  - No "if email is older than X days" condition
+  New Outlook limitation: rule editor is reduced vs classic Outlook.
+    Notably missing: "run a script", some calendar conditions.
+  Verdict: Good for arrival-time routing. Useless for scheduled/time-based cleanup.
+
+OPTION B: SWEEP (built-in, no extra licensing)
+  What it does: per-sender automation — delete all past messages, keep only
+  latest, or move future messages to a folder.
+  Limitation: sender-only, no keyword/subject matching.
+  Not truly time-delayed — it acts on arrival or deletes all at once.
+  Verdict: Quick win for noisy senders (newsletters, notifications).
+
+OPTION C: POWER AUTOMATE — RECURRENCE FLOW (requires M365 + PA license)
+  This is the correct approach for time-based cleanup.
+
+  Pattern for "delete emails older than X days from sender Y":
+  1. Trigger: Scheduled recurrence (e.g., run daily at 6am)
+  2. Action: "Get emails (V3)" with OData filter:
+       from eq 'sender@example.com' and receivedDateTime lt [date minus X days]
+  3. Action: Loop — "Delete email (V2)" for each result
+
+  Pattern for "move emails matching criteria after X days":
+  Use the same scheduled recurrence pattern as above — not a per-email delay.
+  1. Trigger: Scheduled recurrence (e.g., run daily at 6am)
+  2. Action: "Get emails" filtered by sender/subject/keyword + age older than X days
+  3. Action: Loop — "Move email" to target folder for each result
+  NOTE: A per-email delay approach (trigger on arrival, wait X days, then move)
+  is technically possible but fragile — if the flow is edited or interrupted,
+  the timer resets. The recurrence pattern is simpler and more reliable.
+
+  Licensing note: Basic Outlook connectors are included in standard M365 plans.
+  Confirm their plan includes Power Automate — most Business/Enterprise tiers do.
+
+OPTION D: EXCHANGE / PURVIEW RETENTION POLICIES (admin-level, IT required)
+  Retention policies can auto-delete email after a defined period but these are:
+  - Tenant-wide or mailbox-level (not per-sender without extra config)
+  - Requires Microsoft Purview and likely E3/E5 licensing
+  - IT admin scope — not something to configure from a user account
+  Verdict: Available if IT is willing; not granular enough for per-sender rules
+  without MRM tag configuration.
+
+RECOMMENDED APPROACH FOR TASK 1:
+  - Arrival-time routing (move to folder by sender/subject): Outlook Rules (built-in)
+  - Time-delayed cleanup (delete/move after X days): Power Automate recurrence flow
+  - Bulk sender suppression: Sweep for simple cases
+
+
+== TASK 2: AUTO-POPULATE FIELDS / FORMATTING / SIGNATURES WHEN SENDING ==
+
+OPTION A: SIGNATURES (built-in)
+  New Outlook supports multiple signatures with automatic assignment:
+  - Per account (if multiple email accounts)
+  - New message vs reply/forward context
+  - Rich text and images supported
+  Management: Settings > Compose and reply > Email signature
+  Verdict: Full solution for static signature management. Already works well.
+
+OPTION B: MY TEMPLATES ADD-IN (built-in, limited)
+  Available in the compose toolbar as an add-in.
+  Stores short reusable text snippets that can be inserted with a click.
+  Limitation: text-only snippets, no dynamic fields, no auto-trigger.
+  Note: Classic Outlook's "Quick Parts" feature is NOT available in new Outlook
+  — this is a confirmed regression. My Templates is the replacement, and it's weaker.
+  Verdict: Good for static boilerplate but can't auto-populate based on context.
+
+OPTION C: OFFICE JS ADD-INS (most powerful built-in path)
+  New Outlook uses web add-ins only (Office JS API model).
+  COM add-ins and VSTO add-ins from classic Outlook do NOT run in new Outlook.
+
+  What Office JS add-ins can do in compose:
+  - Fire automatically on OnMessageCompose, OnAppointmentCompose, OnMessageSend
+  - Read and SET: subject, body, recipients, headers, attachments
+  - Auto-populate fields based on recipient domain, subject keywords, etc.
+  - Insert formatted content, tables, signatures programmatically
+
+  What this means practically:
+  - A custom add-in could detect "to: @carrierdomain.com" and auto-insert a
+    carrier-specific template, pre-populate subject line format, etc.
+  - Add-ins are installable from the Microsoft AppSource or sideloaded by IT
+  - Building a custom add-in requires JavaScript/TypeScript and a hosted manifest
+    (Azure or any HTTPS server for the manifest file)
+
+  Existing add-ins worth evaluating:
+  - "Phrase" / "TextExpander" / "Briskine" — text expansion add-ins on AppSource
+  - These handle template insertion without custom development
+
+  Verdict: Best built-in path for real context-aware automation. Requires either
+  finding an existing add-in that fits OR building a small custom one.
+
+OPTION D: POWER AUTOMATE (NOT useful for compose-time)
+  Power Automate has no "while composing" trigger — it cannot fire during compose.
+  It IS useful for post-send processing (e.g., log sent email to SharePoint).
+  Not a solution for task 2.
+
+OPTION E: AUTOHOTKEY / UI AUTOMATION (fallback, not preferred)
+  AHK can detect the Outlook window and auto-fill fields based on context.
+  Works with both new Outlook (browser-based) and classic Outlook.
+  Fragile: UI changes can break scripts. Not visible to IT. Hard to hand off.
+  When to use: rapid prototyping to prove out what should later become an add-in,
+  or for personal productivity only (not a company-wide solution).
+
+RECOMMENDED APPROACH FOR TASK 2:
+  - Signatures: already solved natively — just configure them
+  - Static templates/snippets: My Templates add-in or a free AppSource add-in
+  - Context-aware auto-population: evaluate existing add-ins first;
+    if none fit, build a small Office JS add-in (this is the bulletproof path)
+  - AHK as a stopgap while evaluating the above
+
+
+== SUMMARY TABLE ==
+
+  Capability                        | Best approach          | Fallback
+  ----------------------------------|------------------------|------------------
+  Move/delete on arrival (rule)     | Outlook Rules          | Power Automate
+  Time-delayed delete/move          | Power Automate flow    | Purview (IT req'd)
+  Bulk sender suppression           | Sweep                  | Outlook Rules
+  Signatures by context             | Built-in signatures    | --
+  Static reusable snippets          | My Templates add-in    | AppSource add-in
+  Context-aware compose population  | Office JS add-in       | AHK (fragile)
+  Post-send logging/processing      | Power Automate         | --

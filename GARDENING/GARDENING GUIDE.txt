@@ -1,0 +1,436 @@
+GARDENING GUIDE — HORTICULTURE & TREES
+Gainesville, FL | Sandy, well-draining, mildly acidic soil
+Last updated: April 2026
+=======================================================
+
+
+QUICK REFERENCE — LOCAL CONDITIONS
+-----------------------------------
+Zone: 8b-9a (Gainesville, FL)
+Soil: Sandy, fast-draining, mildly acidic — dries out faster than average
+Climate: Hot, humid summers | mild winters | frequent afternoon storms in summer
+Key risk: Underwatering in summer heat, root rot from overwatering in wet season
+Fertilizing note: Sandy soil loses nutrients fast — feed regularly with slow-release or organic fertilizer
+
+
+=======================================================
+SECTION 5: TASK LIST
+=======================================================
+
+GINGER -- IN PROGRESS
+----------------------
+[x] Soak root in room-temp water 8-24 hrs  (DONE / in progress)
+[ ] Cut into 1-2 inch pieces, each with an eye
+[ ] Dry cut pieces 24-48 hrs before planting
+[ ] Plant 1-2 inches deep, buds up
+
+EVERY 3 DAYS
+-------------
+[ ] Water everything (check soil first -- finger 2 inches down)
+[ ] Check for pests
+[ ] Pinch basil flower buds
+
+WEEKLY
+-------
+[ ] Visual check -- new growth, yellowing, anything off
+[ ] Check mulch on trees
+
+MONTHLY
+--------
+[ ] Check fig and mulberry structure -- note anything for May 25 prune
+[ ] Thin roselle seedlings if needed
+
+UPCOMING
+---------
+[ ] May 25, 2026 -- Prune fig tree
+[ ] May 25, 2026 -- Prune mulberry tree
+
+
+=======================================================
+SECTION 1: TREES
+=======================================================
+
+FIG TREE
+---------
+Planted: ~March 26, 2026 (week 1)
+Variety: Unknown
+Location: [fill in]
+Pot or Ground: [fill in]
+
+  PLANT CARD
+  ┌─────────────────────────────────────────────────────┐
+  │ Botanical:    Ficus carica                          │
+  │ Sunlight:     Full sun (6-8 hrs)                    │
+  │ Water:        Every 3-4 days; drought-tolerant once │
+  │               established                           │
+  │ Soil:         Well-draining, pH 6.0-6.5             │
+  │ Plant season: Early spring or fall                  │
+  │ Zone:         7-11  (perennial in Gainesville)      │
+  │ Mature size:  10-30 ft; prune to keep 8-10 ft       │
+  │ Fertilizer:   Balanced in spring; low-N once fruiting│
+  │ Harvest:      Summer-fall depending on variety      │
+  │ Notes:        Mulch roots; needs excellent drainage; │
+  │               two crops possible in warm climates   │
+  └─────────────────────────────────────────────────────┘
+
+Care notes:
+- Newly planted -- focus on establishment, not growth
+- Water every 3 days (sandy soil dries fast); check soil first (see watering guide)
+- Add compost around base to improve moisture retention
+- Avoid fertilizing for first 4-6 weeks after planting
+
+Pruning:
+- Scheduled: May 25, 2026
+- Goal: light shaping only -- remove dead/crossing branches
+- Do NOT heavy prune a newly planted tree
+- Prune in the morning; water well after; add thin mulch layer
+
+What to watch for:
+- Yellowing leaves = overwatering or nutrient deficiency
+- Drooping/wilting in morning (not afternoon) = underwatering
+- Leaf drop after planting is normal (transplant shock)
+- New growth appearing = tree is establishing well
+
+
+MULBERRY TREE
+--------------
+Planted: ~March 29, 2026 (4 days ago)
+Variety: Unknown
+Location: [fill in]
+Pot or Ground: [fill in]
+
+  PLANT CARD
+  ┌─────────────────────────────────────────────────────┐
+  │ Botanical:    Morus spp.                            │
+  │ Sunlight:     Full sun                              │
+  │ Water:        Every 3-4 days new; drought-tolerant  │
+  │               once established                      │
+  │ Soil:         Adaptable; prefers well-draining,     │
+  │               pH 5.5-6.5                            │
+  │ Plant season: Early spring or fall                  │
+  │ Zone:         5-10 (varies by variety)              │
+  │ Mature size:  30-60 ft; easily kept smaller         │
+  │ Fertilizer:   Light; excess nitrogen = less fruit   │
+  │ Harvest:      Late spring-summer (sweet berries)    │
+  │ Notes:        Very fast grower; messy fruit -- don't│
+  │               plant over walkways or cars           │
+  └─────────────────────────────────────────────────────┘
+
+Care notes:
+- Very newly planted -- establishment is the priority
+- Water every 3-4 days; check soil 2 inches down before watering
+- Full sun preferred; fast grower once roots settle in
+- New leaves within a few weeks is a good sign
+
+Pruning:
+- Scheduled: May 25, 2026
+- Goal: pick a central leader or desired shape
+- Remove weak, inward-growing, or crossing branches
+- Do not remove more than 1/4 of the canopy this early
+
+What to watch for:
+- Leaf curl = heat stress or underwatering
+- Wilting despite moist soil = possible root damage from transplant
+- Sticky or spotty leaves = pest check (aphids common on mulberry)
+- New buds forming = healthy, tree is settling in
+
+
+=======================================================
+SECTION 2: HERBS
+=======================================================
+
+BASIL
+------
+Planted: ~March 26, 2026 (from seedlings, week 1)
+Variety: [fill in -- sweet / Thai / etc.]
+
+  PLANT CARD
+  ┌─────────────────────────────────────────────────────┐
+  │ Botanical:    Ocimum basilicum                      │
+  │ Sunlight:     Full sun (6+ hrs)                     │
+  │ Water:        Every 2-3 days; do not let fully dry  │
+  │ Soil:         Rich, well-draining, pH 6.0-7.0       │
+  │ Plant season: Spring after frost; year-round in FL  │
+  │ Zone:         Annual (perennial in zone 10+)        │
+  │ Mature size:  1-2 ft tall                           │
+  │ Fertilizer:   Light balanced every 2-3 weeks        │
+  │ Harvest:      Pinch leaves continuously; lasts until│
+  │               first cold snap                       │
+  │ Notes:        Pinch flower buds to extend harvest;  │
+  │               cold-sensitive -- bring in below 50F  │
+  └─────────────────────────────────────────────────────┘
+
+Care notes:
+- Needs full sun and warmth -- thrives in Gainesville summer
+- Pinch off flower buds as soon as they appear to keep leaves coming
+- Fertilize lightly every 2-3 weeks once established
+
+What to watch for (seedlings especially):
+- Damping off (stem collapses at soil line) = overwatering/poor drainage
+- Pale/yellow leaves = too much water or not enough sun
+- Brown leaf edges = underwatering or too much direct afternoon sun
+- Leggy stretching = needs more light
+- Small holes in leaves = flea beetles (common in FL) -- try neem oil
+
+
+THYME
+------
+Planted: ~March 26, 2026 (week 1)
+
+  PLANT CARD
+  ┌─────────────────────────────────────────────────────┐
+  │ Botanical:    Thymus vulgaris                       │
+  │ Sunlight:     Full sun (6+ hrs)                     │
+  │ Water:        Every 4-5 days; let soil dry between  │
+  │ Soil:         Sandy/loamy, well-draining, pH 6.0-8.0│
+  │ Plant season: Spring or fall                        │
+  │ Zone:         5-9 (perennial in Gainesville)        │
+  │ Mature size:  6-12 in tall, 12-18 in wide           │
+  │ Fertilizer:   Minimal; light feeding in spring      │
+  │ Harvest:      Clip stems continuously; most potent  │
+  │               just before flowering                 │
+  │ Notes:        Loves poor, well-draining soil -- your│
+  │               sandy FL soil is ideal; hates wet feet│
+  └─────────────────────────────────────────────────────┘
+
+Care notes:
+- Drought-tolerant once established; sandy soil is actually ideal here
+- Trim lightly after flowering to keep bushy shape
+- Full sun; does NOT like sitting in moisture
+
+What to watch for:
+- Woody/bare stems at base = normal aging; trim back lightly
+- Root rot (black stems, mushy base) = overwatering -- ease off immediately
+- Slow growth in first few weeks is normal
+
+
+OREGANO
+--------
+Planted: ~March 26, 2026 (week 1)
+
+  PLANT CARD
+  ┌─────────────────────────────────────────────────────┐
+  │ Botanical:    Origanum vulgare                      │
+  │ Sunlight:     Full sun (6+ hrs)                     │
+  │ Water:        Every 4-5 days; drought-tolerant      │
+  │ Soil:         Well-draining, slightly alkaline,     │
+  │               pH 6.0-8.0                            │
+  │ Plant season: Spring or fall                        │
+  │ Zone:         5-10 (perennial in Gainesville)       │
+  │ Mature size:  1-2 ft tall                           │
+  │ Fertilizer:   Minimal -- too much reduces flavor    │
+  │ Harvest:      Clip stems; most flavorful just before│
+  │               flowering; dry for storage            │
+  │ Notes:        Mediterranean herb; thrives in heat   │
+  │               and poor soil; very forgiving         │
+  └─────────────────────────────────────────────────────┘
+
+Care notes:
+- Very forgiving once established; heat and sandy soil suit it perfectly
+- Pinch flowers to keep leaf production up
+- Full sun preferred
+
+What to watch for:
+- Root rot if overwatered (same as thyme)
+- Leggy growth = needs more sun or pinching back
+- White powder on leaves = powdery mildew (FL humidity) -- improve airflow
+
+
+ROSEMARY BUSH
+--------------
+Established: Several years old
+Status: Mature
+
+  PLANT CARD
+  ┌─────────────────────────────────────────────────────┐
+  │ Botanical:    Salvia rosmarinus                     │
+  │ Sunlight:     Full sun (6-8 hrs)                    │
+  │ Water:        Every 5-7 days; very drought-tolerant │
+  │ Soil:         Sandy, well-draining, pH 6.0-7.0      │
+  │ Plant season: Spring or fall                        │
+  │ Zone:         7-11 (perennial in Gainesville)       │
+  │ Mature size:  2-6 ft tall, 2-4 ft wide              │
+  │ Fertilizer:   Minimal; light feeding in spring      │
+  │ Harvest:      Clip stems year-round; heaviest before│
+  │               flowering                             │
+  │ Notes:        Extremely drought-tolerant; root rot  │
+  │               is the only real threat; thrives in   │
+  │               sandy FL soil                         │
+  └─────────────────────────────────────────────────────┘
+
+Care notes:
+- Well established -- largely self-sufficient
+- Water every 5-7 days max; less in rainy season
+- Light pruning after flowering keeps shape and encourages new growth
+
+What to watch for:
+- Yellowing from base up = overwatering
+- Gray/fuzzy growth on stems = botrytis (fungal) -- prune, improve airflow
+- Sparse/leggy growth = needs a trim or more sun
+
+
+ROSELLE
+--------
+Planted: ~March 26, 2026 (from seed, week 1)
+
+  PLANT CARD
+  ┌─────────────────────────────────────────────────────┐
+  │ Botanical:    Hibiscus sabdariffa                   │
+  │ Sunlight:     Full sun (8+ hrs)                     │
+  │ Water:        Keep moist through germination; every │
+  │               3 days once sprouted                  │
+  │ Soil:         Well-draining, pH 6.0-6.5             │
+  │ Plant season: Spring when soil hits 70F+            │
+  │ Zone:         8-11 (annual in cooler climates)      │
+  │ Mature size:  4-8 ft tall                           │
+  │ Fertilizer:   Balanced monthly once established     │
+  │ Harvest:      Fall -- collect deep red calyces after│
+  │               petals drop; use for tea, jams, syrup │
+  │ Notes:        Fast grower in FL summer; space 18-24 │
+  │               in apart; low maintenance once up     │
+  └─────────────────────────────────────────────────────┘
+
+Care notes:
+- Seeds germinate in 1-3 weeks in warm Gainesville temps
+- Keep soil evenly moist until seedlings appear
+- Once sprouted: water every 3 days, back off as plant establishes
+- Can reach 4-6 feet by harvest
+
+What to watch for (germination stage):
+- No sprouts after 3 weeks = reseed; check soil temp (needs 70F+)
+- Thin, pale sprouts = not enough light after germination
+- Damping off = overwatering before seedlings established
+- Once 2-3 inches tall: thin to 18-24 inch spacing if multiple sprouted
+
+
+GINGER
+-------
+Planted: [fill in]
+Source: Store-bought root
+
+  PLANT CARD
+  ┌─────────────────────────────────────────────────────┐
+  │ Botanical:    Zingiber officinale                   │
+  │ Sunlight:     Partial shade (no harsh direct sun)   │
+  │ Water:        Keep moist, not soggy; every 2-3 days │
+  │ Soil:         Rich, well-draining, pH 6.0-6.5       │
+  │ Plant season: Spring (soil warm, 70F+)              │
+  │ Zone:         8-12 (perennial in Gainesville)       │
+  │ Mature size:  2-4 ft tall; spreads via rhizomes     │
+  │ Fertilizer:   Balanced monthly                      │
+  │ Harvest:      8-10 months (full); ~4 months (baby)  │
+  │               Dig rhizomes; replant a piece to keep │
+  │               it going year to year                 │
+  │ Notes:        Sandy FL soil needs extra compost;    │
+  │               mulch well to retain moisture         │
+  └─────────────────────────────────────────────────────┘
+
+Planting from store-bought root:
+1. Pick root -- firm, plump, with visible "eyes" (buds); avoid shriveled or moldy
+2. Soak in room-temp water 8-24 hrs (removes growth inhibitors on non-organic)
+3. Cut into 1-2 inch pieces, each with at least one eye
+4. Dry cut pieces 24-48 hrs before planting -- skipping this causes rot
+5. Optional: pre-sprout in warm humid spot until small green shoots appear
+6. Plant 1-2 inches deep, buds facing up, rich well-draining soil
+7. Pot vs. ground: pots = easier control, smaller harvest; ground = bigger harvest
+
+Care notes:
+- Partial shade is important -- too much direct sun scorches leaves
+- Keep soil consistently moist but never waterlogged
+- Sandy soil dries fast -- add compost and mulch around base
+- Spreads slowly underground; give it space
+
+What to watch for:
+- No shoots after 3-4 weeks = check depth, moisture, and soil temp (needs 70F+)
+- Yellow leaves = overwatering or too much direct sun
+- Mushy stem at soil line = rot from overwatering or planting before cut dried
+- Healthy sign: upright green shoots emerging from soil
+
+
+=======================================================
+SECTION 3: WATERING GUIDE
+=======================================================
+
+HOW TO CHECK SOIL BEFORE WATERING
+-----------------------------------
+1. Push your finger 2 inches into the soil near the base of the plant
+2. Dry at that depth: water now
+3. Slightly cool/damp: wait a day and check again
+4. Still wet: skip -- do not water
+
+For sandy Gainesville soil:
+- Dries faster than clay/loam -- check more often in summer heat
+- After rain: always check before defaulting to your schedule
+- Mulching around base (1-2 inch layer) significantly slows drying
+
+WATERING TECHNIQUE
+-------------------
+- Water at BASE of plant, not on leaves (wet leaves invite fungal issues)
+- Water slowly and deeply -- let it soak in vs. quick surface spray
+- Best time: early morning (before 10am) -- reduces evaporation and fungal risk
+- Avoid watering in harsh afternoon sun
+
+SIGNS OF UNDERWATERING
+------------------------
+- Wilting/drooping in morning (not just afternoon heat)
+- Dry, crispy leaf edges
+- Soil pulling away from pot edges
+- Leaves curling inward
+
+SIGNS OF OVERWATERING
+-----------------------
+- Yellow leaves (especially lower leaves first)
+- Soft, dark, or mushy stems at soil line
+- Soggy soil that stays wet for days
+- Mold on soil surface
+- Root rot smell
+
+AFTER RAIN (Gainesville summer storms)
+----------------------------------------
+- Skip scheduled watering -- check soil first
+- Florida afternoon storms are often intense but brief; check if water actually soaked in
+
+
+=======================================================
+SECTION 4: PRUNING GUIDE
+=======================================================
+
+GENERAL RULES
+--------------
+- Prune in the morning -- cooler temps reduce stress
+- Never remove more than 1/4 of a plant at once (especially young trees)
+- Use clean, sharp tools -- wipe with rubbing alcohol between plants
+- After pruning trees: thin mulch layer at base to retain moisture
+- Avoid pruning when rain is expected within 24 hours (open cuts + moisture = disease)
+
+WHAT TO REMOVE
+---------------
+- Dead or dying branches (brown, brittle, no buds)
+- Crossing branches (rub against each other, create wounds)
+- Inward-growing branches (crowd center, block airflow)
+- Suckers (growth from base of tree -- drains energy)
+- Water sprouts (fast vertical shoots from main branches)
+
+SCHEDULED PRUNING
+------------------
+- Fig tree: May 25, 2026 -- light structural pruning
+- Mulberry tree: May 25, 2026 -- light structural pruning
+
+
+=======================================================
+SECTION 6: PLANT LOG
+=======================================================
+(Use this to track observations over time)
+
+DATE        | PLANT        | OBSERVATION / ACTION
+------------|--------------|------------------------------------------
+2026-03-26  | Fig          | Planted
+2026-03-26  | Basil        | Planted from seedlings
+2026-03-26  | Thyme        | Planted
+2026-03-26  | Oregano      | Planted
+2026-03-26  | Roselle      | Seeds planted
+2026-03-29  | Mulberry     | Planted
+            |              |
+            |              |
+            |              |
+            |              |
