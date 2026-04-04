@@ -1,3 +1,20 @@
+--- TIMER OVERLAY (TimerOverlay.ahk / TimerAudio.py) ---
+
+1. Quotes display
+   - Add a quotes.txt file in Scripts/ (one quote per line)
+   - Pick a random quote at timer start and display it beneath the song name
+   - Or rotate quotes on each tick
+
+2. Multiple sound folders
+   - Option A: Edit a single variable at the top of TimerAudio.py to point to a different folder
+   - Option B: Pick randomly from multiple folders — define a list of folder paths in Python,
+     pick a folder per track (weighted or equal chance), then pick a track from that folder
+   - Folders could be: OSRS Sounds, other game OSTs, lo-fi, etc.
+   - Adventure.ogg end-track could also vary by active folder set
+
+3. Move OSRS Sounds folder to second hard drive once set up
+   - Update the soundsDir path in TimerOverlay.ahk (line ~38) to point to new location
+
 --- ATLANTIC LOGISTICS ---
 
 1. New Outlook Inbox Automation Project
@@ -14,9 +31,29 @@
 
 --- PERSONAL ---
 
+[NEEDS TEST — Tobii toggle]
+  TobiiToggle works via MAINFUN.bat → TobiiToggle() checks A_IsAdmin → if not elevated,
+  calls schtasks /run /tn TobiiToggleTask (RunLevel=Highest) → ExitApp. Scheduled task runs
+  MAINFUNCTIONS.ahk TobiiToggle again at High IL → right-clicks tray icon → {Up 2}{Enter}.
+  Key change not yet tested: added ExitApp at end of MAINFUNCTIONS.ahk dispatch block so
+  the non-elevated instance exits before the elevated one starts (fixes #SingleInstance conflict).
+  Also: TobiiToggleRunner.ahk exists but the task still points to MAINFUNCTIONS.ahk — task
+  can't be updated without elevation (UAC kept failing through terminal). If ExitApp fix works,
+  the runner script is unnecessary. If it doesn't, open admin PowerShell and run:
+    C:\Users\jamie\AppData\Local\Temp\create_tobii_task.ps1
+  (points task to TobiiToggleRunner.ahk instead)
+
+[Google Docs — combo keypress timing bug]
+  Combination voice commands (e.g. "lefty clear to sauce") fire keypresses so fast that
+  Google Docs interprets them as Ctrl+Home/Ctrl+End/etc., jumping to start/end of document.
+  Need to add delays between keypresses in the relevant AHK functions, or investigate
+  whether SetKeyDelay needs to be applied specifically for Google Docs context.
+
 1. Improve Google voice commands
 
 2.  look into more ways to add words to Dragon. I think my  current flow for that is really bad. import vocabulary??? 
+
+3. Make it so that I can enable or disable eye tracking
 
 3. Work on clicking links from Claude better and copying text. 
 
@@ -27,6 +64,7 @@
 2. Make my stream deck copying from A to B system work better and more fluidly.
 
 3. Fix downloads folder and figure out hard drive situation / Recover stuff off my 1 TB hard drive.
+   - Once second drive is set up: move OSRS Sounds folder there and update soundsDir in TimerOverlay.ahk
 
 2. Continue improving new tab page
    a. Make a version that has tasks that you can check off as completed and they will reset to zero days. So like journaling might say five days
