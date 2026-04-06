@@ -1,3 +1,5 @@
 Make my Claude button open or focused VS code and also add it to my second stream decks
 ---
 okay there still sound running in the background from an earlier run before  the bug was fixed, can you go ahead and kill that process
+---
+One issue that I've noticed with
