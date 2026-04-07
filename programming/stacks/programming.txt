@@ -3,3 +3,9 @@ Make my Claude button open or focused VS code and also add it to my second strea
 okay there still sound running in the background from an earlier run before  the bug was fixed, can you go ahead and kill that process
 ---
 One issue that I've noticed with
+---
+okay let's do that but let's keep the always access to memory file to be short, and try to put as much as possible and function index. let's document that well with explanations of how to use functions if that is the best way to do it,  and let's put them into categories if that is the best way to do that.
+---
+Hello! This is a test of the Claude spit slot. If you can paste this, the system works.
+---
+C:\Users\jamie\Desktop\Important\

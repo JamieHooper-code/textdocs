@@ -31,19 +31,7 @@
 
 --- PERSONAL ---
 
-[NEEDS TEST — Tobii toggle]
-  TobiiToggle works via MAINFUN.bat → TobiiToggle() checks A_IsAdmin → if not elevated,
-  calls schtasks /run /tn TobiiToggleTask (RunLevel=Highest) → ExitApp. Scheduled task runs
-  MAINFUNCTIONS.ahk TobiiToggle again at High IL → right-clicks tray icon → {Up 2}{Enter}.
-  Key change not yet tested: added ExitApp at end of MAINFUNCTIONS.ahk dispatch block so
-  the non-elevated instance exits before the elevated one starts (fixes #SingleInstance conflict).
-  Also: TobiiToggleRunner.ahk exists but the task still points to MAINFUNCTIONS.ahk — task
-  can't be updated without elevation (UAC kept failing through terminal). If ExitApp fix works,
-  the runner script is unnecessary. If it doesn't, open admin PowerShell and run:
-    C:\Users\jamie\AppData\Local\Temp\create_tobii_task.ps1
-  (points task to TobiiToggleRunner.ahk instead)
-
-[Google Docs — combo keypress timing bug]
+1. Google Docs — combo keypress timing bug
   Combination voice commands (e.g. "lefty clear to sauce") fire keypresses so fast that
   Google Docs interprets them as Ctrl+Home/Ctrl+End/etc., jumping to start/end of document.
   Need to add delays between keypresses in the relevant AHK functions, or investigate
@@ -53,15 +41,8 @@
 
 2.  look into more ways to add words to Dragon. I think my  current flow for that is really bad. import vocabulary??? 
 
-3. Make it so that I can enable or disable eye tracking
-
 3. Work on clicking links from Claude better and copying text. 
 
-1. Improve the way that I add singular commands to choice lists. 
-
-1. Improve AutoHotkey Claude testing abilities
-
-2. Make my stream deck copying from A to B system work better and more fluidly.
 
 3. Fix downloads folder and figure out hard drive situation / Recover stuff off my 1 TB hard drive.
    - Once second drive is set up: move OSRS Sounds folder there and update soundsDir in TimerOverlay.ahk
@@ -80,23 +61,6 @@
    k. Possibly make my to do list live portably from somewhere else? maybe
    l. Make it so that my checklists can be nested, so that I can click on one and it will have tasks inside of it.
 
-3. Improve Stream Deck programmability
-   - RESEARCH DONE: Elgato officially does not support switching user profiles externally.
-   - The switchToProfile WebSocket API only works with read-only profiles bundled inside a plugin, not your existing profiles.
-   - Best options to pursue:
-     a. Dummy .exe approach: create a silent exe, assign it a Smart Profile in Stream Deck, have AHK run/kill it to trigger the switch. Hacky but no plugin needed.
-     b. Custom Node.js plugin: export YouTube profile into a plugin bundle, plugin listens for an external trigger (file/socket) and calls switchToProfile. Cleanest solution but requires building a plugin.
-   - Pressing the native Switch Profile button on the deck (6,3 of VS Code profile) already works for manual switching.
-
-4. Explore Claude Code skills
-   - Skills are reusable prompt templates invocable via /skill-name in Claude Code
-   - Investigate what custom skills could be built for this workflow (voice commands, Stream Deck edits, AHK functions, etc.)
-   - See existing skills: update-config, keybindings-help, simplify, loop, schedule, claude-api
-
-5. Fix my right foot pedal in VS Code.
-
-7. Work through the Claude Google Chrome extension and see what the possibilities are.
-   a. Try to extract all of the resources out of a page that someone sent me and then add them to that specific list for that person.
 
 8. Fix Dragon/Natlink stability — kill/restart and freezing
    - Current kill is unsafe — investigate a cleaner approach

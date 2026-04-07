@@ -78,6 +78,15 @@ Spotify (Global)
     barrens, thunder bluff, mulgore, mulgore two, mulgore three,
     ashenvale, teldrassil, teldrassil two, vashj ir, olympus
 
+Link Saver
+----------
+  save link <category>       — save current browser URL+title to category file
+  save link <textnv>         — save to any free-form category name (fallback)
+  show link <category> [<pos>] — open category file in Notepad++ (pos: left/right/main/top/bot/twin)
+  Categories: books, poems, poetry, political books, political links,
+              political movies, spanish movies, spanish
+  Files: C:\Users\jamie\Desktop\Important\TEXTDOCS\SavedLinks\
+
 Stack
 -----
   stack that                 — grab entire focused field, push to stack (deletes field contents)
