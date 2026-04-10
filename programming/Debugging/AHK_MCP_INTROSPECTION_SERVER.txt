@@ -1,0 +1,181 @@
+AHK MCP INTROSPECTION SERVER — CONCEPT NOTES
+=============================================
+Written: April 2026
+Context: Claude Code conversation about MCP servers and automation architecture
+
+
+WHAT IS THIS?
+-------------
+The idea is to build a custom MCP (Model Context Protocol) server that gives
+Claude structured, on-demand access to the AHK function catalog and Caster voice
+command rules — instead of Claude having to read raw files or rely on memory entries.
+
+Think of it as a lightweight API layer sitting in front of your AHK/Caster setup
+that Claude can query mid-conversation.
+
+
+WHY BOTHER VS CURRENT APPROACH?
+--------------------------------
+Current approach:
+  - Memory files (MEMORY.md index + individual .md files) loaded at session start
+  - Scripts like verify.ps1 that Claude runs via Bash when it needs to look things up
+  - Works fine, but all memory content gets pre-loaded into context every session
+
+MCP introspection server approach:
+  - Server runs as a persistent background process (stdio transport, local only)
+  - Claude calls specific tools to fetch only what it needs, when it needs it
+  - Data never sits in context unless explicitly requested
+
+Key trade-off:
+  Memory files = instant (already in context), burns context tokens whether needed or not
+  MCP tools   = one round-trip per query, zero context cost until called
+
+For a small memory setup this barely matters. It starts mattering as the AHK
+function catalog grows — if MAINFUNCTIONS.ahk + all helpers has 100+ functions,
+you don't want that full list in context every session.
+
+
+WHAT THE SERVER WOULD EXPOSE
+-----------------------------
+Tools (Claude can call these):
+
+  list_ahk_functions(filter="")
+    - Parses all Helpers/*.ahk files
+    - Returns function names + their docstring/comment header
+    - Optional filter by keyword (e.g. "window", "stream")
+
+  get_ahk_function(name)
+    - Returns full source of a specific AHK function
+    - Useful before writing something that might already exist
+
+  list_voice_commands(domain="")
+    - Reads all active rule files in /rules/
+    - Returns mapping of spoken phrase -> action
+    - Optional filter by domain (e.g. "vscode", "chrome")
+
+  add_voice_command(phrase, ahk_function)
+    - Appends a new mapping to the appropriate rule file
+    - Write operation — Claude would confirm before calling this
+
+  list_enabled_rules()
+    - Reads rules.toml _enabled_ordered array
+    - Returns which rule files are active
+
+Resources (read-only data Claude can fetch without calling a tool):
+
+  ahk://functions/index        - Full function name list, no source
+  caster://rules/active        - Currently enabled rule names
+  caster://commands/{domain}   - All commands for a given domain
+
+
+HOW TO BUILD IT (FastMCP, Python 3)
+-------------------------------------
+FastMCP is the minimal-boilerplate option. Install: pip install fastmcp
+
+Skeleton:
+
+  from fastmcp import FastMCP
+  import re, os
+
+  mcp = FastMCP(name="AHK Introspection Server")
+
+  AHK_HELPERS_DIR = r"C:\Users\jamie\Desktop\Important\AutoHotkey\Helpers"
+  CASTER_RULES_DIR = r"C:\Users\jamie\AppData\Local\caster\rules"
+
+  @mcp.tool
+  def list_ahk_functions(filter: str = "") -> list:
+      """List all AHK functions across helper files, optionally filtered by keyword."""
+      results = []
+      for fname in os.listdir(AHK_HELPERS_DIR):
+          if not fname.endswith(".ahk"):
+              continue
+          path = os.path.join(AHK_HELPERS_DIR, fname)
+          with open(path, encoding="utf-8", errors="ignore") as f:
+              content = f.read()
+          # Match function definitions
+          for match in re.finditer(r'^(\w+)\(', content, re.MULTILINE):
+              fn_name = match.group(1)
+              if not filter or filter.lower() in fn_name.lower():
+                  results.append({"file": fname, "function": fn_name})
+      return results
+
+  @mcp.tool
+  def list_voice_commands(domain: str = "") -> list:
+      """List active voice command mappings from Caster rule files."""
+      results = []
+      for fname in os.listdir(CASTER_RULES_DIR):
+          if not fname.endswith("_commands.py"):
+              continue
+          if domain and domain.lower() not in fname.lower():
+              continue
+          path = os.path.join(CASTER_RULES_DIR, fname)
+          with open(path, encoding="utf-8", errors="ignore") as f:
+              content = f.read()
+          # Extract mapping entries (rough parse)
+          for match in re.finditer(r'"([^"]+)"\s*:', content):
+              results.append({"file": fname, "phrase": match.group(1)})
+      return results
+
+  if __name__ == "__main__":
+      mcp.run()  # stdio transport — Claude connects locally
+
+Register with Claude Code:
+  claude mcp add ahk-introspection "C:\path\to\python.exe" "path\to\server.py" --scope user
+
+Or add manually to ~/.claude.json under mcpServers:
+  "ahk-introspection": {
+    "type": "stdio",
+    "command": "C:\\path\\to\\python.exe",
+    "args": ["C:\\path\\to\\ahk_mcp_server.py"]
+  }
+
+
+WHERE TO PUT THE FILE
+---------------------
+Good location: C:\Users\jamie\.claude\helpers\ahk_mcp_server.py
+  - Keeps it with other Claude helper scripts (streamdeck.py lives nearby)
+  - Easy to edit and update
+  - Not in the AHK directory, which has its own structure
+
+
+IMPORTANT GOTCHAS
+-----------------
+1. Never print to stdout in the server — it breaks the stdio protocol.
+   Always log to a file: logging.basicConfig(filename="ahk_mcp.log", ...)
+
+2. Type hints on every tool function — FastMCP generates JSON schemas from them.
+   Missing types = Claude can't use the tool correctly.
+
+3. Wrap everything in try/except — a crash kills the server and Claude gets
+   no graceful error message.
+
+4. The server needs to handle Windows paths correctly. Use raw strings (r"...")
+   or double backslashes everywhere.
+
+5. If parsing AHK files gets complex (nested functions, includes, etc.),
+   consider maintaining a separate index file that the server reads instead
+   of parsing .ahk source directly every call.
+
+
+WHEN THIS IS WORTH DOING
+-------------------------
+Do it when:
+  - The AHK function catalog has grown to where memory files feel unwieldy
+  - Claude frequently asks "does a function already exist for X?" mid-task
+  - You want Claude to be able to add voice commands without being explicitly
+    walked through the file structure each time
+
+Skip it if:
+  - The current verify.ps1 + memory files approach is working fine
+  - You're not hitting context pressure from the function catalog
+
+The current setup is honestly good. This is a "when it starts to hurt" upgrade,
+not an urgent one.
+
+
+RELATED FILES
+-------------
+  Helpers are in: C:\Users\jamie\Desktop\Important\AutoHotkey\Helpers\
+  Caster rules:   C:\Users\jamie\AppData\Local\caster\rules\
+  Claude helpers: C:\Users\jamie\.claude\helpers\
+  streamdeck.py:  C:\Users\jamie\.claude\helpers\streamdeck.py  (reference example)

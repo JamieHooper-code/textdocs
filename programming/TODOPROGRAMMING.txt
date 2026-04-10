@@ -1,4 +1,14 @@
+--- ENCRYPTION KEY BACKUPS ---
+
+Make another backup of the slot encryption key (and ideally the encrypted slots too)
+in a third location besides the AutoHotkey folder and the E: external drive.
+Candidates: Charli's machine/drive, a USB stick, a password manager attachment.
+Without the key file (Scripts/CopyPasteSlotCrypt/copy_paste_slot_crypt.key) every
+encrypted slot is permanently unrecoverable.
+
 --- TIMER OVERLAY (TimerOverlay.ahk / TimerAudio.py) ---
+
+
 
 1. Quotes display
    - Add a quotes.txt file in Scripts/ (one quote per line)
@@ -31,6 +41,28 @@
 
 --- PERSONAL ---
 
+AHK / Claude Setup:
+1. Look into building AHK MCP introspection server
+   - Would give Claude structured on-demand access to AHK function catalog and Caster rules
+   - Better than pre-loading memory files when catalog gets large — fetches only what's needed
+   - Built with FastMCP (Python 3), registered via: claude mcp add ...
+   - Full concept, code skeleton, trade-offs, and gotchas documented in:
+     TEXTDOCS/programming/Debugging/AHK_MCP_INTROSPECTION_SERVER.txt
+   - Not urgent — do this when verify.ps1 + memory files start feeling unwieldy
+
+9. Timer App (Scripts/TimerApp/) — finish and polish
+   - Test all voice commands end-to-end after enabling Timer Rule
+     Say "enable Timer Rule" to activate, then:
+       "set <n> minute timer" / "set <n> second timer"
+       "set alarm <hour> <minute>"
+       "start work/meditation/break timer"
+       "show timers" / "cancel all timers"
+     Voice commands file: caster/rules/timer_commands.py
+     UI: http://localhost:7459
+   - Try out the generated sounds, replace with better ones if needed
+   - Add more presets as needed (config.json or settings panel)
+   - Consider adding Stream Deck buttons for common timers
+
 1. Google Docs — combo keypress timing bug
   Combination voice commands (e.g. "lefty clear to sauce") fire keypresses so fast that
   Google Docs interprets them as Ctrl+Home/Ctrl+End/etc., jumping to start/end of document.
@@ -38,14 +70,16 @@
   whether SetKeyDelay needs to be applied specifically for Google Docs context.
 
 1. Improve Google voice commands
+   a. Fix "text <name>" for contacts not on first page — URL-based navigation (itemId) fails
+      when the contact's thread isn't in the lazy-loaded message list. Switch to search-based
+      approach: click search bar, type contact name, click result. See TODO in GoogleVoice.ahk.
 
 2.  look into more ways to add words to Dragon. I think my  current flow for that is really bad. import vocabulary??? 
 
-3. Work on clicking links from Claude better and copying text. 
-
-
 3. Fix downloads folder and figure out hard drive situation / Recover stuff off my 1 TB hard drive.
    - Once second drive is set up: move OSRS Sounds folder there and update soundsDir in TimerOverlay.ahk
+   - Move CountdownTimer tooltip images (Scripts/CountdownTimer/wow_items/tooltips/) to non-SSD drive
+     ~700+ PNG files, will keep growing. Update the tooltip path in TimerOverlay.ahk to match.
 
 2. Continue improving new tab page
    a. Make a version that has tasks that you can check off as completed and they will reset to zero days. So like journaling might say five days

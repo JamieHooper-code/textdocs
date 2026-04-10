@@ -1,0 +1,67 @@
+PLAYWRIGHT MCP — SETUP NOTES & LIMITATIONS
+==========================================
+Last updated: 2026-04-07
+
+WHAT IT IS
+----------
+The Playwright MCP lets Claude control a Chrome browser — navigate pages, click
+buttons, fill forms, read page content. It's configured in the Claude Code VS Code
+extension and runs automatically when the session starts.
+
+HOW IT CONNECTS
+---------------
+Playwright MCP is hardcoded to connect via CDP (Chrome DevTools Protocol) at:
+  http://localhost:9222
+
+It does NOT launch its own browser. It expects an already-running Chrome instance
+with the remote debugging port open.
+
+THE CHROME 136 PROBLEM
+-----------------------
+As of Chrome 136, --remote-debugging-port is silently ignored on the default
+Chrome profile directory. This is a security change to block infostealer malware.
+
+Source: https://developer.chrome.com/blog/remote-debugging-port
+
+The RemoteDebuggingAllowed group policy exists but does NOT bypass the
+--user-data-dir requirement. There is no registry trick to work around this.
+
+THE WORKAROUND
+--------------
+Chrome must be launched with a non-default --user-data-dir to allow debugging:
+
+  "C:\Program Files\Google\Chrome\Application\chrome.exe"
+    --remote-debugging-port=9222
+    --user-data-dir="C:\Users\jamie\AppData\Local\Google\ChromeDebug\User Data"
+
+The ChromeDebug profile was created by robocopy-ing the real User Data directory
+(excluding cache folders) so Chrome starts up with the right extensions/settings.
+
+CRITICAL LIMITATION: COOKIES DON'T TRANSFER
+--------------------------------------------
+Chrome 136+ generates a new DPAPI encryption key for non-default profile
+directories. This means copied cookies from the real profile are unreadable in
+the debug profile. You must log in manually to Google (and any other sites) in
+the debug Chrome window each time.
+
+This makes it impractical for tasks that require being logged into personal
+accounts (Google Voice, Gmail, etc.) unless you do a fresh login first.
+
+CURRENT VERDICT
+---------------
+Too much friction for personal account automation. Revisit if:
+- Google releases an official workaround
+- The Chrome DevTools MCP (https://developer.chrome.com/blog/chrome-devtools-mcp-debug-your-browser-session)
+  matures into something that handles auth better
+- A use case comes up where a fresh login is acceptable
+
+TO LAUNCH THE DEBUG CHROME (when needed)
+-----------------------------------------
+Run this in PowerShell (or wire up an AHK function):
+
+  Stop-Process -Name chrome -Force -ErrorAction SilentlyContinue
+  Start-Sleep 2
+  Start-Process "C:\Program Files\Google\Chrome\Application\chrome.exe" `
+    -ArgumentList "--remote-debugging-port=9222","--user-data-dir=C:\Users\jamie\AppData\Local\Google\ChromeDebug\User Data"
+
+Then log into Google before asking Claude to do anything account-specific.

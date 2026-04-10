@@ -9,7 +9,7 @@ VS Code
   Layout:     fix view
   Navigation: go <n>, go files, find file, file <textnv>, Jump search, palette, settings
   Tabs:       tab <n>, [tab] next/previous, focus, switch, reopen, kill
-  AI/Diff:    Codex, robotic, accept, accept all, reject
+  AI/Diff:    Codex, robotic, big robot, accept, accept all, reject
   Running:    run
   Claude:     chat kill, chat new, chat search, compact that / pack that
 
@@ -99,6 +99,18 @@ Stack
   dump stack                 — delete entire current stack
   list stack                 — show all stack names (current marked with *)
   Stack files: C:\Users\jamie\Desktop\Important\TEXTDOCS\programming\stacks\
+
+Timer App (Global)
+------------------
+  set <n> minute timer         — start countdown timer (e.g. "set forty minute timer")
+  set <n> second timer         — start short timer in seconds
+  set alarm <hour> <minute>    — set alarm for clock time (e.g. "set alarm ten forty")
+  start work timer             — 50min preset with 2min warning
+  start meditation timer       — 20min preset with bell every 5min
+  start break timer            — 10min preset
+  show timers                  — open timer UI in Chrome
+  cancel all timers            — remove all active timers
+  UI: http://localhost:7459 (preset buttons, quick-add, alarm input, settings panel)
 
 Footpedals
 ----------

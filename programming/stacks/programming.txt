@@ -9,3 +9,7 @@ okay let's do that but let's keep the always access to memory file to be short, 
 Hello! This is a test of the Claude spit slot. If you can paste this, the system works.
 ---
 C:\Users\jamie\Desktop\Important\
+---
+I want to create a to purchase text document that has different sections like one for Amazon one for other and one for repurpose,  and one for food.  figure out what's the best subfolder to put it in. add sharpie that is ergonomic to my repurpose section, that's the repurpose project. and add blackout mirror materials
+---
+do we need to beef up the UIA  documentation?  it feels like at a anytime I ask you to do any form of that you have to look up a bunch of stuff
