@@ -1,104 +1,144 @@
---- ENCRYPTION KEY BACKUPS ---
+TODO — Programming
+Short-form list. For longer design docs, follow the referenced file paths.
 
-Make another backup of the slot encryption key (and ideally the encrypted slots too)
-in a third location besides the AutoHotkey folder and the E: external drive.
-Candidates: Charli's machine/drive, a USB stick, a password manager attachment.
-Without the key file (Scripts/CopyPasteSlotCrypt/copy_paste_slot_crypt.key) every
-encrypted slot is permanently unrecoverable.
+================================================================
+ATLANTIC LOGISTICS
+================================================================
 
---- TIMER OVERLAY (TimerOverlay.ahk / TimerAudio.py) ---
+1. Email Rob about rate
+   Draft/send email confirming hourly rate. Anchor in delivered work (Email
+   Cleanup Flow) and in-progress (AI Load Email to McLeod).
 
+2. Outlook programmatic access
+   New Outlook blocks COM automation, so email-analysis PoCs are stuck.
+   Pick one: install Classic Outlook, use Microsoft Graph API, or finish
+   the Gmail forwarding bridge.
 
+3. Gmail <-> Outlook bridge
+   Forward shipatlantic inbound into Gmail + "Send mail as" via
+   smtp.office365.com:587. Risk: tenant may block external forward.
 
-1. Quotes display
-   - Add a quotes.txt file in Scripts/ (one quote per line)
-   - Pick a random quote at timer start and display it beneath the song name
-   - Or rotate quotes on each tick
+4. "Current technology issues" doc
+   Create in Atlantic Logistics folder from the "Device management could
+   not be enabled" error. Blocked on a readable screenshot.
 
-2. Multiple sound folders
-   - Option A: Edit a single variable at the top of TimerAudio.py to point to a different folder
-   - Option B: Pick randomly from multiple folders — define a list of folder paths in Python,
-     pick a folder per track (weighted or equal chance), then pick a track from that folder
-   - Folders could be: OSRS Sounds, other game OSTs, lo-fi, etc.
-   - Adventure.ogg end-track could also vary by active folder set
+5. Inbox automation project
+   Auto-delete/move emails by sender, subject, keywords, age. Primary tool
+   candidate: Power Automate. Also evaluate: existing automation in use,
+   RPA (UiPath / Power Automate Desktop), DPA for broader workflow.
 
-3. Move OSRS Sounds folder to second hard drive once set up
-   - Update the soundsDir path in TimerOverlay.ahk (line ~38) to point to new location
+6. Outbound email metadata automation
+   Auto-populate fields, formatting, signatures based on context when
+   sending.
 
---- ATLANTIC LOGISTICS ---
-
-1. New Outlook Inbox Automation Project
-   - Auto-delete emails from certain senders after a defined time period
-   - Move emails to specific folders after a time period if they meet certain parameters (sender, subject, keywords, etc.)
-
-2. Automation of email information/metadata modification when sending (e.g. auto-populate fields, formatting, signatures based on context)
-
-3. Tools to evaluate:
-   - Power Automate (primary candidate — already in Microsoft ecosystem)
-   - Look into what they are currently using for any existing automation
-   - RPA (Robotic Process Automation) — e.g. UiPath, Automation Anywhere, Power Automate Desktop
-   - DPA (Digital Process Automation) — broader workflow orchestration, evaluate fit vs RPA for this use case
-
---- PERSONAL ---
-
-AHK / Claude Setup:
-1. Look into building AHK MCP introspection server
-   - Would give Claude structured on-demand access to AHK function catalog and Caster rules
-   - Better than pre-loading memory files when catalog gets large — fetches only what's needed
-   - Built with FastMCP (Python 3), registered via: claude mcp add ...
-   - Full concept, code skeleton, trade-offs, and gotchas documented in:
-     TEXTDOCS/programming/Debugging/AHK_MCP_INTROSPECTION_SERVER.txt
-   - Not urgent — do this when verify.ps1 + memory files start feeling unwieldy
-
-9. Timer App (Scripts/TimerApp/) — finish and polish
-   - Test all voice commands end-to-end after enabling Timer Rule
-     Say "enable Timer Rule" to activate, then:
-       "set <n> minute timer" / "set <n> second timer"
-       "set alarm <hour> <minute>"
-       "start work/meditation/break timer"
-       "show timers" / "cancel all timers"
-     Voice commands file: caster/rules/timer_commands.py
-     UI: http://localhost:7459
-   - Try out the generated sounds, replace with better ones if needed
-   - Add more presets as needed (config.json or settings panel)
-   - Consider adding Stream Deck buttons for common timers
-
-1. Google Docs — combo keypress timing bug
-  Combination voice commands (e.g. "lefty clear to sauce") fire keypresses so fast that
-  Google Docs interprets them as Ctrl+Home/Ctrl+End/etc., jumping to start/end of document.
-  Need to add delays between keypresses in the relevant AHK functions, or investigate
-  whether SetKeyDelay needs to be applied specifically for Google Docs context.
-
-1. Improve Google voice commands
-   a. Fix "text <name>" for contacts not on first page — URL-based navigation (itemId) fails
-      when the contact's thread isn't in the lazy-loaded message list. Switch to search-based
-      approach: click search bar, type contact name, click result. See TODO in GoogleVoice.ahk.
-
-2.  look into more ways to add words to Dragon. I think my  current flow for that is really bad. import vocabulary??? 
-
-3. Fix downloads folder and figure out hard drive situation / Recover stuff off my 1 TB hard drive.
-   - Once second drive is set up: move OSRS Sounds folder there and update soundsDir in TimerOverlay.ahk
-   - Move CountdownTimer tooltip images (Scripts/CountdownTimer/wow_items/tooltips/) to non-SSD drive
-     ~700+ PNG files, will keep growing. Update the tooltip path in TimerOverlay.ahk to match.
-
-2. Continue improving new tab page
-   a. Make a version that has tasks that you can check off as completed and they will reset to zero days. So like journaling might say five days
-   b. User profiles (with Google integration)
-   c. Image debugging workflow
-   d. General settings page
-   e. Make new panel of like my current YouTube links or like current tabs/activities/etc?
-   f. Make my new tab page work from anywhere? At least speech
-   g. Make my new tab page able to implement things like a poem a day or quote of the day. And make it dynamically pulled from other websites.
-   h. Possibly even a weather panel?
-   i. For different panels like that make them easy to add as different options to different boards.
-   j. Make a specific panel type where I can have recurring events or tasks and then I just check them and it resets the timer. So like journaling it'll say five days or something.
-   k. Possibly make my to do list live portably from somewhere else? maybe
-   l. Make it so that my checklists can be nested, so that I can click on one and it will have tasks inside of it.
+7. Work timer / hour tracking
+   Toggle-based clock in/out for invoicing. Accumulate per day/week.
+   Voice: start/stop/pause, show session, show totals. AHK-first, thin
+   Caster wiring. Decide storage format (JSON/CSV) and whether to fold
+   into the Alarm Clock server or stand alone.
 
 
-8. Fix Dragon/Natlink stability — kill/restart and freezing
-   - Current kill is unsafe — investigate a cleaner approach
-   - Options: Dragon's own shutdown API, UI automation (exit gracefully through Dragon menus), or staged kill that waits for Natlink to unload
-   - Also hide/close the Natlink window as part of the shutdown sequence
-   - Goal: reliable safe kill that avoids the frozen-state backlog problem and leaves no orphaned processes
-   - Diagnostic info in Dragon_NATLINK_debugging.txt
+================================================================
+PERSONAL
+================================================================
+
+--- Backups / Security ---
+
+1. Slot encryption key — third backup location
+   Key file: Scripts/CopyPasteSlotCrypt/copy_paste_slot_crypt.key.
+   Currently backed up to AutoHotkey folder + E: drive. Add a third
+   (Charli's machine, USB, or password manager attachment). Without the
+   key every encrypted slot is permanently unrecoverable.
+
+2. Bitwarden as credential vault for client work
+   Slots are great for voice-first secrets but lack metadata, TOTP, mobile
+   access, recovery. Add Bitwarden (free tier) as authoritative vault for
+   Atlantic/McLeod/Microsoft creds. Keep slots for daily-use keys, bridge
+   via a one-way SyncSlotFromBitwarden helper. AHK-first, new
+   Helpers/CredentialsFunctions.ahk.
+   Full design: TEXTDOCS/programming/BITWARDEN_CREDENTIAL_SETUP.md
+   Prereq: sign up + 2FA + print recovery kit + back it up to E:.
+
+
+--- Timer Overlay (TimerOverlay.ahk / TimerAudio.py) ---
+
+3. Quotes display
+   Add Scripts/quotes.txt (one per line). Pick random at start or rotate
+   on tick, display under song name.
+
+4. Multiple sound folders
+   Either single variable at top of TimerAudio.py, or a weighted list of
+   folder paths picked per track. Candidates: OSRS, other game OSTs,
+   lo-fi. Adventure.ogg end-track could vary by active set.
+
+5. Move OSRS Sounds to second drive
+   Once set up. Update soundsDir path in TimerOverlay.ahk (~line 38).
+
+
+--- AHK / Caster ---
+
+6. Alarm Clock App — test refactor end-to-end
+   Say "enable AlarmClockRule", verify each voice command (set timer /
+   alarm / stopwatch / show timers / cancel all). Rule:
+   caster/rules/alarm_clock_commands.py. Logic:
+   Helpers/AlarmClockFunctions.ahk. Server:
+   Scripts/AlarmClockApp/alarm_clock_server.py (localhost:7459).
+   Replace generated sounds if bad, add presets, consider SD buttons.
+
+7. Calendar voice commands — natural language reminders
+   "remind me in three months / two weeks / tomorrow at X / next Friday".
+   AHK-first in a new Helpers/CalendarFunctions.ahk. Backend: Google
+   Calendar (gcal MCP already wired), Windows Reminders, or Alarm Clock
+   for short horizons. Handle minutes/hours/days/weeks/months/years.
+
+8. AHK MCP introspection server
+   Structured on-demand access to AHK function catalog + Caster rules.
+   Better than pre-loading memory when catalog grows. FastMCP (Python 3).
+   Not urgent — do when verify.ps1 + memory files feel unwieldy.
+   Full concept: TEXTDOCS/programming/Debugging/AHK_MCP_INTROSPECTION_SERVER.txt
+
+9. Dragon / Natlink — safe kill + restart
+   Current kill is unsafe. Investigate Dragon's shutdown API, UI
+   automation, or staged kill that waits for Natlink to unload. Hide/close
+   Natlink window during shutdown. Goal: no orphaned processes, no frozen
+   backlog.
+   Diagnostic info: Dragon_NATLINK_debugging.txt
+
+10. Dragon vocabulary import
+    Current flow for adding words is bad. Look into vocabulary import.
+
+11. Google Docs combo keypress timing bug
+    Combos like "lefty clear to sauce" fire too fast; Docs reads them as
+    Ctrl+Home/End. Add delays or SetKeyDelay scoped to Docs context.
+
+12. Google Voice — "text <name>" for contacts not on first page
+    URL-based navigation (itemId) fails when thread isn't in the lazy
+    list. Switch to search: click search, type name, click result. See
+    TODO in GoogleVoice.ahk.
+
+
+--- New Tab Page ---
+
+13. New tab page improvements
+    a. Check-off tasks that reset counters (e.g. journaling -> 5 days)
+    b. User profiles with Google integration
+    c. Image debugging workflow
+    d. General settings page
+    e. Panel for current YouTube/tabs/activities
+    f. Make it work from anywhere (at least speech)
+    g. Poem/quote of the day dynamically pulled from external sources
+    h. Weather panel
+    i. Panels as easy-to-add options across boards
+    j. Recurring event/task panel with reset-on-check
+    k. Portable to-do list sourced from elsewhere
+    l. Nested checklists (click one to reveal sub-tasks)
+
+
+--- Hardware / Storage ---
+
+14. Fix downloads folder + hard drive situation
+    Recover stuff off the 1 TB drive. Once second drive is set up: move
+    OSRS Sounds and update soundsDir in TimerOverlay.ahk. Also move
+    CountdownTimer tooltip images (Scripts/CountdownTimer/wow_items/
+    tooltips/, 700+ PNGs and growing) off SSD; update tooltip path in
+    TimerOverlay.ahk.
