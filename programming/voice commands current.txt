@@ -59,6 +59,8 @@ Windows
   Open system: "open <item> [<dest>]"
     Items:  to do, desktop, explorer, everything, important, text
     Dests:  left, right, main, top, bot, twin
+  Open VS Code project: "open <project>"
+    Projects: atlantic
 
 Spotify (Global)
 ----------------
@@ -67,16 +69,44 @@ Spotify (Global)
   spot swallow <genre>     — add current URL to genre pool
   spot <genre>             — open random URL from genre pool
   Genres: ambient, folk punk, indie folk, sad boi, funk, dance,
-          hip hop, Spanish, miscellaneous, local, harmony
+          hip hop, Spanish, miscellaneous, local, harmony,
+          all, classic, wow
 
-  Music page links (spot spit <name>):
-    weaving, mixes, more, discover, today, for you, recent, bandcamp, capacity
+  Hardcoded slot phrases (Dragon-robust, SpotSpit path):
+    weaving
+    (defined in rules/hardcoded_spotify_and_youtube_music_slots.py → HARDCODED_SPOT_SLOTS)
 
-  Ambient zones (spot <name>):
+  Hardcoded ambient-track phrases (YouTube direct open):
     fjord, durotar, un goro, iron forge, elwynn, elwynn two, uldum,
     dun morogh, redridge, stranglethorn, stranglethorn two, needles,
     barrens, thunder bluff, mulgore, mulgore two, mulgore three,
     ashenvale, teldrassil, teldrassil two, vashj ir, olympus
+    (defined in rules/hardcoded_spotify_and_youtube_music_slots.py → HARDCODED_SPOT_URLS)
+
+Lockout Timer (Global)
+----------------------
+  lockout <n>               — plain n-min countdown, normal OSRS sound
+  lockout <phrase>          — play spot phrase + muted n-min timer (default 1)
+  lockout <phrase> <n>      — same with explicit minutes
+  lockout <genre> [<n>]     — random genre URL + muted timer
+  Accepts any phrase: hardcoded slot, hardcoded ambient track, genre name,
+  or free dictation (falls back to SpotSpit with snake_case lookup).
+  Spotify warm-up (3s click + 1.5s settle) is automatic; YouTube URLs get
+  a 3.5s warm-up before the timer starts.
+  Timer starts muted so the spot music is what you hear.
+
+Named Clipboard Slots (swallow / spit)
+--------------------------------------
+  swallow <name>              — save current selection to a named slot (snake_cased)
+  spit <name>                 — paste a saved named slot at the cursor
+  swallow pass <name>         — save selection to a gitignored password slot
+  spit pass <name>            — paste a saved password slot at the cursor
+  swallow search <query>      — centered GUI listing every general + password
+                                slot whose name contains all spoken keywords;
+                                Slots and Passwords shown in separate sections,
+                                underscores rendered as spaces, Enter/Esc closes
+  Slot storage (encrypted at rest): AutoHotkey\INIDATA\CopyPasteSlots\*.enc
+                                    AutoHotkey\INIDATA\CopyPasteSlotsPasswords\*.enc
 
 Link Saver
 ----------

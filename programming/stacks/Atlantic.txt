@@ -1,0 +1,15 @@
+hello hello
+---
+Continuing the AI Load Email to McLeod project for Atlantic Logistics.
+
+Before doing anything, read these in order:
+
+1. c:\Users\jamie\AppData\Local\caster\rules\CLAUDE.md
+2. C:\Users\jamie\.claude\projects\c--Users-jamie-AppData-Local-caster\memory\MEMORY.md (then load the atlantic and email-related entries)
+3. c:\Users\jamie\Desktop\Important\TEXTDOCS\programming\Atlantic Logistics\AI Load Email to McLeod\docs\TO_DO_AI_LOAD_EMAIL_MCLEOD.md (quest log GÇö current status and what's blocked)
+4. c:\Users\jamie\Desktop\Important\TEXTDOCS\programming\Atlantic Logistics\AI Load Email to McLeod\docs\DESIGN_QUESTIONS_AI_LOAD_EMAIL.md (the agenda and ground rules for this session)
+
+Then tackle agenda item 1 from DESIGN_QUESTIONS_AI_LOAD_EMAIL.md: look at the real forwarded emails that are now in subjectorders@shipatlantic.com and tell me what's actually there.
+
+---
+if I'm not mistaken the important folder is a Git directory. Is there anything in this folder that would be confidential? I believe it is a private repository anyway so I'm not like super super concerned about small things but anything like major.

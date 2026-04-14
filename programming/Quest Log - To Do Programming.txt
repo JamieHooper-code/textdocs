@@ -1,46 +1,60 @@
-TODO — Programming
-Short-form list. For longer design docs, follow the referenced file paths.
+~~~ QUEST LOG ~~~
+              . Programming Adventures .
+
+Greetings, traveler. Bound within these pages are the quests that lie
+before you — some grand and many-chaptered, others humble errands for
+a rainy afternoon. Contracts sworn to the Atlantic Logistics guild sit
+alongside personal undertakings: warding rituals for the vault,
+enchantments for the timer overlay, and wild tinkering upon the AHK
+and Caster arcana.
+
+Short quests are inscribed here as a title and a few lines of counsel.
+The longer sagas — those demanding blueprints, trade-offs, and tables
+of lore — are kept in their own scrolls beneath:
+    TEXTDOCS/programming/to do explanations/<TOPIC>.md
+Each such quest bears a "Full design:" line pointing the way to its
+full scroll. Keep this ledger scannable; let the deep lore live in the
+linked files.
+
+May your builds be green and your hotkeys unbound. Onward.
 
 ================================================================
 ATLANTIC LOGISTICS
 ================================================================
 
-1. Email Rob about rate
-   Draft/send email confirming hourly rate. Anchor in delivered work (Email
-   Cleanup Flow) and in-progress (AI Load Email to McLeod).
-
-2. Outlook programmatic access
-   New Outlook blocks COM automation, so email-analysis PoCs are stuck.
-   Pick one: install Classic Outlook, use Microsoft Graph API, or finish
-   the Gmail forwarding bridge.
-
-3. Gmail <-> Outlook bridge
-   Forward shipatlantic inbound into Gmail + "Send mail as" via
-   smtp.office365.com:587. Risk: tenant may block external forward.
-
-4. "Current technology issues" doc
-   Create in Atlantic Logistics folder from the "Device management could
-   not be enabled" error. Blocked on a readable screenshot.
-
-5. Inbox automation project
-   Auto-delete/move emails by sender, subject, keywords, age. Primary tool
-   candidate: Power Automate. Also evaluate: existing automation in use,
-   RPA (UiPath / Power Automate Desktop), DPA for broader workflow.
-
 6. Outbound email metadata automation
    Auto-populate fields, formatting, signatures based on context when
    sending.
 
-7. Work timer / hour tracking
-   Toggle-based clock in/out for invoicing. Accumulate per day/week.
-   Voice: start/stop/pause, show session, show totals. AHK-first, thin
-   Caster wiring. Decide storage format (JSON/CSV) and whether to fold
-   into the Alarm Clock server or stand alone.
+8. AI Load Email to McLeod — active campaign
+   The big Atlantic build: parse customer load emails, post them to
+   McLeod as Subject Orders, keep them reconciled as loads change.
+   Full quest breakdown (Active Quests, Wayside Errands, Sealed
+   Chambers, Awaiting Ravens) lives in its own scroll. Update THAT
+   file as work moves between categories; this entry is just the
+   doorway.
+   Full design: Atlantic Logistics/AI Load Email to McLeod/docs/TO_DO_AI_LOAD_EMAIL_MCLEOD.md
 
 
 ================================================================
 PERSONAL
 ================================================================
+
+--- Research / Tooling ---
+
+0. Investigate Notion for text documents
+   Evaluate moving TEXTDOCS/ (or parts of it) into Notion. Current pile
+   is flat .txt/.md files under Desktop/Important/TEXTDOCS — searchable
+   but no structure, no linking between notes, no mobile access, no
+   tagging. Notion offers: nested pages, backlinks, databases/tags,
+   mobile + web sync, rich formatting. Questions to answer: does it
+   handle a quest log like this one well? Can the "to do explanations"
+   pattern be replicated with linked pages? Is there a clean export path
+   out if it becomes the wrong answer later? Any friction with voice
+   workflow (Caster/AHK) — can we still read/write notes programmatically
+   via the Notion API? Start with a free account, port one doc as a
+   pilot, decide from there.
+
 
 --- Backups / Security ---
 
@@ -50,7 +64,18 @@ PERSONAL
    (Charli's machine, USB, or password manager attachment). Without the
    key every encrypted slot is permanently unrecoverable.
 
-2. Bitwarden as credential vault for client work
+2. Atlantic AI Load Email secrets — third backup location
+   Currently only on laptop + E: drive at "Important Backups/Atlantic
+   Logistics AI Load Email/". Contains the McLeod API key, the Graph
+   service-principal .env, and the .pfx private key for the
+   subjectorders@shipatlantic.com mailbox cert. Same single-point-of-
+   failure problem as the slot key: if E: dies and the laptop dies,
+   these are gone. Add a third copy (Charli's machine, second USB, or
+   encrypted cloud vault). Do this before the pipeline is load-bearing
+   in production. The Bitwarden task below would also solve this if
+   it gets done first.
+
+3. Bitwarden as credential vault for client work
    Slots are great for voice-first secrets but lack metadata, TOTP, mobile
    access, recovery. Add Bitwarden (free tier) as authoritative vault for
    Atlantic/McLeod/Microsoft creds. Keep slots for daily-use keys, bridge
@@ -73,6 +98,11 @@ PERSONAL
 
 5. Move OSRS Sounds to second drive
    Once set up. Update soundsDir path in TimerOverlay.ahk (~line 38).
+
+6. Lockout timer — future ideas: AutoHotkey/Scripts/LockoutTimer/FUTURE_IDEAS.md
+7. Habit RPG (new project): projects/habit-rpg/BUILD_PLAN.md — WoW-themed
+   gamification for real skill practice, characters personify practice
+   domains, lockout timer is one input source among many
 
 
 --- AHK / Caster ---
@@ -116,10 +146,25 @@ PERSONAL
     list. Switch to search: click search, type name, click result. See
     TODO in GoogleVoice.ahk.
 
+13. Temporary voice command scoping
+    Limit active voice commands to a specific rule file or group on
+    demand — via voice ("only VS Code commands", "scope to git", "unscope")
+    or external trigger (Stream Deck, AHK, CLI). Goal: silence unrelated
+    rules during focused work without disabling them permanently. Decide
+    mechanism: toggle Caster rule enable/disable, a global gate checked
+    in rdescript, or a context filter. Needs a visible indicator of
+    current scope and an always-on escape phrase.
+
+14. AHK function testing tooling for Claude
+    Build verify.ps1 ahk-run subcommand (Layer 1) + eventual ahk-test
+    skill (Layer 2) so Claude can fire AHK functions one-shot and verify
+    they actually did something.
+    Full design: TEXTDOCS/programming/to do explanations/AHK_FUNCTION_TESTING.md
+
 
 --- New Tab Page ---
 
-13. New tab page improvements
+15. New tab page improvements
     a. Check-off tasks that reset counters (e.g. journaling -> 5 days)
     b. User profiles with Google integration
     c. Image debugging workflow
@@ -136,7 +181,7 @@ PERSONAL
 
 --- Hardware / Storage ---
 
-14. Fix downloads folder + hard drive situation
+16. Fix downloads folder + hard drive situation
     Recover stuff off the 1 TB drive. Once second drive is set up: move
     OSRS Sounds and update soundsDir in TimerOverlay.ahk. Also move
     CountdownTimer tooltip images (Scripts/CountdownTimer/wow_items/

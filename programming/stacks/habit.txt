@@ -1,0 +1,32 @@
+voice command injection confirmed vscode rule loaded successfully
+---
+I'm ready to start Step 2 of habit-rpg: building `ingest_cmangos.py`. Before writing any code, read these files in full:
+
+1. `C:\Users\jamie\Desktop\Important\projects\habit-rpg\BUILD_PLAN.md` GÇö canonical plan. **Critical sections**: 2.1 (data sources, earliest-source-wins dedupe rule, schema divergence across expansions, DBC sidecar), 2.2 (items.db storage model), 2.18 (expansion progression), and Step 2 itself. Don't re-litigate anything already locked in.
+2. `C:\Users\jamie\Desktop\Important\projects\habit-rpg\README.md` GÇö quick orientation
+3. Your auto-memory entry `reference_habit_rpg.md` GÇö high-level commitments
+
+Step 1 is complete GÇö verify by checking the `[x] Step 1 GÇö Source cmangos item data G£à COMPLETE` marker in BUILD_PLAN Step 1. The `cmangos_dumps/` folder is already populated:
+
+```
+cmangos_dumps/
+  vanilla/Full_DB/ClassicDB_1_12_1_z2815.sql.gz + Updates/  (332 files)
+  tbc/Full_DB/TBCDB_1.10.0_ReturnOfTheVengeance.sql.gz + Updates/  (796 files)
+  wotlk/Full_DB/WoTLKDB_1_9_14092.sql.gz + Updates/  (68 files)
+  dbc_sidecar/AreaTable.sql, Faction.sql, FactionTemplate.sql,
+              ItemSet.sql, Map.sql, SkillLine.sql, ChrRaces.sql, ChrClasses.sql
+```
+
+**Locked-in decisions from Step 1 you must honor:**
+
+- **Earliest-source-wins dedupe.** Ingestion order: vanilla GåÆ tbc GåÆ wotlk, each pass doing `INSERT OR IGNORE` on native primary keys. Rows get `min_expansion` tagged at ingest time and never mutate on later passes.
+- **Schema divergence is real.** `item_template` column counts: vanilla ~117, TBC ~133, WotLK ~135. Vanilla has **3 ints before `name`** (entry/class/subclass/name); TBC/WotLK have **4** (adds `unk0`). WotLK dropped `dmg_*3..5` slots, added `Flags2`/`StatsCount`/scaling-stat columns. Similar divergence exists for `quest_template` (vanilla 130, tbc 137, wotlk 152 cols). The ingester needs **era-specific tuple parsers** and `items.db.items` schema is the **union** of all three column sets with NULLs where an era doesn't carry a column.
+- **Lowercase `INSERT` gotcha.** WotLK uses `insert into` (lowercase, sometimes double-spaced). Vanilla/TBC use `INSERT INTO`. Parser must be case-insensitive.
+- **Combined dumps, not per-table files.** Each cmangos `Full_DB/*.sql.gz` is ONE gzipped combined dump containing CREATE + INSERTs for every world table. Parser routes INSERTs by target table name. Stream the gunzipped dump; some INSERT statements are 10+ MB on a logical line.
+- **DBC sidecar via Kaev/AzerothcoreDBCToSQL.** ID-compatible with cmangos (verified 172/172 vanilla itemset IDs, plus AreaTable and Faction spot checks). Parse these as separate pass with their own tables in `items.db` (`areatable`, `faction`, `faction_template`, `itemset`, `map`, `skill_line`, `chr_races`, `chr_classes`). Kaev uses standard SQL INSERT format with `\"` escaped strings.
+- **Cata is deferred.** Don't mention cata ingestion. Schema reserves the `cata` enum value; that's it.
+- **Item ID uniqueness verified.** Use `item_id INTEGER PRIMARY KEY` GÇö no composite keys.
+
+**Pacing:** start by proposing the exact `ingest_cmangos.py` architecture (file structure, schema SQL, tuple parser strategy per expansion, Updates/ file application order, idempotency story, DBC sidecar handling, summary output format), then wait for my approval before writing code. Python 3.12 in a project-local `.venv/` per section 2.20 GÇö bootstrap that too if it doesn't exist yet.
+
+Also: the Updates/ files must be applied in sorted numeric order (files are named like `5772_DB_Version.sql`), and some may be no-ops or ALTER statements the parser needs to handle. Check what kind of operations Updates files contain before committing to the parser design.

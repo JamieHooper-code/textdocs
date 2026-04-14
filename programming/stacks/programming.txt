@@ -15,3 +15,5 @@ I want to create a to purchase text document that has different sections like on
 do we need to beef up the UIA  documentation?  it feels like at a anytime I ask you to do any form of that you have to look up a bunch of stuff
 ---
 I was supposed to rename timer  to countdown timer  but there must've been an issue.  please figure out which is the latest  and combine them as necessary.
+---
+you should be able to access my recently received emails with like one command no searching  around for what commands to use.  what we need to do to update you to do better about this,  a skill, MCP,  more memory?
