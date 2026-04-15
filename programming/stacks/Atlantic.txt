@@ -1,20 +1,3 @@
-Please write me a prompt that is generic that will allow me to reset a conversation to form a new one to save tokens.  basically at the end of the conversation when we are out like a transition or step I want to send this message and you will  automatically copy it to my spit Claude  your response which will include any necessary information to keep going and an outline of what the next task is and where to find more information if necessary
----
-We're ending this session to start fresh and save tokens. Generate a handoff brief for the next Claude conversation, then write it to C:\Users\jamie\Desktop\Important\AutoHotkey\INIDATA\CopyPasteSlots\claude.txt using the Write tool. Also output it in your response.
+I am going to want a series ofClaude Commands  that are like show blank
 
-The brief should give the next Claude everything it genuinely needs to pick up where we left off — no more, no less. Be thorough where thoroughness helps, concise where it doesn't. If something is already well-documented in a file, point to that file instead of restating it in full.
-
-Sections to include when they carry useful information (skip any that would be empty or redundant):
-
-- **Context** — What we're working on and why.
-- **State** — What's done, in-progress, or uncommitted. Mention anything `git status` alone wouldn't explain.
-- **Next task** — The exact next step as a direct instruction. Almost always include this.
-- **Key files** — Paths the next Claude should read, with a short note on each.
-- **Decisions & constraints** — Non-obvious choices made this session, approaches tried/rejected, gotchas, user preferences applied.
-- **Open questions / blockers** — Anything unresolved the next Claude should ask me about before proceeding.
-- **Verification** — How the next Claude can confirm the current state matches this brief (e.g. "run git status", "read file X").
-
-Rules:
-- Assume the next Claude has zero memory of this chat but CAN read the repo, docs, and memory files — so pointers beat restatement when the source is clear.
-- Use real paths, function names, and line numbers. No vague references.
-- No preamble or meta-commentary in the brief itself. Just the brief.
+ so I can say like show usage  and it will type /account  and press enter
