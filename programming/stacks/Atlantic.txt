@@ -11,3 +11,13 @@ From now on, whenever you have any text you want me to paste, send, copy, or use
 Do this for every pasteable chunk you produce for the rest of this conversation, automatically, without being reminded. When you do it, say one short sentence telling me it is ready so I know to paste it.
 ---
 Okay it seems like you are not very good at making key logic buttons please add that to the Python script in the skill
+---
+https://tms.shipatlantic.com:6790/designer/ui/custom/McLeodTailor
+
+https://share.articulate.com/eYSU4cAbFyNveSgIZKc7L
+https://share.articulate.com/fIx_-TufaCV5WRxPUhJn5
+https://share.articulate.com/eoa11zydP_5DhIYzidw5O
+https://share.articulate.com/8v2n-I6zF8Bj5vh-gLCkL
+https://share.articulate.com/GCRqjnyB741laSBR0g_FD
+
+Further TMS development section for the user interface I have all of these tutorials that are publicly accessible. Would any of these help you with understanding what is wrong with my board?
