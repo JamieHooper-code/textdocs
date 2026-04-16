@@ -1,3 +1,11 @@
 I am going to want a series ofClaude Commands  that are like show blank
 
  so I can say like show usage  and it will type /account  and press enter
+---
+From now on, whenever you have any text you want me to paste, send, copy, or use anywhere (commit messages, shell commands, code snippets, messages, quotes, anything at all), put it in BOTH of these places automatically without me asking:
+
+1. My Windows clipboard. Use PowerShell Set-Clipboard, for example: Get-Content -Raw 'C:\Users\jamie\Desktop\Important\AutoHotkey\INIDATA\CopyPasteSlots\claude.txt' | Set-Clipboard. Or pipe directly: your text goes through clip.exe.
+
+2. The file C:\Users\jamie\Desktop\Important\AutoHotkey\INIDATA\CopyPasteSlots\claude.txt. Overwrite it each time, do not append.
+
+Do this for every pasteable chunk you produce for the rest of this conversation, automatically, without being reminded. When you do it, say one short sentence telling me it is ready so I know to paste it.
