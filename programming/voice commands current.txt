@@ -108,6 +108,17 @@ Named Clipboard Slots (swallow / spit)
   Slot storage (encrypted at rest): AutoHotkey\INIDATA\CopyPasteSlots\*.enc
                                     AutoHotkey\INIDATA\CopyPasteSlotsPasswords\*.enc
 
+Credential Files (encrypted editable notes)
+-------------------------------------------
+  open credentials <credfile>    — decrypt .enc to temp, edit in isolated NP++,
+                                   re-encrypt + delete temp on window close
+  open credentials named <textnv> — dictation fallback for arbitrary names
+                                    (snake_cased, creates new file if missing)
+  Known credfile choices: passwords, mcleod (mcleod_api), mcleod A P I,
+                          atlantic (atlantic_dev), atlantic dev
+  Files: C:\Users\jamie\Desktop\Important\TEXTDOCS\programming\CredentialFiles\*.enc
+  Encryption: same AES-256-GCM keyfile as swallow/spit slots
+
 Link Saver
 ----------
   save link <category>       — save current browser URL+title to category file
