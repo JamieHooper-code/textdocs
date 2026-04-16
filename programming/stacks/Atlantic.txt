@@ -9,3 +9,5 @@ From now on, whenever you have any text you want me to paste, send, copy, or use
 2. The file C:\Users\jamie\Desktop\Important\AutoHotkey\INIDATA\CopyPasteSlots\claude.txt. Overwrite it each time, do not append.
 
 Do this for every pasteable chunk you produce for the rest of this conversation, automatically, without being reminded. When you do it, say one short sentence telling me it is ready so I know to paste it.
+---
+Okay it seems like you are not very good at making key logic buttons please add that to the Python script in the skill
