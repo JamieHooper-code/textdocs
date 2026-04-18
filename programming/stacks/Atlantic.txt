@@ -21,3 +21,9 @@ https://share.articulate.com/8v2n-I6zF8Bj5vh-gLCkL
 https://share.articulate.com/GCRqjnyB741laSBR0g_FD
 
 Further TMS development section for the user interface I have all of these tutorials that are publicly accessible. Would any of these help you with understanding what is wrong with my board?
+---
+Okay so in machine learning there is a concept on testing data set versus building data set. I'm a little bit fuzzy on how exactly that applies to what we are doing with our emails in this project in terms of what is our data and what are we testing on. Including like getting subject orders from production and comparing against. Can you tell me a bit about that, how our project and current pipeline interacts with those systems, and what we might do better or are doing well or are not doing well?
+
+Also do you think that classical machine learning algorithms have any place in this pipeline in terms of like Ensemble or anything?
+---
+Do you think it would be useful to add not only an edited on but a reviewed on date to the documentation? Or like in-line or by section edited on dates? Some of them are very large so I'm a little bit concerned that these could be misleading. Let me know if that is excessive or good
