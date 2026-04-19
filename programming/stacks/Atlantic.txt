@@ -26,4 +26,4 @@ Okay so in machine learning there is a concept on testing data set versus buildi
 
 Also do you think that classical machine learning algorithms have any place in this pipeline in terms of like Ensemble or anything?
 ---
-Do you think it would be useful to add not only an edited on but a reviewed on date to the documentation? Or like in-line or by section edited on dates? Some of them are very large so I'm a little bit concerned that these could be misleading. Let me know if that is excessive or good
+Tell me about Pytest, should we have that?
