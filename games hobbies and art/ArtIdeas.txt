@@ -1,0 +1,13 @@
+ART IDEAS
+=========
+
+
+3D PRINTED LINOCUT BLOCKS
+-------------------------
+Using 3D prints as the relief block instead of carving linoleum. Print the
+design, ink it, press it like a normal lino block. Lets you do fine detail,
+repeat-identical blocks, and shapes that would be painful to carve by hand.
+
+References:
+- https://www.reddit.com/r/3Dprinting/comments/1on16j0/im_a_linocut_artist_and_wondered_how_a_3d_print/
+- https://www.reddit.com/r/Linocuts/comments/1j1pzg3/3d_print_instead_of_linoleum/
