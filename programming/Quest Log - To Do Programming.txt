@@ -181,9 +181,24 @@ PERSONAL
 
 --- Hardware / Storage ---
 
-16. Fix downloads folder + hard drive situation
-    Recover stuff off the 1 TB drive. Once second drive is set up: move
-    OSRS Sounds and update soundsDir in TimerOverlay.ahk. Also move
-    CountdownTimer tooltip images (Scripts/CountdownTimer/wow_items/
-    tooltips/, 700+ PNGs and growing) off SSD; update tooltip path in
-    TimerOverlay.ahk.
+16. Storage migration + cloud backup
+    a. Fix downloads folder + hard drive situation
+       Recover stuff off the 1 TB drive. Once second drive is set up:
+       move OSRS Sounds and update soundsDir in TimerOverlay.ahk. Also
+       move CountdownTimer tooltip images (Scripts/CountdownTimer/
+       wow_items/tooltips/, 700+ PNGs and growing) off SSD; update
+       tooltip path in TimerOverlay.ahk.
+    b. Move poem-poster media folders to second drive
+       projects/poem-poster/ has ~27 GB of media — clipart/ (27 GB,
+       ~38k files) is the main offender. Also candidates: backgrounds/
+       (44 MB), inspiration/ (62 MB), out/ (244 MB), completed/ (61 MB).
+       Keep code + poems/ + templates/ on SSD. Update path constants in
+       the poem-poster scripts after moving.
+    c. Add OneDrive as a third backup mirror (after E:)
+       Extend git_push_config.json + GitPushAll.ps1 so each E: mirror
+       target can also copy to C:\Users\jamie\OneDrive\Important Backups\.
+       CRITICAL exclusions: no .atlantic_graph_certs, no keyfile, no
+       .env/.ssh/.aws creds, no plaintext API keys. Turn OneDrive Known
+       Folder Move OFF first or every hardcoded path breaks.
+       Full design + security rationale:
+       TEXTDOCS/programming/to do explanations/ONEDRIVE_BACKUP.md
