@@ -1,0 +1,9 @@
+Okay this is a big one. I would like to be able to list all of my current voice command categories, so this would not just be based on file because there are certain overlapping files like there are files that do stuff like opening a Visual Studio code projects and then there are the Visual Studio code internal commands, and then there are Claude commands that are accessible from inside of VS code. 
+
+I would like a command that like lists all of my categories
+
+And then other commands that will tell me all of the commands within a specific category. 
+
+What do you think that this might look like, how do you think that we can generate all of the like categorical data, and what do you think the user interface might look like. I would really like this to work well so that I can like better use and remember my voice commands. 
+
+It is possible that we could just use voice commands current and print everything within a section but that would have the same issue of we need to update that document dramatically, and we would still need to make voice commands to to copy and interpret the data within it and display it

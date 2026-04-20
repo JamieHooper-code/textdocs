@@ -57,10 +57,11 @@ Windows
   - window next desktop
   Snapping: snap left/right/main/top/bot/twin
   Open system: "open <item> [<dest>]"
-    Items:  to do, desktop, explorer, everything, important, text
+    Items:  to do, desktop, explorer, everything, important, text,
+            poetry menu | poetry user  (launches poem-poster menu.py TUI in cmd)
     Dests:  left, right, main, top, bot, twin
   Open VS Code project: "open <project>"
-    Projects: atlantic
+    Projects: atlantic, poetry
 
 Spotify (Global)
 ----------------
