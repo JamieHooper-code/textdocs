@@ -1,8 +1,8 @@
-I am going to want a series ofClaude Commands  that are like show blank
+8. I am going to want a series ofClaude Commands  that are like show blank
 
  so I can say like show usage  and it will type /account  and press enter
 ---
-From now on, whenever you have any text you want me to paste, send, copy, or use anywhere (commit messages, shell commands, code snippets, messages, quotes, anything at all), put it in BOTH of these places automatically without me asking:
+7. From now on, whenever you have any text you want me to paste, send, copy, or use anywhere (commit messages, shell commands, code snippets, messages, quotes, anything at all), put it in BOTH of these places automatically without me asking:
 
 1. My Windows clipboard. Use PowerShell Set-Clipboard, for example: Get-Content -Raw 'C:\Users\jamie\Desktop\Important\AutoHotkey\INIDATA\CopyPasteSlots\claude.txt' | Set-Clipboard. Or pipe directly: your text goes through clip.exe.
 
@@ -10,9 +10,9 @@ From now on, whenever you have any text you want me to paste, send, copy, or use
 
 Do this for every pasteable chunk you produce for the rest of this conversation, automatically, without being reminded. When you do it, say one short sentence telling me it is ready so I know to paste it.
 ---
-Okay it seems like you are not very good at making key logic buttons please add that to the Python script in the skill
+6. Okay it seems like you are not very good at making key logic buttons please add that to the Python script in the skill
 ---
-https://tms.shipatlantic.com:6790/designer/ui/custom/McLeodTailor
+5. https://tms.shipatlantic.com:6790/designer/ui/custom/McLeodTailor
 
 https://share.articulate.com/eYSU4cAbFyNveSgIZKc7L
 https://share.articulate.com/fIx_-TufaCV5WRxPUhJn5
@@ -22,8 +22,12 @@ https://share.articulate.com/GCRqjnyB741laSBR0g_FD
 
 Further TMS development section for the user interface I have all of these tutorials that are publicly accessible. Would any of these help you with understanding what is wrong with my board?
 ---
-Okay so in machine learning there is a concept on testing data set versus building data set. I'm a little bit fuzzy on how exactly that applies to what we are doing with our emails in this project in terms of what is our data and what are we testing on. Including like getting subject orders from production and comparing against. Can you tell me a bit about that, how our project and current pipeline interacts with those systems, and what we might do better or are doing well or are not doing well?
+4. Okay so in machine learning there is a concept on testing data set versus building data set. I'm a little bit fuzzy on how exactly that applies to what we are doing with our emails in this project in terms of what is our data and what are we testing on. Including like getting subject orders from production and comparing against. Can you tell me a bit about that, how our project and current pipeline interacts with those systems, and what we might do better or are doing well or are not doing well?
 
 Also do you think that classical machine learning algorithms have any place in this pipeline in terms of like Ensemble or anything?
 ---
-Tell me about Pytest, should we have that?
+3. Tell me about Pytest, should we have that?
+---
+2. Please say the memory to global memory that if we are bashing our heads against the wall looking through configuration files we should stop and Google it, you should stop and remind me to Google it or just automatically do it depending on situation. This comes up a lot where you are just like digging and digging and digging and we haven't even checked github issues
+---
+1. I would really like to have a system for comparing the ones we post against all of the existing examples that we have from production. Are we currently using that data effectively to do testing and analysis?

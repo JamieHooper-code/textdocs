@@ -1,4 +1,4 @@
-Okay this is a big one. I would like to be able to list all of my current voice command categories, so this would not just be based on file because there are certain overlapping files like there are files that do stuff like opening a Visual Studio code projects and then there are the Visual Studio code internal commands, and then there are Claude commands that are accessible from inside of VS code. 
+8. Okay this is a big one. I would like to be able to list all of my current voice command categories, so this would not just be based on file because there are certain overlapping files like there are files that do stuff like opening a Visual Studio code projects and then there are the Visual Studio code internal commands, and then there are Claude commands that are accessible from inside of VS code. 
 
 I would like a command that like lists all of my categories
 
@@ -8,23 +8,29 @@ What do you think that this might look like, how do you think that we can genera
 
 It is possible that we could just use voice commands current and print everything within a section but that would have the same issue of we need to update that document dramatically, and we would still need to make voice commands to to copy and interpret the data within it and display it
 ---
-Okay so I'm very interested in cleaning up my display fusion snapping commands. And by that I mean everything for like opening commands uses these, everything uses these to figure out location. One of my primary issues with it is I want to make them smarter. Currently they work perfectly so if I say like open X twin it will always end up on the second monitor like it's supposed to. But it looks really janky, like if it default opens on the second monitor the code then pushes it to main monitor and then jumps it back. That is a way to make sure it always gets there perfectly but it's really ugly and I kind of hate it. Is there some better way to do this, maybe some like checking before running commands, maybe a cleaner path of commands, maybe slightly different commands, maybe a different format entirely? We tried to have auto hotkey just like push it to XY values but that did not really work well. What do you think about this?
+7. Okay so I'm very interested in cleaning up my display fusion snapping commands. And by that I mean everything for like opening commands uses these, everything uses these to figure out location. One of my primary issues with it is I want to make them smarter. Currently they work perfectly so if I say like open X twin it will always end up on the second monitor like it's supposed to. But it looks really janky, like if it default opens on the second monitor the code then pushes it to main monitor and then jumps it back. That is a way to make sure it always gets there perfectly but it's really ugly and I kind of hate it. Is there some better way to do this, maybe some like checking before running commands, maybe a cleaner path of commands, maybe slightly different commands, maybe a different format entirely? We tried to have auto hotkey just like push it to XY values but that did not really work well. What do you think about this?
 ---
-Two I need to add all of this debugging philosophy and this opening command philosophy to the skill related to creating auto hotkey commands and voice commands?
+6. Two I need to add all of this debugging philosophy and this opening command philosophy to the skill related to creating auto hotkey commands and voice commands?
 ---
-Is there some way to give you a debugging tool to help you with debugging this kind of thing in the future. It looks like you had a lot of issues and like could not find the AHK directory, shouldn't that all be in the config files. 
+5. Is there some way to give you a debugging tool to help you with debugging this kind of thing in the future. It looks like you had a lot of issues and like could not find the AHK directory, shouldn't that all be in the config files. 
 
 ---
-Please fix your permissions. Please add the Claude directory to your specifically permitted folders, also you keep asking me permission to use PowerShell, please give yourself full permissions for everything both bypass permissions but also like explicit permissions that helps too
+4. When I have tooltip show up I would like them to show up in the center of the of the current window
 ---
-Is kebab case what I think it is?
+3. I would like to be to be able to say stack that macros 
+
+And then it will jump the current item onto the macro stack without actually switching me over permanently
+
+Also I just had an error come up where I said switch stack macro instead of switch stack macros
+
+I would like to hardcode in the names of the stacks, and anytime add a new stack it will pop up that little UI so I can manually confirm it.
 ---
-I am looking for some sort of wireless 10 digit number pad. I would like it to have mechanical keys, optional macro compatibility, ideally on a toggleable switch. I would like it to be ergonomic. I would like it to be relatively small and unobtrusive on my desk but also not like tiny and annoying to use. Ergonomics is a higher priority than small. It can theoretically have more than the 10 digits it could have a few side buttons for macros but I'm basically just looking for a number pad with a few extra steps. What do you think are my good options.
+2. Okay a really big thing that I would like to develop is a better way for handling adding different things to different text files. For example with my to do programming I would love a command of just like add to do
+
+And then that would open up one of those like generative text field things that we've been doing, and it would have options with different number keys so if I press one it goes to the top of the to do list if I press two a goes to the bottom. Stuff like that. And it would have like a menu where I can either add it to personal or Atlantic or macros or whatever or house. Maybe for this one we do everything within obsidian and we have different files for each category, and then they all just link to a master file so that the entire file is embedded within it, I would like to explore different options like that. 
+
+And then I would be able to add different files that I can add things to programmatically by saying like add new text or something when I'm in the file and it will like automatically added to the list of options.
+
+And I would like to maybe look into how we can make the to do programming and other related files auto update the numbers. Currently I have you adding things and it's really messy and you either forget to update the numbers or it takes you forever and a ton of changes. I would like to maybe implement a technology with like an automatic numbered list system where it will automatically update all of the numbers. I would like to explore the different options for that, we can either do something with obsidian or something else or maybe there's already something within notepad plus plus, or text files in general or like a plug-in. Or maybe we write like a script the auto updates them all when I touch the file.
 ---
-Okay I would like to make some changes to my stacks. When I say open stack I wanted to open in Notepad plus plus instead. And I want the items in the stack to be numbered within the notepad. I also want to be able to say show stack and it will just show me like a hovering tooltip for like 10 seconds of the entire stack with numbers. 
-
-And then I want to be able to say pop it three and it will pop the third item in the stack. 
-
-I also want to be able to say stack that bottom and it will put something to the bottom of the stack instead of the top. 
-
-And I want to be able to say like stack push three and it will push the third item to the bottom of the stack.
+1. Okay so a big idea I just had. When I make user interfaces like the one for adding hardcoded stuff. I want to navigate them entirely with my number pad. I just got a new number pad I'm really excited to start using it. So for like tagging stuff or for like adding people to groups I want each of the tags or people or options or whatever to have a number in parentheses next to the name. And that I can just punch in that number and hit enter and it will add them. And then I can like navigate through the user interfaces as well with that. I think this would be really massive for making things accessible to me

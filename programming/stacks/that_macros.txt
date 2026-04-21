@@ -1,0 +1,18 @@
+5. Okay this is a big one. I would like to be able to list all of my current voice command categories, so this would not just be based on file because there are certain overlapping files like there are files that do stuff like opening a Visual Studio code projects and then there are the Visual Studio code internal commands, and then there are Claude commands that are accessible from inside of VS code. 
+
+I would like a command that like lists all of my categories
+
+And then other commands that will tell me all of the commands within a specific category. 
+
+What do you think that this might look like, how do you think that we can generate all of the like categorical data, and what do you think the user interface might look like. I would really like this to work well so that I can like better use and remember my voice commands. 
+
+It is possible that we could just use voice commands current and print everything within a section but that would have the same issue of we need to update that document dramatically, and we would still need to make voice commands to to copy and interpret the data within it and display it
+---
+4. Okay so I'm very interested in cleaning up my display fusion snapping commands. And by that I mean everything for like opening commands uses these, everything uses these to figure out location. One of my primary issues with it is I want to make them smarter. Currently they work perfectly so if I say like open X twin it will always end up on the second monitor like it's supposed to. But it looks really janky, like if it default opens on the second monitor the code then pushes it to main monitor and then jumps it back. That is a way to make sure it always gets there perfectly but it's really ugly and I kind of hate it. Is there some better way to do this, maybe some like checking before running commands, maybe a cleaner path of commands, maybe slightly different commands, maybe a different format entirely? We tried to have auto hotkey just like push it to XY values but that did not really work well. What do you think about this?
+---
+3. Two I need to add all of this debugging philosophy and this opening command philosophy to the skill related to creating auto hotkey commands and voice commands?
+---
+2. Is there some way to give you a debugging tool to help you with debugging this kind of thing in the future. It looks like you had a lot of issues and like could not find the AHK directory, shouldn't that all be in the config files. 
+
+---
+1. When I have tooltip show up I would like them to show up in the center of the of the current window

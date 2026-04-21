@@ -1,0 +1,117 @@
+COMPUTER UPGRADE AND ERGONOMICS
+================================
+Running notes on hardware upgrades, ergonomic priorities, and decisions in progress.
+Context: computer change coming soon (per reference_computer_layout.md).
+
+
+CURRENT SETUP
+-------------
+Main keyboard: Kinesis Advantage 2, default Cherry MX Brown switches
+  - Tactile, ~45g actuation force, 4mm total travel, 2mm to actuation
+  - This is the familiar/baseline feel — use as reference point
+
+
+ERGONOMIC PRIORITIES (ordered)
+------------------------------
+1. Ergonomics over compactness
+2. Minimal force to press (light switches)
+3. Minimal travel distance
+4. Small and unobtrusive on desk, but not tiny/cramped
+5. Wireless
+
+
+=====================================================
+NUMPAD RESEARCH — WIRELESS MECHANICAL WITH MACROS
+=====================================================
+
+Goal: 10-key numpad with a few extra macro keys and ideally a toggle
+(layer) between number mode and macro mode. Mechanical, wireless,
+ergonomic.
+
+
+TOP CANDIDATES
+--------------
+
+1. KEYCHRON Q0 MAX  ← leading pick
+   - Wireless (2.4GHz + Bluetooth + wired)
+   - Fully mechanical, hot-swappable (swap switches anytime, no solder)
+   - QMK/VIA programmable — every key can be macro or layer toggle
+     (this is the "toggle between numpad mode and macro mode" feature)
+   - Gasket-mounted aluminum, solid build, has a rotary knob
+   - ~18 keys + knob + 5 side macro keys (M1–M5)
+   - ~$120 (barebones often cheaper)
+   URL: keychron.com/products/keychron-q0-max-qmk-custom-number-pad
+
+2. GLORIOUS GMMK NUMPAD
+   - Wireless, hot-swappable, RGB, 21 keys
+   - Cheaper and lighter than Keychron
+   - Software less flexible than QMK but fine for macros
+   - More plasticky build
+
+3. WORK LOUDER NOMAD / CREATOR MICRO
+   - Wireless, mechanical, designed as macro pad with numpad layouts
+   - Smaller footprint, very programmable
+   - Pricier, more "macro pad" than "numpad with extras"
+
+4. EPOMAKER EK21-T / Galaxy pad
+   - Budget wireless mechanical numpad with knob
+   - Less mature firmware/software
+
+
+SWITCHES CONSIDERED
+-------------------
+
+Original instinct: BLUES (clicky, tactile, satisfying).
+Refined priorities: minimal force + minimal travel override the clicky feel.
+
+Clicky options (if going clicky):
+  - Cherry MX Blue       — ~60g, 4mm travel, classic click, a bit scratchy
+  - Gateron Blue         — ~60g, 4mm travel, smoother than Cherry
+  - Kailh Box White      — ~45g, 4mm travel, crisper click, less rattle
+    → Best "blues but better" pick if clicky is wanted
+  - Kailh Box Jade/Navy  — heavier, skip
+
+Light / low-force options:
+  - Gateron Clear        — linear, ~35g, 4mm travel. Lightest mainstream.
+  - Gateron Jupiter Red  — linear, ~45g, 4mm travel (on Keychron page)
+  - Gateron Jupiter Brown — tactile, ~45g, 4mm travel (same feel as Kinesis)
+
+Short-travel options:
+  - Kailh Speed Silver   — linear, ~40g, actuates at 1.1mm (vs 2mm standard)
+    → Feels fastest on the market, but not clicky
+
+IMPORTANT CONSTRAINT:
+The Q0 Max uses standard MX switches. All standard MX switches have
+~4mm total travel. You cannot make the pad low-profile by switch choice —
+that is a keyboard-level thing. If truly minimal travel is needed, look
+at a low-profile wireless numpad instead (shorter switches, ~3mm travel,
+~1.2mm actuation).
+
+OPEN QUESTION: Does Keychron or anyone make a low-profile wireless
+numpad specifically? Worth searching before committing to the Q0 Max.
+
+
+Q0 MAX CONFIG DECISIONS
+-----------------------
+Type:     Barebone Knob (skip pre-installed switches, buy own)
+          OR Fully Assembled if wanting out-of-the-box
+Color:    Personal preference only, no functional difference
+Palm rest: YES ($14.99) — ergonomics is the priority
+Switches on the Keychron page (none are clicky):
+  - Jupiter Red    — linear, light, no bump
+  - Jupiter Brown  — tactile, matches Kinesis feel
+  - Jupiter Banana — tactile, more pronounced bump, heavier
+
+If clicky is still wanted: go Barebone + buy Kailh Box Whites separately
+(~$20–30 for a 45-pack on Amazon/Keychron switch page). Double-check
+whether barebone includes keycaps — it usually does not.
+
+
+LEANING TOWARD
+--------------
+Undecided. Tradeoff:
+  (a) Low-profile wireless numpad (if one exists) for minimal travel
+  (b) Q0 Max + Kailh Speed Silver (short actuation, very light, linear)
+  (c) Q0 Max + Gateron Jupiter Brown (familiar Kinesis feel, safe pick)
+
+Next step: search for low-profile wireless numpad options before buying.
