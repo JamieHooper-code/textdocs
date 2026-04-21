@@ -33,22 +33,61 @@ Chrome
   Tab splitting: split left/right/main/top/bot/twin
 
   Web opener (all modes available for any site):
-    <site>              — open in new Chrome tab
+    <site>              — if entry has default_pos: open snapped new window;
+                          otherwise focus existing tab or open new
+                          (FocusChromeTab: URL bar UIA + tab strip UIA +
+                          verified Ctrl+Shift+A search)
     <site> same         — navigate current tab
-    <site> split        — new Chrome window (snaps right)
+    <site> split        — new Chrome window
     <site> split <pos>  — new window + snap (left/right/main/top/bot/twin)
+    <site> flip         — open and flip back
+    <site> flip <pos>   — open, snap, flip back
 
-  Sites: cally, robotic, tranny, wells, Discover, Instagram, E-mail,
-         E-mail two, Returns And Orders, Jobs, meditate, Polly Secure,
-         voice, Gmail, spotify
+  Sites live in AutoHotkey/INIDATA/VoiceChoices/sites.json. Each entry
+  stores {url, title, default_pos?}; default_pos (one of left/right/main/
+  top/bot/twin, or absent) controls what plain "<site>" does.
+  Current set includes: Discover, Gmail, Returns, cally, meditate, robotic,
+  team, teams, tranny, open course, voice (delayed countdown)
+
+  Google Docs (same modes as <site>):
+    doc <name>              — if entry has default_pos: open snapped new window;
+                              otherwise focus existing tab or open new
+                              (OpenOrGoTo)
+    doc <name> same         — navigate current tab
+    doc <name> split        — new Chrome window
+    doc <name> split <pos>  — new window + snap
+    doc <name> flip         — open and flip back
+    doc <name> flip <pos>   — open, snap, flip back
+
+  Docs live in AutoHotkey/INIDATA/VoiceChoices/google_docs.json. Each entry
+  stores {url, title, default_pos?}; default_pos (one of left/right/main/
+  top/bot/twin, or absent) controls what "doc <name>" plain does.
+  Current docs include: Thoughts, Journal, Lyrical, Objects, Challenges,
+  Practice, Poems, Dreams, Albums (Nick), create, Headache, Singing
+  (Singing Practice), Resources (Readings), Book Log (Reading Log),
+  Hotkeys, Links (Tabs), General Reading (Fiction), Digital lost, lost,
+  Recipes (Cooking), To Read, Helpers (Anxiety, Phrases, Mantras),
+  Intentions, Highlights (Quotes), Printing (Printing Poems),
+  To Listen.
 
 Google Voice
 ------------
   jump unread              — click first unread conversation (UIA-based)
-  text <name>              — navigate to contact's thread via URL
+  text <name>              — navigate to contact's thread, group thread,
+                             or broadcast (one tab per member for broadcasts)
   Messages / Calls         — switch to Messages or Calls tab
   reset [voice]            — reload Google Voice URL
   Mac Call [<name>]        — place a call
+  call <name>              — dial a contact (Google Voice call flow)
+
+  All three <name>-matchable kinds are JSON-backed under
+  AutoHotkey/INIDATA/VoiceChoices/:
+    gv_contacts.json       — {display: E.164 phone}
+    gv_group_threads.json  — {display: URL-encoded thread ID}
+    gv_broadcasts.json     — {display: [member_snake_keys]}
+  Phone numbers, thread IDs, and member lists never touch Python. Add via
+  voice — see Voice-Driven Config Adds section (number add / group add /
+  broadcast add / members add).
 
 Windows
 -------
@@ -58,10 +97,15 @@ Windows
   Snapping: snap left/right/main/top/bot/twin
   Open system: "open <item> [<dest>]"
     Items:  to do, desktop, explorer, everything, important, text,
-            poetry menu | poetry user  (launches poem-poster menu.py TUI in cmd)
+            poetry menu | poetry user  (launches poem-poster menu.py TUI in cmd),
+            obsidian | vault           (launches Obsidian on the resource vault)
     Dests:  left, right, main, top, bot, twin
   Open VS Code project: "open <project>"
-    Projects: atlantic, poetry
+    Projects live in AutoHotkey/INIDATA/VoiceChoices/vscode_projects.json.
+    Current: atlantic, poetry, macro (AHK_caster_workspace)
+  Open Notepad++ file: "open <file> [<dest>]"
+    Files live in AutoHotkey/INIDATA/VoiceChoices/notepad_files.json.
+    Current: friends, resources, text
 
 Spotify (Global)
 ----------------
@@ -77,12 +121,14 @@ Spotify (Global)
     weaving
     (defined in rules/hardcoded_spotify_and_youtube_music_slots.py → HARDCODED_SPOT_SLOTS)
 
-  Hardcoded ambient-track phrases (YouTube direct open):
+  Hardcoded music-URL phrases (YouTube/Spotify direct open):
     fjord, durotar, un goro, iron forge, elwynn, elwynn two, uldum,
     dun morogh, redridge, stranglethorn, stranglethorn two, needles,
     barrens, thunder bluff, mulgore, mulgore two, mulgore three,
     ashenvale, teldrassil, teldrassil two, vashj ir, olympus
-    (defined in rules/hardcoded_spotify_and_youtube_music_slots.py → HARDCODED_SPOT_URLS)
+    (JSON-backed via AutoHotkey/INIDATA/VoiceChoices/music_urls.json;
+    add entries by saying "music add" — see Voice-Driven Config Adds
+    section below)
 
 Lockout Timer (Global)
 ----------------------
@@ -106,8 +152,193 @@ Named Clipboard Slots (swallow / spit)
                                 slot whose name contains all spoken keywords;
                                 Slots and Passwords shown in separate sections,
                                 underscores rendered as spaces, Enter/Esc closes
+  spit <hardcoded_slot>       — paste a hardcoded-phrase slot (Dragon-robust;
+                                bypasses dictation). Hardcoded phrases live in
+                                AutoHotkey/INIDATA/VoiceChoices/hardcoded_spit_slots.json.
+                                Current: Claude, testing
   Slot storage (encrypted at rest): AutoHotkey\INIDATA\CopyPasteSlots\*.enc
                                     AutoHotkey\INIDATA\CopyPasteSlotsPasswords\*.enc
+
+Claude Prompts (in VS Code / Claude desktop app)
+------------------------------------------------
+  send <prompt>               — paste a hardcoded Claude prompt at cursor
+                                (clipboard saved/restored around the paste)
+  show <slash>                — type a Claude Code slash command + Enter
+  okay go | vamanos |         — paste the go-ahead approval prompt
+    let's do that |           — (shortcut for `send goahead`)
+    sounds good
+  Prompt phrases live in AutoHotkey/INIDATA/VoiceChoices/send_prompts.json;
+  actual prompt bodies in AutoHotkey/INIDATA/ClaudePrompts/<stem>.txt.
+  Current prompts: audit, clipboard, document, handoff, next, plan, question
+  Slash commands: usage (/account), context (/context)
+
+Voice-Driven Config Adds  **NEW — all follow the same shape**
+------------------------------------------------------------
+  Twelve families. Each writes a JSON sidecar and touches the consuming
+  rule so Caster hot-reloads automatically. All accept an optional spoken
+  word that pre-fills the first InputBox. (Broadcasts use a persistent
+  Gui instead — see below.)
+
+  site add | add site [<textnv>]          — add a web-opener site (phrase +
+                                             URL + title-part + default
+                                             window position). URL and
+                                             title auto-fill from the
+                                             current Chrome tab. 4th box
+                                             asks default position: blank
+                                             Enter = focus-or-open; left/
+                                             right/main/top/bot/twin =
+                                             always snap a new window
+                                             there when saying "<phrase>"
+                                             alone. Alias detection if URL
+                                             already saved under another
+                                             phrase; dialog offers Alias
+                                             (PgUp) / Replace (PgDn) /
+                                             Cancel (Esc). Case-insensitive
+                                             phrase match to existing entry
+                                             defaults box to the EXISTING
+                                             phrase (press Enter to update
+                                             instead of creating a lowercase
+                                             duplicate).
+
+  spot add | add spot [<textnv>]          — add a Spotify/YouTube slot
+                                             phrase (phrase + SpotLinks.ini
+                                             slot key). If the slot isn't
+                                             in SpotLinks.ini yet, offers
+                                             to populate with the current
+                                             Chrome URL.
+
+  swallow add | add swallow [<textnv>]    — add a hardcoded spit slot
+                                             (phrase + slot name). After
+                                             saving, offers to view/edit
+                                             the encrypted slot content in
+                                             VS Code (decrypt -> edit ->
+                                             re-encrypt on OK). Enter
+                                             defaults to "No — leave as-is".
+
+  send add | add send [<textnv>]          — add a Claude prompt (phrase +
+                                             file stem). Creates the .txt
+                                             if new, offers to add a
+                                             Stream Deck button on GECK2
+                                             CLAUDE (Deck B, key-logic:
+                                             tap=SendClaudePrompt,
+                                             hold=EditClaudePrompt),
+                                             opens the .txt in VS Code at
+                                             the end so you can type the
+                                             prompt body.
+
+  project add | add project [<textnv>]    — add a VS Code project (phrase +
+                                             folder or .code-workspace
+                                             path). Path auto-fills from
+                                             the most-recently-opened
+                                             VS Code workspace (sqlite
+                                             query against state.vscdb).
+
+  note add | add note [<textnv>]          — add a Notepad++ file (phrase +
+                                             file path). Path auto-fills
+                                             from the foreground Notepad++
+                                             window title.
+
+  number add | add number [<textnv>]      — add a Google Voice contact
+                                             (display name + E.164 phone
+                                             like +15551234567). Scoped to
+                                             the Google Voice tab. Display
+                                             name auto-fills from the
+                                             "Messages with X" thread
+                                             heading (parentheticals
+                                             stripped, first names only).
+                                             Phone auto-fills from the
+                                             URL's itemId= thread partner
+                                             or via a UIA Text scrape on
+                                             contacts.google.com.
+
+  group add | add group [<textnv>]        — add a Google Voice group
+                                             thread. Must be open on a GV
+                                             group-thread tab — thread ID
+                                             auto-pulls from itemId=g.<id>
+                                             in the URL. Display name
+                                             auto-fills from the "Messages
+                                             with A, B, ..." heading as
+                                             space-joined first names
+                                             ("Izzy Natalia" for a two-
+                                             person thread). One InputBox
+                                             (display name only); thread
+                                             ID is not user-editable.
+
+  broadcast add | add broadcast [<textnv>] — add a Google Voice broadcast
+                                             (a send-to-each-member-
+                                             individually group). First an
+                                             InputBox for display name,
+                                             then a persistent Gui: filter
+                                             box at top, ListView of all
+                                             valid member names (contacts
+                                             + group threads) on the left,
+                                             "Added so far" list on the
+                                             right. Type to filter, Enter
+                                             adds the top match, double-
+                                             click adds a specific one,
+                                             Del removes from the added
+                                             list, PgDn (or Ctrl+S) saves,
+                                             Esc cancels. Opening with a
+                                             name that already exists pre-
+                                             populates the added list so
+                                             the same flow edits existing
+                                             broadcasts.
+
+  members add | add members <broadcast>    — edit an existing broadcast.
+                                             Skips the display-name
+                                             InputBox and opens the Gui
+                                             directly for <broadcast>
+                                             (a Choice populated from
+                                             gv_broadcasts.json keys, so
+                                             only real broadcast names
+                                             match — no accidental fires
+                                             on contact names).
+
+  link add | add link [<textnv>]          — add a saved-link category
+                                             (phrase + PascalCase
+                                             filename stem; stem defaults
+                                             to PascalCase of the phrase
+                                             so Enter usually suffices).
+                                             The .txt under SavedLinks\
+                                             isn't pre-created —
+                                             SaveCurrentLink writes it
+                                             on the first "save link
+                                             <phrase>". Stem is validated
+                                             against [A-Za-z0-9_-].
+
+  music add | add music [<textnv>]        — add a music URL (phrase +
+                                             direct URL). URL auto-fills
+                                             from the current Chrome tab.
+                                             Used by "spot <phrase>" and
+                                             "lockout <phrase>". Shorter
+                                             2-InputBox flow (phrase +
+                                             URL only — no title, no
+                                             default_pos, since music URLs
+                                             always open directly via
+                                             SpotOpenInChrome).
+
+  doc add | add doc [<textnv>]            — add a Google Doc (phrase + URL
+                                             + title-part + default window
+                                             position). URL and title auto-
+                                             fill from the current Chrome
+                                             tab (Google Docs/Sheets/Slides
+                                             suffix stripped). 4th box asks
+                                             for a default position: blank
+                                             Enter = focus-or-open (normal
+                                             tab); left/right/main/top/bot/
+                                             twin = always snap a new
+                                             window there when saying "doc
+                                             <phrase>" alone. Explicit
+                                             "doc <phrase> <pos>" always
+                                             overrides. Alias detection same
+                                             as site add. Case-insensitive
+                                             phrase match to existing entry
+                                             defaults box to the EXISTING
+                                             phrase.
+
+  JSON sidecars live under AutoHotkey/INIDATA/VoiceChoices/. Each add
+  dispatch shells to AutoHotkey/Scripts/VoiceConfigManager/add_voice_choice.py
+  which writes the JSON and updates the rule file's # _reload_marker line.
 
 Credential Files (encrypted editable notes)
 -------------------------------------------
@@ -120,14 +351,43 @@ Credential Files (encrypted editable notes)
   Files: C:\Users\jamie\Desktop\Important\TEXTDOCS\programming\CredentialFiles\*.enc
   Encryption: same AES-256-GCM keyfile as swallow/spit slots
 
-Link Saver
-----------
-  save link <category>       — save current browser URL+title to category file
-  save link <textnv>         — save to any free-form category name (fallback)
-  show link <category> [<pos>] — open category file in Notepad++ (pos: left/right/main/top/bot/twin)
-  Categories: books, poems, poetry, political books, political links,
-              political movies, spanish movies, spanish
-  Files: C:\Users\jamie\Desktop\Important\TEXTDOCS\SavedLinks\
+Link Saver (Obsidian vault)
+---------------------------
+  save link <category>         — capture current browser URL+title and pop
+                                  the persistent tag-picker Gui (filter
+                                  Edit + existing-tag ListView with Tag /
+                                  Count / Where columns, "in this note"
+                                  rows surface first; Added panel on the
+                                  right). Type a tag and press Enter to
+                                  add (infinite); PgDn or Ctrl+S commits
+                                  bullet to vault\<Category>.md; Esc
+                                  abandons the save entirely. Existing
+                                  catalog is read fresh on every Gui open
+                                  via vault_tags_scan.py — strips
+                                  frontmatter + code blocks so example
+                                  #tags don't pollute. Tags written
+                                  inline as " #kebab-case" suffix on the
+                                  "- [Title](URL)" bullet, prepended
+                                  under the H1 header so newest is first.
+  save link <textnv>           — same as above, but for a free-form
+                                  category not yet registered in
+                                  saved_link_categories.json. Use "link
+                                  add <phrase>" later to promote.
+  show link <category> [<pos>] — open vault\<Category>.md in Obsidian
+                                  via obsidian:// URL (pos: left, right,
+                                  main, top, bot, twin)
+  open vault | open obsidian   — focus / launch Obsidian on the vault
+
+  Vault: C:\Users\jamie\Desktop\Important\ObsidianVault\
+  Old per-category .txt archives still at C:\...\TEXTDOCS\SavedLinks\
+  (the original capture target before the Obsidian migration).
+  Categories live in AutoHotkey/INIDATA/VoiceChoices/saved_link_categories.json
+  (display -> PascalCase stem). Add via "link add" — see Voice-Driven
+  Config Adds.
+
+  Categories registered: books, poems, poetry, political books,
+                          political links, political movies, spanish,
+                          spanish movies
 
 Stack
 -----

@@ -7,3 +7,24 @@ And then other commands that will tell me all of the commands within a specific 
 What do you think that this might look like, how do you think that we can generate all of the like categorical data, and what do you think the user interface might look like. I would really like this to work well so that I can like better use and remember my voice commands. 
 
 It is possible that we could just use voice commands current and print everything within a section but that would have the same issue of we need to update that document dramatically, and we would still need to make voice commands to to copy and interpret the data within it and display it
+---
+Okay so I'm very interested in cleaning up my display fusion snapping commands. And by that I mean everything for like opening commands uses these, everything uses these to figure out location. One of my primary issues with it is I want to make them smarter. Currently they work perfectly so if I say like open X twin it will always end up on the second monitor like it's supposed to. But it looks really janky, like if it default opens on the second monitor the code then pushes it to main monitor and then jumps it back. That is a way to make sure it always gets there perfectly but it's really ugly and I kind of hate it. Is there some better way to do this, maybe some like checking before running commands, maybe a cleaner path of commands, maybe slightly different commands, maybe a different format entirely? We tried to have auto hotkey just like push it to XY values but that did not really work well. What do you think about this?
+---
+Two I need to add all of this debugging philosophy and this opening command philosophy to the skill related to creating auto hotkey commands and voice commands?
+---
+Is there some way to give you a debugging tool to help you with debugging this kind of thing in the future. It looks like you had a lot of issues and like could not find the AHK directory, shouldn't that all be in the config files. 
+
+---
+Please fix your permissions. Please add the Claude directory to your specifically permitted folders, also you keep asking me permission to use PowerShell, please give yourself full permissions for everything both bypass permissions but also like explicit permissions that helps too
+---
+Is kebab case what I think it is?
+---
+I am looking for some sort of wireless 10 digit number pad. I would like it to have mechanical keys, optional macro compatibility, ideally on a toggleable switch. I would like it to be ergonomic. I would like it to be relatively small and unobtrusive on my desk but also not like tiny and annoying to use. Ergonomics is a higher priority than small. It can theoretically have more than the 10 digits it could have a few side buttons for macros but I'm basically just looking for a number pad with a few extra steps. What do you think are my good options.
+---
+Okay I would like to make some changes to my stacks. When I say open stack I wanted to open in Notepad plus plus instead. And I want the items in the stack to be numbered within the notepad. I also want to be able to say show stack and it will just show me like a hovering tooltip for like 10 seconds of the entire stack with numbers. 
+
+And then I want to be able to say pop it three and it will pop the third item in the stack. 
+
+I also want to be able to say stack that bottom and it will put something to the bottom of the stack instead of the top. 
+
+And I want to be able to say like stack push three and it will push the third item to the bottom of the stack.

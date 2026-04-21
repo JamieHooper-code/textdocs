@@ -42,18 +42,17 @@ PERSONAL
 
 --- Research / Tooling ---
 
-0. Investigate Notion for text documents
-   Evaluate moving TEXTDOCS/ (or parts of it) into Notion. Current pile
-   is flat .txt/.md files under Desktop/Important/TEXTDOCS — searchable
-   but no structure, no linking between notes, no mobile access, no
-   tagging. Notion offers: nested pages, backlinks, databases/tags,
-   mobile + web sync, rich formatting. Questions to answer: does it
-   handle a quest log like this one well? Can the "to do explanations"
-   pattern be replicated with linked pages? Is there a clean export path
-   out if it becomes the wrong answer later? Any friction with voice
-   workflow (Caster/AHK) — can we still read/write notes programmatically
-   via the Notion API? Start with a free account, port one doc as a
-   pilot, decide from there.
+0. Obsidian vault — next steps (auto-tagging, ports, tooling)
+   Vault stood up at Important/ObsidianVault. SaveCurrentLink writes
+   markdown bullets directly with a tag-picker Gui (and edit mode if
+   the URL is already saved). SavedLinks/*.txt migrated. Headline next
+   move: retroactive auto-tagging of the migrated bullets. Also: port
+   more text resources, build vault-management scripts (tag rename /
+   link check / search-from-voice / browse-by-tag), explore Dataview
+   dashboards, daily notes, web clipper, mobile sync. (Notion was
+   evaluated and rejected — Obsidian fits the local-files + voice
+   workflow better.)
+   Full design: TEXTDOCS/programming/HANDOFF - Obsidian Next Steps.md
 
 
 --- Backups / Security ---
