@@ -201,3 +201,21 @@ PERSONAL
        Folder Move OFF first or every hardcoded path breaks.
        Full design + security rationale:
        TEXTDOCS/programming/to do explanations/ONEDRIVE_BACKUP.md
+
+
+--- Verify / Testing Infrastructure ---
+
+17. Caster/AHK verify system — next improvements
+    Built 2026-04-22: Stop-hook + Caster<->AHK bridge contract (both
+    directions) + pytest suite. Four queued extensions, pick any
+    independently: AHK LSP integration (catches runtime #Warn / undefined
+    locals that /validate misses — the footpedals pop-up class), auto-
+    generated codebase inventory (proactive — Claude reads it before
+    writing new helpers, so no more duplicate _snake_case reinventions),
+    template skills for recurring workflows (add-voice-command,
+    migrate-choice-dict-to-json, add-streamdeck-button — build on next
+    use, not speculatively), and AI-generated commit messages via
+    Claude CLI with --model haiku in GitPushAll.ps1 (preserves Opus
+    quota, kills the "updates" × N git history problem). Umbrella:
+    keep adding tests + docs + checks as gaps surface in use.
+    Full design: TEXTDOCS/programming/to do explanations/CASTER_AHK_VERIFY_IMPROVEMENTS.md
