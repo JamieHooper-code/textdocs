@@ -113,9 +113,12 @@ Spotify (Global)
   spot [spit] <text>       — open saved URL in Chrome new tab
   spot swallow <genre>     — add current URL to genre pool
   spot <genre>             — open random URL from genre pool
-  Genres: ambient, folk punk, indie folk, sad boi, funk, dance,
-          hip hop, Spanish, miscellaneous, local, harmony,
-          all, classic, wow
+  Genres: ambient, electro ambient, folk punk, indie folk, sad boi,
+          funk, dance, hip hop, Spanish, miscellaneous, local,
+          harmony, all, classic, wow
+          (JSON-backed via AutoHotkey/INIDATA/VoiceChoices/hardcoded_spot_genres.json;
+          add entries by saying "genre add" — see Voice-Driven Config Adds
+          section below)
 
   Hardcoded slot phrases (Dragon-robust, SpotSpit path):
     weaving
@@ -174,7 +177,7 @@ Claude Prompts (in VS Code / Claude desktop app)
 
 Voice-Driven Config Adds  **NEW — all follow the same shape**
 ------------------------------------------------------------
-  Twelve families. Each writes a JSON sidecar and touches the consuming
+  Thirteen families. Each writes a JSON sidecar and touches the consuming
   rule so Caster hot-reloads automatically. All accept an optional spoken
   word that pre-fills the first InputBox. (Broadcasts use a persistent
   Gui instead — see below.)
@@ -317,6 +320,23 @@ Voice-Driven Config Adds  **NEW — all follow the same shape**
                                              always open directly via
                                              SpotOpenInChrome).
 
+  genre add | add genre [<textnv>]        — add a Spotify genre (phrase +
+                                             GenreLinks.ini section name).
+                                             Used by "spot <genre>",
+                                             "spot swallow <genre>", and
+                                             "lockout <genre>". 2-InputBox
+                                             flow: box 2 defaults to
+                                             PascalCase of the phrase
+                                             ("indie folk" -> "IndieFolk")
+                                             so Enter usually suffices.
+                                             Section is stubbed Count=0 in
+                                             GenreLinks.ini if new. If
+                                             Chrome is foreground with a
+                                             valid URL, offers to swallow
+                                             it into the new section in
+                                             the same flow (same as
+                                             "spot swallow <genre>" later).
+
   doc add | add doc [<textnv>]            — add a Google Doc (phrase + URL
                                              + title-part + default window
                                              position). URL and title auto-
@@ -335,6 +355,17 @@ Voice-Driven Config Adds  **NEW — all follow the same shape**
                                              phrase match to existing entry
                                              defaults box to the EXISTING
                                              phrase.
+
+  stack add | add stack [<textnv>]        — add a hardcoded stack name
+                                             (phrase + on-disk filename
+                                             stem under TEXTDOCS\programming\
+                                             stacks\<key>.txt). Key defaults
+                                             to snake_case of the phrase so
+                                             Enter usually suffices. Also
+                                             auto-triggered when "switch
+                                             stack <unknown>" is spoken —
+                                             the unknown name is passed as
+                                             the pre-filled phrase.
 
   JSON sidecars live under AutoHotkey/INIDATA/VoiceChoices/. Each add
   dispatch shells to AutoHotkey/Scripts/VoiceConfigManager/add_voice_choice.py
@@ -391,20 +422,30 @@ Link Saver (Obsidian vault)
 
 Stack
 -----
-  stack that                 — grab entire focused field, push to TOP of stack (deletes field contents)
-  stack that bottom          — same as "stack that" but push to BOTTOM of stack (will pop last)
+  stack that                 — grab entire focused field, push to TOP of active stack (deletes field contents)
+  stack that bottom          — same as "stack that" but push to BOTTOM of active stack (will pop last)
+  stack that <key>           — cut focused field and push to top of the NAMED stack without switching active.
+                                <key> is a hardcoded name (macros, research, programming, etc. — see
+                                hardcoded_stack_slots.json). Unknown name ("stack that testing") tooltips
+                                "No stack named 'testing'. Say 'add stack testing' to create it." — no cut.
   pop it                     — paste #1 (top) stack item into focused field
   pop it <n>                 — pop the Nth item from the top (e.g. "pop it three")
   stack push <n>             — move the Nth item to the BOTTOM of the stack
+  stack <key>                — select-all + copy focused field into the named stack (COPY not cut, no switch)
   show stack                 — 10s tooltip of active stack with numbers (#1 = next to pop); Esc to dismiss
   open stack [key] [pos]     — open stack file in Notepad++ (items numbered, #1 at bottom = next to pop)
     pos: top / bot (default) / full
     e.g. "open stack", "open stack top", "open stack research", "open stack research top"
-  save stack <key>           — copy current stack to named file (does not switch)
-  switch stack <key>         — change active stack (e.g. "switch stack research", "switch stack main")
+  save stack <key>           — copy current stack to named file (does not switch). Accepts any new name.
+  switch stack <key>         — change active stack to a hardcoded name (e.g. "switch stack research").
+                                Unknown name ("switch stack testing") auto-opens the Add Stack UI pre-
+                                filled with the spoken word, so just hit Enter twice to hardcode it.
+  stack add | add stack [<textnv>]
+                             — add a new hardcoded stack name — see Voice-Driven Config Adds.
   dump stack                 — delete entire current stack
   list stack                 — show all stack names (current marked with *)
   Stack files: C:\Users\jamie\Desktop\Important\TEXTDOCS\programming\stacks\
+  Hardcoded names: C:\Users\jamie\Desktop\Important\AutoHotkey\INIDATA\VoiceChoices\hardcoded_stack_slots.json
 
 Timer App (Global)
 ------------------
