@@ -107,6 +107,19 @@ Windows
     Files live in AutoHotkey/INIDATA/VoiceChoices/notepad_files.json.
     Current: friends, resources, text
 
+Audio
+-----
+  Mic-activated ducking: fades system master volume to 1/N of current while
+  mic is live, restores it on mute. Fade: 1s down, 4s up. Saved volume
+  tracks manual slider changes you make while the mic is muted — so if you
+  bump the volume while not voice-typing, the next duck cycle uses that new
+  baseline. Runs as an independent sidecar (AutoHotkey/Scripts/MicDuck.ahk)
+  so MAINFUN reloads don't kill it.
+    enable ducking        — start at default 1/5 (music plays at 20% while mic is live)
+    ducking <n>           — start/retune at 1/n, n in 2-100 (e.g. "ducking 7" = ~14%)
+    disable ducking
+    toggle ducking
+
 Spotify (Global)
 ----------------
   spot swallow <text>      — save current URL under key (snake_case)

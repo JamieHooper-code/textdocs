@@ -1,0 +1,74 @@
+HACKY THINGS COMPUTER SETUP
+============================
+Non-obvious tweaks made to this Windows machine to fix annoying behaviors.
+If something audio/monitor/Dragon related breaks after a Windows update or
+reinstall, check here first.
+
+Tags: audio, microphone, dragon, naturallyspeaking, dragon naturally speaking,
+mic cuts out, mic turns off, microphone disabled, monitor, second monitor,
+touchscreen, displayport, dp, hdmi, display audio, intel display audio,
+device manager, sound settings, playback devices, audio enumeration,
+wm_devicechange, wm_displaychange, gpu, intel onboard, integrated graphics,
+audio device disabled, dragon goes red, dragon turns off when monitor on,
+monitor wakes mic dies
+
+
+------------------------------------------------------------
+DRAGON NATURALLYSPEAKING TURNS OFF WHEN SECOND MONITOR WAKES
+------------------------------------------------------------
+Date diagnosed: 2026-04-22
+
+Symptom:
+  Whenever the second monitor (DisplayPort, touchscreen with USB) was
+  powered on or woken from sleep, Dragon's microphone icon would flip
+  from green (live) to red (off). If Dragon was already asleep when it
+  happened, it stayed asleep — the disruption only affected the active
+  capture stream.
+
+Root cause:
+  When the monitor's DP link comes up, Windows re-enumerates audio
+  devices because DisplayPort can carry audio. Even with no actual audio
+  device added/removed visibly, the audio engine briefly reinitializes,
+  which revokes Dragon's active high-priority WASAPI capture handle.
+  Dragon interprets the broken stream as "shut off."
+
+What did NOT fix it:
+  - Unplugging the touchscreen USB cable (so only DP was active)
+  - Disabling the monitor as a Playback device in Sound settings
+  - Putting the monitor to sleep via Windows instead of physical power
+
+What DID fix it:
+  Open Device Manager (Win+X -> Device Manager)
+  Expand "Sound, video and game controllers"
+  There were THREE entries for display audio (one per Intel video output
+  - HDMI plus each DisplayPort). Right-click each -> Disable device.
+  Disable ALL of them. Disabling only some leaves the others firing
+  the audio enumeration when the monitor wakes.
+
+  Leave alone:
+    - Realtek (main onboard audio)
+    - Scarlett USB (Focusrite interface)
+    - USB table mic
+
+Side effect:
+  No more HDMI/DisplayPort audio out (sound through monitor speakers / TV).
+  Don't care - we use the Scarlett and the table mic.
+
+If it comes back after a Windows or Intel driver update:
+  The display audio entries may re-enable themselves. Just disable them
+  all again.
+
+
+------------------------------------------------------------
+ALSO RELATED: DISABLING UNUSED PLAYBACK DEVICES IN SOUND SETTINGS
+------------------------------------------------------------
+Separately from the Device Manager fix above, also disabled multiple
+unused playback endpoints in the normal Sound settings menu:
+
+  Right-click speaker icon -> Sound settings -> More sound settings
+  -> Playback tab -> right-click unused devices -> Disable
+
+This was done as part of the same diagnosis and is worth keeping
+disabled - fewer endpoints means fewer things for Windows to
+re-enumerate when hardware state changes, and fewer chances of
+Dragon picking the wrong default.

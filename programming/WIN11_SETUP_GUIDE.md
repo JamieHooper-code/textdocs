@@ -191,6 +191,71 @@ Natlink is the bridge between Dragon and Python. Dragon's plugin API is 32-bit, 
 - [ ] If a rule fails to load, Dragon or the Natlink Messages window will show the Python error
 - [Claude can help] Debug any rule load errors — most are import path issues or settings.toml path problems
 
+**Step 8: Apply local Caster patches (REQUIRED — "reboot caster" won't work without this)**
+
+The vanilla Caster source has one breakage against Natlink 5.x that we patch locally. If you're doing a fresh clone of `caster-main`, the upstream code still does `import natlinkstatus` which no longer exists (the module was absorbed into the `natlink` package and `NatlinkStatus` class was removed). Without this patch, saying "reboot caster" throws `ModuleNotFoundError: No module named 'natlinkstatus'` and the reboot sequence doesn't fire.
+
+The patched reboot sequence is also what makes "reboot caster" actually work on this machine — our direct AHK-driven restarts (RestartDragon / SoftRebootDragon) wedge the system and require a full Windows reboot to recover, but Caster's stock `bin\reboot.bat` sequence (taskkill natspeak + dgnuiasvr_x64 + dnsspserver + dragonbar, sleep 1, relaunch with user profile) restarts Dragon cleanly. So this patch is load-bearing.
+
+**File:** `C:\Users\Jamie\Documents\Caster\castervoice\lib\utilities.py`
+
+**Find this block (around line 211 in the upstream source — the `if engine.name == 'natlink':` branch inside `def reboot()`):**
+
+```python
+    if engine.name == 'natlink':
+        import natlinkstatus # pylint: disable=import-error
+        status = natlinkstatus.NatlinkStatus()
+        if status.NatlinkIsEnabled() == 1:
+            # Natlink in-process
+            popen_parameters.append(settings.SETTINGS["paths"]["REBOOT_PATH"])
+            popen_parameters.append(settings.SETTINGS["paths"]["ENGINE_PATH"])
+            username = status.getUserName()
+            popen_parameters.append(username)
+            printer.out(popen_parameters)
+            Popen(popen_parameters)
+        else:
+           # Natlink out-of-process
+            engine.disconnect()
+            Popen([sys.executable, '-m', 'dragonfly', 'load', '--engine', 'natlink', '_*.py', '--no-recobs-messages'])
+```
+
+**Replace with:**
+
+```python
+    if engine.name == 'natlink':
+        # Natlink 5.x removed the standalone `natlinkstatus` module; its
+        # contents moved into the `natlink` package and the NatlinkStatus
+        # class is gone. If this code is running, Caster was loaded by
+        # Natlink in-process, so we skip the old enabled/out-of-process
+        # check and take the in-process branch directly.
+        import natlink  # pylint: disable=import-error
+        popen_parameters.append(settings.SETTINGS["paths"]["REBOOT_PATH"])
+        popen_parameters.append(settings.SETTINGS["paths"]["ENGINE_PATH"])
+        username = natlink.getCurrentUser()[0]
+        popen_parameters.append(username)
+        printer.out(popen_parameters)
+        Popen(popen_parameters)
+```
+
+**What changed, line by line:**
+- Removed `import natlinkstatus` — module doesn't exist in Natlink 5.x
+- Removed `status = natlinkstatus.NatlinkStatus()` — class is gone
+- Removed the `if status.NatlinkIsEnabled() == 1:` conditional — if this code is reached via a voice command, Natlink is by definition loaded in-process (otherwise the command couldn't have fired)
+- Replaced `status.getUserName()` with `natlink.getCurrentUser()[0]` — `getCurrentUser()` returns a `(username, profile_dir)` tuple in Natlink 5.x
+- Dropped the `else:` out-of-process branch — unreachable on this setup; can be re-added from upstream if ever needed
+- Added `import natlink` (the replacement import) and a comment explaining the migration
+
+**How to apply on a fresh install:**
+1. Open `C:\Users\Jamie\Documents\Caster\castervoice\lib\utilities.py`
+2. Find the `if engine.name == 'natlink':` block inside `def reboot()` (around line 211)
+3. Replace it with the patched block above
+4. Restart Dragon/Caster for the change to take effect (Caster library modules don't hot-reload; they live in sys.modules after first import)
+5. Verify by saying "reboot caster" — Dragon should cleanly restart
+
+**Why this isn't upstreamed:** the fix is correct but the stock `reboot.bat` is what actually makes Dragon restart work on this machine (something about its specific taskkill sequence). Upstreaming would also need to preserve the out-of-process branch for WSR/Kaldi users, which requires more careful refactoring than a local one-line patch.
+
+**If upstream Caster is ever updated past this:** re-check that `utilities.py::reboot()` still uses `natlink.getCurrentUser()[0]` (or equivalent) instead of the removed `natlinkstatus` API, and re-apply if reverted.
+
 ### 2.2 Startup Program
 - [ ] Pull startup program from OneDrive/GitHub
 - [ ] Run it — this should start Dragon, Caster, AHK, and other components together
