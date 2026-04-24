@@ -203,6 +203,20 @@ PERSONAL
        TEXTDOCS/programming/to do explanations/ONEDRIVE_BACKUP.md
 
 
+19. Return Dell + migrate to a compatible prebuilt
+    Dell ECT1250 is proprietary — can't take the RTX 2070 (no PCIe
+    power on the PSU, 460W ceiling, no ATX swap possible). Return
+    within the window, replace with a standard-ATX prebuilt (RAM
+    crisis makes DIY worse than prebuilt right now). Clone the
+    current SSD to preserve Dragon/Natlink/Caster setup — fresh
+    install is plan B via WIN11_SETUP_GUIDE.md. Order matters:
+    don't return Dell until new machine is verified working. Pre-
+    return prep is time-sensitive (link Windows to MS account,
+    check Dragon activation count, back up keyfile, push all git
+    repos). Coordinates with quest 18 (RTX 2070 install) which
+    happens AFTER migration is verified.
+    Full design: TEXTDOCS/programming/to do explanations/MIGRATE_TO_NEW_COMPUTER.md
+
 18. Install the RTX 2070 (sitting on the desk)
     Physical install + NVIDIA driver + CUDA Toolkit, then node-llama-
     cpp rebuild for CUDA backend so QMD (and any future local-LLM
