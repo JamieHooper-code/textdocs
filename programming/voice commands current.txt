@@ -527,3 +527,37 @@ Dragon Aliases (Dictation Box + Chrome Choice Box)
                                                save to
                                                dragon_dictation_box_aliases.json
     (dictation add | add dictation) <textnv> — same, pre-fills the phrase box
+
+Voice Command Browser
+---------------------
+  VoiceCommandBrowserRule (global — no executable restriction). Quick
+  reference GUI that surfaces every voice command matching a given tag,
+  CROSS-FILE: "show VS code commands" pulls in vscode_commands.py AND
+  project-open helpers from windows_commands.py AND claude-in-vscode
+  helpers from claude_commands.py, etc. Tags are inferred automatically
+  from the source rdescripts (filename hint + AHK function tags +
+  description keyword match), so adding a new voice command propagates
+  to the browser on the next stop hook — no manual cataloging.
+
+  Data pipeline:
+    helpers/voice_commands_by_tag.py      (regen on every stop hook)
+    -> .claude/context/voice_commands_by_tag.tsv (AHK reads this)
+    -> .claude/context/voice_commands_by_tag.md  (human-readable mirror)
+
+  Voice commands:
+    show <tag> commands      — pop GUI listing every voice command tagged
+                               <tag>. Double-click a row to copy the
+                               phrase. Esc closes.
+
+  Spoken tags (see voice_command_browser_commands.py for the full map):
+    "VS code", "Chrome", "Claude", "Spotify", "YouTube", "Google docs",
+    "Google voice", "Gmail", "Obsidian", "Notepad", "Anki", "VLC",
+    "display fusion", "audio", "video", "reading", "Tobii", "Arduino",
+    "mouse", "input", "window", "display", "clipboard", "file", "app",
+    "system", "time", "config", "git", "debug", "dialog", "UI", "text",
+    "navigation", "voice", "Caster", "Dragon", "stream deck", "Toggle",
+    "stack", "spot", "WoW"
+
+  Going forward, this file (voice commands current.txt) is the INDEX +
+  NARRATIVE; the full ranked list is auto-maintained in
+  voice_commands_by_tag.md.

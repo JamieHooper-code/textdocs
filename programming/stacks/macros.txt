@@ -1,6 +1,6 @@
-13. do we need to beef up the UIA  documentation?  it feels like at a anytime I ask you to do any form of that you have to look up a bunch of stuff
+11. do we need to beef up the UIA  documentation?  it feels like at a anytime I ask you to do any form of that you have to look up a bunch of stuff
 ---
-12. Okay this is a big one. I would like to be able to list all of my current voice command categories, so this would not just be based on file because there are certain overlapping files like there are files that do stuff like opening a Visual Studio code projects and then there are the Visual Studio code internal commands, and then there are Claude commands that are accessible from inside of VS code. 
+10. Okay this is a big one. I would like to be able to list all of my current voice command categories, so this would not just be based on file because there are certain overlapping files like there are files that do stuff like opening a Visual Studio code projects and then there are the Visual Studio code internal commands, and then there are Claude commands that are accessible from inside of VS code. 
 
 I would like a command that like lists all of my categories
 
@@ -10,9 +10,9 @@ What do you think that this might look like, how do you think that we can genera
 
 It is possible that we could just use voice commands current and print everything within a section but that would have the same issue of we need to update that document dramatically, and we would still need to make voice commands to to copy and interpret the data within it and display it
 ---
-11. Okay so a big idea I just had. When I make user interfaces like the one for adding hardcoded stuff. I want to navigate them entirely with my number pad. I just got a new number pad I'm really excited to start using it. So for like tagging stuff or for like adding people to groups I want each of the tags or people or options or whatever to have a number in parentheses next to the name. And that I can just punch in that number and hit enter and it will add them. And then I can like navigate through the user interfaces as well with that. I think this would be really massive for making things accessible to me
+9. Okay so a big idea I just had. When I make user interfaces like the one for adding hardcoded stuff. I want to navigate them entirely with my number pad. I just got a new number pad I'm really excited to start using it. So for like tagging stuff or for like adding people to groups I want each of the tags or people or options or whatever to have a number in parentheses next to the name. And that I can just punch in that number and hit enter and it will add them. And then I can like navigate through the user interfaces as well with that. I think this would be really massive for making things accessible to me
 ---
-10. I would like to start a new file called like completion log. 
+8. I would like to start a new file called like completion log. 
 
 And I can say add to completion
 
@@ -33,20 +33,16 @@ And I would like to maybe look into how we can make the to do programming and ot
 I'm thinking for this integration between the two philosophies I would be able to say like update to do and it would pop open like a little GUI and I could use one through nine to like look through all the options between like Atlantic or personal or whatever, and then once I picked one it gives me a list of all the items and I can select one to drop off my to do and when I do that it will automatically ask if I want to confirm adding it to the finished today list. It's very important to me that these two systems work in concert so I'm not having to like manually update two different things every time I do something. 
 
 ---
-9. Okay so I'm very interested in cleaning up my display fusion snapping commands. And by that I mean everything for like opening commands uses these, everything uses these to figure out location. One of my primary issues with it is I want to make them smarter. Currently they work perfectly so if I say like open X twin it will always end up on the second monitor like it's supposed to. But it looks really janky, like if it default opens on the second monitor the code then pushes it to main monitor and then jumps it back. That is a way to make sure it always gets there perfectly but it's really ugly and I kind of hate it. Is there some better way to do this, maybe some like checking before running commands, maybe a cleaner path of commands, maybe slightly different commands, maybe a different format entirely? We tried to have auto hotkey just like push it to XY values but that did not really work well. What do you think about this?
+7. Okay so I'm very interested in cleaning up my display fusion snapping commands. And by that I mean everything for like opening commands uses these, everything uses these to figure out location. One of my primary issues with it is I want to make them smarter. Currently they work perfectly so if I say like open X twin it will always end up on the second monitor like it's supposed to. But it looks really janky, like if it default opens on the second monitor the code then pushes it to main monitor and then jumps it back. That is a way to make sure it always gets there perfectly but it's really ugly and I kind of hate it. Is there some better way to do this, maybe some like checking before running commands, maybe a cleaner path of commands, maybe slightly different commands, maybe a different format entirely? We tried to have auto hotkey just like push it to XY values but that did not really work well. What do you think about this?
 ---
-8. Add aliases for Dragon NatSpeak commands
+6. Add aliases for Dragon NatSpeak commands
 ---
-7. I am extremely interested in figuring out some way to highlight text on my screen better. For example you just sent me that PowerShell link, I don't use a mouse at all. That is very hard to make it copy to my clipboard. I told you to remember to automatically copy stuff to make the board but you always forget, but that is a separate issue. This is an issue I encounter in a variety of applications and websites. I would really like to brainstorm this and potentially make a tool or find one that would help with this. I would like you to be as efficient and easy to use as possible and with as much power as possible. I've used a few different things for this like Legion that is built into caster and it just didn't quite work super well but I'm also interested in ways that we can prove that.
+5. I am extremely interested in figuring out some way to highlight text on my screen better. For example you just sent me that PowerShell link, I don't use a mouse at all. That is very hard to make it copy to my clipboard. I told you to remember to automatically copy stuff to make the board but you always forget, but that is a separate issue. This is an issue I encounter in a variety of applications and websites. I would really like to brainstorm this and potentially make a tool or find one that would help with this. I would like you to be as efficient and easy to use as possible and with as much power as possible. I've used a few different things for this like Legion that is built into caster and it just didn't quite work super well but I'm also interested in ways that we can prove that.
 ---
-6. Obsidian web clipper
+4. Obsidian web clipper
 ---
-5. I would like to look into some Visual Studio code versus Claude code kind of stuff
+3. I would like to look into some Visual Studio code versus Claude code kind of stuff
 ---
-4. I want to create a to purchase text document that has different sections like one for Amazon one for other and one for repurpose,  and one for food.  figure out what's the best subfolder to put it in. add sharpie that is ergonomic to my repurpose section, that's the repurpose project. and add blackout mirror materials
+2. I want to create a to purchase text document that has different sections like one for Amazon one for other and one for repurpose,  and one for food.  figure out what's the best subfolder to put it in. add sharpie that is ergonomic to my repurpose section, that's the repurpose project. and add blackout mirror materials
 ---
-3. okay can you please document all of this, we should have like a specific macro set up documentation folder for understanding and working on stuff like this.
----
-2. Okay I definitely have a few questions. What is it going to look like if I ever Refactor mice project, like if I move folders around and compartmentalize files into folders. What will it look like when I edit a single file. If I remove functions from a file will they automatically be removed from the generated inventory?
----
-1. how will we ever know if the hook stops working? is there some sort of error messaging or something we can get does the final inventory have like a timestamp that we can like somehow check against or maybe like hash the CodeBase?
+1. Okay one thing that I found when you edit my set up is that you often have to recheck how Json parsing is done within the project, and how like main function bat connects from caster to auto hotkey . Obviously we could just write more memory files or improve the skill,, but is there some way to like quickly search through documentation of this kind of thing? We just gave you the ability to rapidly search through all of the functions but I still feel like you searching through kind of the meta understanding of how we build certain structures and why is still very lacking. What are our solutions for that?
