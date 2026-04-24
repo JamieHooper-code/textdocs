@@ -203,6 +203,19 @@ PERSONAL
        TEXTDOCS/programming/to do explanations/ONEDRIVE_BACKUP.md
 
 
+18. Install the RTX 2070 (sitting on the desk)
+    Physical install + NVIDIA driver + CUDA Toolkit, then node-llama-
+    cpp rebuild for CUDA backend so QMD (and any future local-LLM
+    tooling) gets real GPU inference. Current iGPU eats 60s on a
+    cold qmd query; 2070 + warm daemon should land ~2-4s. Also
+    unlocks Ollama, LM Studio, small-model finetuning — general
+    upgrade, not just QMD. Pre-install: check PSU wattage (≥550W),
+    PCIe power connector, slot clearance. Claude can handle the
+    software side (rebuild + daemon + benchmarks) once drivers are
+    live; physical install is a screwdriver job.
+    Full design: TEXTDOCS/programming/to do explanations/INSTALL_RTX_2070.md
+
+
 --- Verify / Testing Infrastructure ---
 
 17. Caster/AHK verify system — next improvements
