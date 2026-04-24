@@ -481,3 +481,49 @@ Text / Dictation
 ----------------
   all types             — select all, then open Dragon dictation box
   open Accuracy Center  — open Dragon Accuracy Center
+
+Dragon Aliases (global)
+-----------------------
+  DragonAliasRule — active everywhere Dragon listens. Short phrases that
+  fire Dragon's built-in voice commands via Mimic(), plus a couple of
+  hardcoded keystroke shortcuts. Rule file: rules/dragon_alias_commands.py.
+
+  Hardcoded:
+    typing [now]              — Key(cs-d), opens Dragon's Dictation Box
+                                (migrated from windows_commands.py)
+
+  User-added (alias add flow):
+    (alias add | add alias)          — pop the two-field GUI (phrase +
+                                       Dragon command) and save to
+                                       dragon_aliases.json
+    (alias add | add alias) <textnv> — same but pre-fills the phrase box
+                                       with the spoken word
+
+  Each JSON entry becomes: <phrase> -> Mimic(*cmd.split()) — so e.g.
+  {"add words": "edit vocabulary"} lets Jamie say "add words" anywhere
+  and Dragon hears "edit vocabulary". JSON lives at
+  AutoHotkey/INIDATA/VoiceChoices/dragon_aliases.json.
+
+Dragon Aliases (Dictation Box + Chrome Choice Box)
+--------------------------------------------------
+  DragonDictationBoxRule — active when Dragon's Dictation Box is focused
+  OR when the Chrome/any-app Choice Box correction overlay is visible.
+  The Choice Box is a top-level tool+topmost window that doesn't steal
+  focus; detection uses Win32 FindWindowW on class "ClsChoiceBoxWindow"
+  via rules/window_context_helpers.py (generic "focus-OR-overlay"
+  function_context factory — reuse for any future rule that needs to
+  scope to a non-focus-stealing window). Rule file:
+  rules/dragon_dictation_box_commands.py.
+
+  Number words → Choice Box / Dictation Box slot hotkeys:
+    one   → alt+1      six   → alt+6
+    two   → alt+2      seven → alt+7
+    three → alt+3      eight → alt+8
+    four  → alt+4      nine  → alt+9
+    five  → alt+5
+
+  User-added (dictation add flow):
+    (dictation add | add dictation)          — pop the two-field GUI and
+                                               save to
+                                               dragon_dictation_box_aliases.json
+    (dictation add | add dictation) <textnv> — same, pre-fills the phrase box

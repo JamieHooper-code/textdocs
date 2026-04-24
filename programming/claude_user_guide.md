@@ -5,11 +5,12 @@ when to use it, and practical use cases relevant to this setup.
 
 ---
 
-## Overview — The Four Layers
+## Overview — The Five Layers
 
 | Layer | What it is | Who controls it |
 |-------|-----------|-----------------|
 | **Skills** | Knowledge/instructions that change how Claude works | You install, Claude applies |
+| **Agents** | Separate Claude instances Claude spawns to delegate work | Claude spawns, summary returns |
 | **Hooks** | Shell commands that fire automatically on events | System fires them, always |
 | **MCPs** | Connections to external tools and data sources | Claude calls them on demand |
 | **Memory** | Persistent facts Claude recalls across conversations | Claude reads/writes automatically |
@@ -50,6 +51,92 @@ are triggered by slash commands (e.g. `/commit`).
 - Atlantic Logistics web work → `frontend-design` raises UI quality automatically
 - M365/McLeod questions → `microsoft-docs` pulls current official docs
 - Adding Stream Deck buttons → `streamdeck` handles the whole workflow
+
+---
+
+## Agents
+
+### What they are
+Subagents are separate Claude instances spawned via the Agent tool. Each runs with
+its own context window, its own (often restricted) tool set, and returns a single
+summary message back to the main Claude. They're how Claude delegates work that
+would otherwise crowd the main conversation, or take serial time when it could run
+in parallel.
+
+### When to use
+- **Open-ended exploration** — "find all the places we handle X" across the codebase
+- **Multi-step research** that produces a lot of intermediate output Claude doesn't
+  need to keep
+- **Independent parallel work** — fire 2-3 agents in one message and they run
+  simultaneously instead of serially
+- **Specialized recurring tasks** with a fixed recipe (debugging, security review,
+  audit-type work)
+
+### When NOT to use
+- The target is already known — Claude should just do the edit, not delegate
+- One Glob or Grep would answer it faster than spinning up an agent
+- The task needs back-and-forth — agents do one shot, no clarifying questions
+- Trivial work where overhead isn't worth it
+
+### Built-in agent types
+| Agent | Use case |
+|-------|---------|
+| `Explore` | Fast codebase exploration — find files, search code, answer questions |
+| `Plan` | Design implementation strategy before writing code |
+| `general-purpose` | Multi-step research, complex searches |
+| `claude-code-guide` | Answer questions about Claude Code/SDK/API features |
+| `statusline-setup` | Configure the status line |
+
+### Building a custom agent
+Custom agents are markdown files at `~/.claude/agents/<name>.md` (user scope) or
+`<project>/.claude/agents/<name>.md` (project scope). The frontmatter declares
+metadata; the body is the system prompt the subagent runs with.
+
+Example:
+
+```markdown
+---
+name: voice-debug
+description: Investigate why a voice command didn't fire. Use whenever a spoken command misbehaves.
+tools: Read, Grep, Glob, Bash
+---
+
+You are a debugging specialist for Jamie's Caster voice command + AutoHotkey setup.
+[...detailed instructions for the agent...]
+```
+
+**Frontmatter fields:**
+- `name` — what Claude references in `subagent_type`
+- `description` — the trigger; write it like a list of when to fire this agent.
+  This is the most important field — it's how Claude decides to use the agent.
+- `tools` — whitelist of allowed tools; omit for full access. Restricting is safer
+  (e.g. no Write means it can't modify files by accident).
+- `model` *(optional)* — `haiku` / `sonnet` / `opus`; defaults to inheriting from
+  the main Claude
+
+### Use cases — custom agents worth building
+- **voice-debug** — walks the Caster→AHK debug chain (caster_messages.log,
+  mainfun_calls.log, ahk_event.log, ahk_last_result.txt) and returns a diagnosis.
+  High-frequency task, produces lots of log output, has a fixed recipe.
+- **ahk-function-finder** — searches the AHK helpers catalog for existing functions
+  before Claude writes a new one. Prevents duplicating logic.
+- **stream-deck-auditor** — scans both deck profiles for unused buttons, broken
+  paths, or duplicate ActionIDs. Returns a punch list.
+- **caster-rule-validator** — runs the rule validator across all enabled rules,
+  reports what's broken before reload.
+
+### Skills vs Agents
+| Skills | Agents |
+|--------|--------|
+| Inject knowledge into the *main* conversation | Spawn a *separate* Claude with its own context |
+| Best for "do this *better*" | Best for "do this *elsewhere*" |
+| Always loaded into main context when triggered | Output stays out of main context |
+| Single execution path | Can run many in parallel |
+| Persistent for the session | Fire-and-forget, returns one summary |
+
+### Currently configured
+None custom yet — only the built-in agent types ship with Claude Code. Good
+candidates above; build them as the same pain points keep recurring.
 
 ---
 
@@ -290,6 +377,9 @@ mode and it will lay out exactly what it's going to do before touching anything.
 | Situation | Use |
 |-----------|-----|
 | You want Claude to be smarter about a domain | Skill |
+| You want Claude to research without bloating context | Agent |
+| You want parallel investigation of independent questions | Agent (multiple in one message) |
+| You want a fixed recipe to run on demand with one summary back | Custom agent |
 | You want something to happen automatically every time | Hook |
 | You want Claude to read/write to an external system | MCP |
 | You want Claude to remember something between sessions | Memory |
