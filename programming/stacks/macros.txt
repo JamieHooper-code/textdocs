@@ -1,41 +1,8 @@
-10. do we need to beef up the UIA  documentation?  it feels like at a anytime I ask you to do any form of that you have to look up a bunch of stuff
+7. do we need to beef up the UIA  documentation?  it feels like at a anytime I ask you to do any form of that you have to look up a bunch of stuff
 ---
-9. Okay this is a big one. I would like to be able to list all of my current voice command categories, so this would not just be based on file because there are certain overlapping files like there are files that do stuff like opening a Visual Studio code projects and then there are the Visual Studio code internal commands, and then there are Claude commands that are accessible from inside of VS code. 
-
-I would like a command that like lists all of my categories
-
-And then other commands that will tell me all of the commands within a specific category. 
-
-What do you think that this might look like, how do you think that we can generate all of the like categorical data, and what do you think the user interface might look like. I would really like this to work well so that I can like better use and remember my voice commands. 
-
-It is possible that we could just use voice commands current and print everything within a section but that would have the same issue of we need to update that document dramatically, and we would still need to make voice commands to to copy and interpret the data within it and display it
+6. Okay so a big idea I just had. When I make user interfaces like the one for adding hardcoded stuff. I want to navigate them entirely with my number pad. I just got a new number pad I'm really excited to start using it. So for like tagging stuff or for like adding people to groups I want each of the tags or people or options or whatever to have a number in parentheses next to the name. And that I can just punch in that number and hit enter and it will add them. And then I can like navigate through the user interfaces as well with that. I think this would be really massive for making things accessible to me
 ---
-8. Okay so a big idea I just had. When I make user interfaces like the one for adding hardcoded stuff. I want to navigate them entirely with my number pad. I just got a new number pad I'm really excited to start using it. So for like tagging stuff or for like adding people to groups I want each of the tags or people or options or whatever to have a number in parentheses next to the name. And that I can just punch in that number and hit enter and it will add them. And then I can like navigate through the user interfaces as well with that. I think this would be really massive for making things accessible to me
----
-7. I would like to start a new file called like completion log. 
-
-And I can say add to completion
-
-And it will pop up a text box, I can fill out like a single line, and then it will add it to the file under the current date with a numbered list under each date. 
-
-This is mostly just take help me keep track of everything I do, sometimes I get to the end of the day and I feel like I haven't done that much but I've made like a million things. 
-
-I would like it to potentially integrate with my new to do list:
-
-Okay a really big thing that I would like to develop is a better way for handling adding different things to different text files. For example with my to do programming I would love a command of just like add to do
-
-And then that would open up one of those like generative text field things that we've been doing, and it would have options with different number keys so if I press one it goes to the top of the to do list if I press two a goes to the bottom. Stuff like that. And it would have like a menu where I can either add it to personal or Atlantic or macros or whatever or house. Maybe for this one we do everything within obsidian and we have different files for each category, and then they all just link to a master file so that the entire file is embedded within it, I would like to explore different options like that. 
-
-And then I would be able to add different files that I can add things to programmatically by saying like add new text or something when I'm in the file and it will like automatically added to the list of options.
-
-And I would like to maybe look into how we can make the to do programming and other related files auto update the numbers. Currently I have you adding things and it's really messy and you either forget to update the numbers or it takes you forever and a ton of changes. I would like to maybe implement a technology with like an automatic numbered list system where it will automatically update all of the numbers. I would like to explore the different options for that, we can either do something with obsidian or something else or maybe there's already something within notepad plus plus, or text files in general or like a plug-in. Or maybe we write like a script the auto updates them all when I touch the file.
-
-I'm thinking for this integration between the two philosophies I would be able to say like update to do and it would pop open like a little GUI and I could use one through nine to like look through all the options between like Atlantic or personal or whatever, and then once I picked one it gives me a list of all the items and I can select one to drop off my to do and when I do that it will automatically ask if I want to confirm adding it to the finished today list. It's very important to me that these two systems work in concert so I'm not having to like manually update two different things every time I do something. 
-
----
-6. Okay so I'm very interested in cleaning up my display fusion snapping commands. And by that I mean everything for like opening commands uses these, everything uses these to figure out location. One of my primary issues with it is I want to make them smarter. Currently they work perfectly so if I say like open X twin it will always end up on the second monitor like it's supposed to. But it looks really janky, like if it default opens on the second monitor the code then pushes it to main monitor and then jumps it back. That is a way to make sure it always gets there perfectly but it's really ugly and I kind of hate it. Is there some better way to do this, maybe some like checking before running commands, maybe a cleaner path of commands, maybe slightly different commands, maybe a different format entirely? We tried to have auto hotkey just like push it to XY values but that did not really work well. What do you think about this?
----
-5. Add aliases for Dragon NatSpeak commands
+5. Okay so I'm very interested in cleaning up my display fusion snapping commands. And by that I mean everything for like opening commands uses these, everything uses these to figure out location. One of my primary issues with it is I want to make them smarter. Currently they work perfectly so if I say like open X twin it will always end up on the second monitor like it's supposed to. But it looks really janky, like if it default opens on the second monitor the code then pushes it to main monitor and then jumps it back. That is a way to make sure it always gets there perfectly but it's really ugly and I kind of hate it. Is there some better way to do this, maybe some like checking before running commands, maybe a cleaner path of commands, maybe slightly different commands, maybe a different format entirely? We tried to have auto hotkey just like push it to XY values but that did not really work well. What do you think about this?
 ---
 4. I am extremely interested in figuring out some way to highlight text on my screen better. For example you just sent me that PowerShell link, I don't use a mouse at all. That is very hard to make it copy to my clipboard. I told you to remember to automatically copy stuff to make the board but you always forget, but that is a separate issue. This is an issue I encounter in a variety of applications and websites. I would really like to brainstorm this and potentially make a tool or find one that would help with this. I would like you to be as efficient and easy to use as possible and with as much power as possible. I've used a few different things for this like Legion that is built into caster and it just didn't quite work super well but I'm also interested in ways that we can prove that.
 ---
@@ -43,4 +10,4 @@ I'm thinking for this integration between the two philosophies I would be able t
 ---
 2. I would like to look into some Visual Studio code versus Claude code kind of stuff
 ---
-1. I want to create a to purchase text document that has different sections like one for Amazon one for other and one for repurpose,  and one for food.  figure out what's the best subfolder to put it in. add sharpie that is ergonomic to my repurpose section, that's the repurpose project. and add blackout mirror materials
+1. I'm interested in some solution to get the full text to dump of the page off a webpage especially when I'm trying to communicate with you and you're having trouble fetching things. I'm also interested in the obsidian chrome plug-in that can do stuff like that. What do you think about this

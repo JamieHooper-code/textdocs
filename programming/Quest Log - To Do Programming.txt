@@ -215,7 +215,10 @@ PERSONAL
     check Dragon activation count, back up keyfile, push all git
     repos). Coordinates with quest 18 (RTX 2070 install) which
     happens AFTER migration is verified.
-    Full design: TEXTDOCS/programming/to do explanations/MIGRATE_TO_NEW_COMPUTER.md
+    Purchase research + candidate shortlist + decision framework:
+      TEXTDOCS/programming/to do explanations/BUYING_NEW_PC.md
+    Migration process (clone SSD, verify, return Dell):
+      TEXTDOCS/programming/to do explanations/MIGRATE_TO_NEW_COMPUTER.md
 
 18. Install the RTX 2070 (sitting on the desk)
     Physical install + NVIDIA driver + CUDA Toolkit, then node-llama-
