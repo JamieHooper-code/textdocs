@@ -1,3 +1,12 @@
+~~~ QUEST LOG (ARCHIVE) ~~~
+Archived 2026-04-25. All active items migrated to:
+  ObsidianVault/Lists/TODO/Atlantic.md
+  ObsidianVault/Lists/TODO/Personal.md
+  ObsidianVault/Lists/TODO/Macros.md
+Detail files retained in: ObsidianVault/TEXTDOCS/programming/to do explanations/
+New entries: edit the TODO/ files (or use voice "add to todo <list>"), NOT this archive.
+
+<!--
 ~~~ QUEST LOG ~~~
               . Programming Adventures .
 
@@ -249,3 +258,4 @@ PERSONAL
     quota, kills the "updates" × N git history problem). Umbrella:
     keep adding tests + docs + checks as gaps surface in use.
     Full design: TEXTDOCS/programming/to do explanations/CASTER_AHK_VERIFY_IMPROVEMENTS.md
+-->
