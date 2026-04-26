@@ -1,38 +1,13 @@
-11. do we need to beef up the UIA  documentation?  it feels like at a anytime I ask you to do any form of that you have to look up a bunch of stuff
+7. do we need to beef up the UIA  documentation?  it feels like at a anytime I ask you to do any form of that you have to look up a bunch of stuff
 ---
-10. Okay so a big idea I just had. When I make user interfaces like the one for adding hardcoded stuff. I want to navigate them entirely with my number pad. I just got a new number pad I'm really excited to start using it. So for like tagging stuff or for like adding people to groups I want each of the tags or people or options or whatever to have a number in parentheses next to the name. And that I can just punch in that number and hit enter and it will add them. And then I can like navigate through the user interfaces as well with that. I think this would be really massive for making things accessible to me
+6. Okay so a big idea I just had. When I make user interfaces like the one for adding hardcoded stuff. I want to navigate them entirely with my number pad. I just got a new number pad I'm really excited to start using it. So for like tagging stuff or for like adding people to groups I want each of the tags or people or options or whatever to have a number in parentheses next to the name. And that I can just punch in that number and hit enter and it will add them. And then I can like navigate through the user interfaces as well with that. I think this would be really massive for making things accessible to me
 ---
-9. Okay so I'm very interested in cleaning up my display fusion snapping commands. And by that I mean everything for like opening commands uses these, everything uses these to figure out location. One of my primary issues with it is I want to make them smarter. Currently they work perfectly so if I say like open X twin it will always end up on the second monitor like it's supposed to. But it looks really janky, like if it default opens on the second monitor the code then pushes it to main monitor and then jumps it back. That is a way to make sure it always gets there perfectly but it's really ugly and I kind of hate it. Is there some better way to do this, maybe some like checking before running commands, maybe a cleaner path of commands, maybe slightly different commands, maybe a different format entirely? We tried to have auto hotkey just like push it to XY values but that did not really work well. What do you think about this?
+5. Okay so I'm very interested in cleaning up my display fusion snapping commands. And by that I mean everything for like opening commands uses these, everything uses these to figure out location. One of my primary issues with it is I want to make them smarter. Currently they work perfectly so if I say like open X twin it will always end up on the second monitor like it's supposed to. But it looks really janky, like if it default opens on the second monitor the code then pushes it to main monitor and then jumps it back. That is a way to make sure it always gets there perfectly but it's really ugly and I kind of hate it. Is there some better way to do this, maybe some like checking before running commands, maybe a cleaner path of commands, maybe slightly different commands, maybe a different format entirely? We tried to have auto hotkey just like push it to XY values but that did not really work well. What do you think about this?
 ---
-8. I am extremely interested in figuring out some way to highlight text on my screen better. For example you just sent me that PowerShell link, I don't use a mouse at all. That is very hard to make it copy to my clipboard. I told you to remember to automatically copy stuff to make the board but you always forget, but that is a separate issue. This is an issue I encounter in a variety of applications and websites. I would really like to brainstorm this and potentially make a tool or find one that would help with this. I would like you to be as efficient and easy to use as possible and with as much power as possible. I've used a few different things for this like Legion that is built into caster and it just didn't quite work super well but I'm also interested in ways that we can prove that.
+4. I am extremely interested in figuring out some way to highlight text on my screen better. For example you just sent me that PowerShell link, I don't use a mouse at all. That is very hard to make it copy to my clipboard. I told you to remember to automatically copy stuff to make the board but you always forget, but that is a separate issue. This is an issue I encounter in a variety of applications and websites. I would really like to brainstorm this and potentially make a tool or find one that would help with this. I would like you to be as efficient and easy to use as possible and with as much power as possible. I've used a few different things for this like Legion that is built into caster and it just didn't quite work super well but I'm also interested in ways that we can prove that.
 ---
-7. Obsidian web clipper
+3. Obsidian web clipper
 ---
-6. I would like to look into some Visual Studio code versus Claude code kind of stuff
+2. I would like to look into some Visual Studio code versus Claude code kind of stuff
 ---
-5. I'm interested in some solution to get the full text to dump of the page off a webpage especially when I'm trying to communicate with you and you're having trouble fetching things. I'm also interested in the obsidian chrome plug-in that can do stuff like that. What do you think about this
----
-4. I would like to have a command where I just say show voice. And it will pop open a GUI where I pick out of any of my voice code tags and see the entire list within that tag of all of my voice commands. This would be like a primary main way to view all of the voice commands and dive into any of them. And I would like to navigate entirely with the notepad. Please document the norms of how we use the number pad to navigate these GUIs.
----
-3. When I have the dictation box open
-
-Title:  (Quest Log - To Do Programming.txt - AHK_caster_workspace (Workspace) - Visual Studio Code)
-ahk_class: DgnDictationBoxCls
-ahk_exe: natspeak.exe
-
-UIA Dump:  (Quest Log - To Do Programming.txt - AHK_caster_workspace (Workspace) - Visual Studio Code)
-------------------------------------------------------------
-[pane] Name=" (Quest Log - To Do Programming.txt - AHK_caster_workspace (Workspace) - Visual Studio Code)" [1481,123 1022x364]
-[text] Name="Dictation Box - Rich composition and correction for any application" AID="224" [1489,134 966x13]
-[document] Name="Dictation Box - Rich composition and correction for any application" AID="201" [1489,159 1007x285]
-[button] AID="202" [2460,134 15x15]
-[button] AID="9" [2481,134 15x15]
-[button] Name="Transfer" AID="1" [2422,450 75x26]
-[button] Name="Cancel" AID="2" [2362,450 54x26]
-[check box] Name="Use automatic Dictation Box for this application" AID="225" [1489,452 248x20]
-
-I would like for all of my centering detectors like for my tooltip and my F 13 F14 buttons that scroll for me to detect not the center of the dictation box but the entire window that it is originating from.
----
-2. Please write me a guide for using this entire set up. And if I say show list guide it will pull it up. I want like all of the voice commands and explanations of things. I haven't even tested a lot of parts of this.
----
-1. How can we ensure that when we add new technologies like this the tax get auto added.
+1. I'm interested in some solution to get the full text to dump of the page off a webpage especially when I'm trying to communicate with you and you're having trouble fetching things. I'm also interested in the obsidian chrome plug-in that can do stuff like that. What do you think about this
