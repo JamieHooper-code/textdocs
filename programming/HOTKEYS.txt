@@ -39,6 +39,12 @@ MODIFIER CONVENTIONS
   Pause     → Alt+L              → (unknown — check usage)
   Backtick ` → Ctrl+Alt+Shift+D  → Microphone toggle
 
+  ; -- Conditional (GENERALMACROSALWAYSON.ahk #HotIf, only when ClaudeScrollMode + VS Code active) --
+  PgUp      → ScrollClaudeSidebar("up")    → 5 wheel-up notches over right Claude sidebar
+  PgDn      → ScrollClaudeSidebar("down")  → 5 wheel-down notches over right Claude sidebar
+             Mode auto-enables on OpenAndFocusVSCodeWithClaude / FocusAndMaxClaudeCode / KillPower.
+             Toggle via voice "toggle scroll" (ClaudeScrollModeToggle).
+
 ================================================================================
   GLOBAL-CAPS  —  CapsLock layer  (CapsLockMacroPad.ahk)
 ================================================================================

@@ -1,0 +1,5 @@
+3. [ ] Testing infra expansions — TestLogMarkers, verify.ps1 ahk-run, UIA inner-view inspection, DisplayFusionCommand CLI spelunk. Full writeup: [[TESTING_INFRASTRUCTURE_EXPANSIONS]]
+---
+2. [ ] Testing infra expansions — TestLogMarkers, verify.ps1 ahk-run, UIA inner-view inspection, DisplayFusionCommand CLI spelunk. Full writeup: [[TESTING_INFRASTRUCTURE_EXPANSIONS]]
+---
+1. understanding how arguments are passed from caster to AutoHotkey  should be super obvious from the documentation. if it is not currently obvious please make it so.
