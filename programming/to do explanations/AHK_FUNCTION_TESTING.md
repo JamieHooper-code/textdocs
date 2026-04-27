@@ -1,103 +1,69 @@
-# AHK Function Testing — Tooling for Claude
-
-## Why this exists
-Claude struggles to *test* AHK functions after writing them. The dispatch
-path (Caster -> Python -> MAINFUN.bat -> MAINFUNCTIONS.ahk -> helper) has
-several places where a call can silently no-op, and Claude has no
-canonical recipe for firing a function one-shot from the shell and
-confirming it actually did something.
-
-Symptoms seen in real sessions:
-- Running `cmd /c MAINFUN.bat OpenFlux` from the wrong working directory
-  (MAINFUN.bat is not on PATH), so the call silently does nothing.
-- `BringApp` against a tray-only app (f.lux) appears to succeed because
-  the process is running, but no window surfaces — Claude has no
-  after-state check to notice.
-- Claude guessing flags on verify.ps1 that don't exist (`ahk-check`) and
-  burning turns on trial-and-error.
-
-The fix is a two-layer tooling plan.
-
+---
+tags: [autohotkey, testing, claude-tooling]
 ---
 
-## Layer 1 — baseline, every AHK task
-Add an `ahk-run` subcommand to `C:\Users\jamie\.claude\helpers\verify.ps1`.
+# AHK Function Testing — Status
 
-Shape:
-    verify.ps1 ahk-run <FunctionName> [arg1 arg2 ...]
+**Status: partly built, partly still TODO.** Originally drafted as a Layer 1 + Layer 2 plan. Layer 1 is now real (different shape than originally proposed). Layer 2 is not built and probably doesn't need to be.
 
-Behavior:
-1. cd to the AutoHotkey dir (wherever MAINFUN.bat actually lives — resolve
-   it once, cache the path in the script).
-2. Snapshot the tail of `mainfun_calls.log` before firing.
-3. Invoke MAINFUN.bat with the function name + args, CREATE_NO_WINDOW.
-4. Wait briefly, then diff `mainfun_calls.log` to confirm a new dispatch
-   line appeared for this function.
-5. Return structured output: `OK|ahk-run|<FunctionName>|dispatched` or
-   `ERROR|ahk-run|<FunctionName>|no-dispatch`.
+## What exists today (built April 2026)
 
-This alone would have caught the MAINFUN.bat cwd bug immediately instead
-of silently passing.
+A pure-AHK test harness for window-changing functions. Lives in:
+- `~/AutoHotkey/Helpers/TestHarness.ahk` — runner + scenarios + dispatch entry points
+- `~/AutoHotkey/Diagnostics/analyze_snap_traces.py` — JSONL trace analyzer
+- `~/AutoHotkey/Diagnostics/test_results/` — JSONL traces written here per run
 
-Claude should use `verify.ps1 ahk-run` as the default way to invoke an
-AHK function for testing — not raw `cmd /c MAINFUN.bat`.
+The harness:
+1. Spawns a disposable Notepad++ instance (`-multiInst -nosession`) as the test target.
+2. Stages it into a known scenario (primary normal, secondary maxed, etc.).
+3. Fires the function under test.
+4. Samples window state every 50ms for ~2s, capturing in-flight bouncing.
+5. Writes a JSONL trace.
+6. Cleans up.
 
-Reference memory to update after building this:
-`~/.claude/projects/.../memory/reference_ahk_functions.md` — add the
-`ahk-run` invocation as the canonical test command.
+MAINFUN-callable entry points (so Claude can fire from PowerShell):
+- `RunSnapTest(scenario, fnName)` — single test
+- `RunAllSnapTests` — sweep all 8 snap fns × 5 scenarios = 40 traces
+- `RunOpenAndPlaceTest(snapPos)` — end-to-end OpenAndPlace flow against one alias
+- `RunAllOpenAndPlaceTests` — sweep all 6 aliases through OpenAndPlace
+- `DescribeForegroundWindow` / `DescribeForegroundWindowAfter(secs)` — one-shot diagnostic, captures whatever window is foreground
+- `ListSnapScenarios` — print available scenario names
 
----
+Analyzer is `py Diagnostics/analyze_snap_traces.py`, prints a table of `start | final | bounce | transit_ms` per run plus a bounce summary.
 
-## Layer 2 — per-function verification skill (`ahk-test`)
-A skill that reads the target AHK function's source, classifies what
-*should* change when it runs, and runs the matching post-check.
+Full usage docs are inside the `ahk-functions` skill at `~/.claude/skills/ahk-functions/SKILL.md` (Testing section).
 
-Classification + check table:
+## What this catches
 
-| Function type | Example | Post-check |
-|---|---|---|
-| App opener (tray-capable) | `OpenFlux` | Poll `Get-Process <exe>`; assert `MainWindowHandle -ne 0` within timeout |
-| App opener (normal) | `OpenAndFocusVSCodeWithClaude` | Assert target exe is foreground window + optional UIA panel check |
-| Window snapper | `SnapWindowLeft`, `SnapCenterHalf` | Capture active window rect before/after; assert new rect matches expected monitor zone |
-| Process restart | `RestartStreamDeck`, `RestartDragon` | Assert old PID is gone and a new PID exists for the target exe |
-| Stream Deck control | `QuitStreamDeck` | Assert StreamDeck.exe process state changed as expected |
-| Text insertion | `TextInsertion*` | Focus a scratch buffer (Notepad), fire, read buffer contents back, assert match |
-| Pure keystroke wrapper | thin `Send("...")` helpers | Trust Layer 1 dispatch — no extra check, too noisy |
-| Chrome tab opener | `OpenChromeTabs`, `OpenGmail*` | Poll Chrome for a new tab matching the expected URL pattern |
-| URL opener with layout | `OpenMyCurrentStuff` | Same as above + assert window count/positions |
+- Window monitor placement (start vs. final monitor)
+- Min/Max state (`min_max=1`/`0`/`-1`)
+- Outer window rect (x, y, w, h)
+- Bouncing through intermediate monitors mid-snap
+- Whether a function lands on the correct monitor across diverse starting states
 
-Skill workflow:
-1. Take a function name as input.
-2. Read the function body from `AutoHotkey/Helpers/*.ahk`.
-3. Classify (grep for `Run`, `Send`, `WinActivate`, `WinMove`, process
-   control patterns, etc.).
-4. Run Layer 1 (`verify.ps1 ahk-run`) to fire it.
-5. Execute the matching post-check.
-6. Report PASS/FAIL with the specific assertion that ran.
+## What this does NOT catch
 
-Scope boundary: the skill is **opt-in per task**, not automatic. Pure
-keystroke-wrapper functions don't benefit from it and would just add
-noise. Use it when a function has observable side effects that matter.
+- **Inner-paint glitches** — e.g. Notepad++'s Scintilla view rendered at the wrong size while the outer window rect is correct. `WinGetPos` only sees the outer rect.
+- **Production-path differences** — `RunOpenAndPlaceTest` uses `-multiInst -nosession` Notepad++, while voice-fired `OpenNotepadFileAt` uses the existing instance. The voice path has different timing characteristics. See `df_snap_investigation.md`.
+- **Anything cursor-position-dependent** — DisplayFusion's `WindowCurrentMonitorMaximize` uses cursor monitor, but the harness doesn't manage cursor position between runs. Tests can pass while production fails for this reason.
 
----
+## Layer 2 (per-function classifier) — not built
 
-## Order of operations
-1. Build Layer 1 first — it's a single subcommand addition to verify.ps1
-   and every future AHK task benefits immediately. Update
-   `reference_ahk_functions.md` memory to point at it.
-2. Scope Layer 2 as a follow-up once Layer 1 is in place and a few real
-   AHK tasks have exercised it. The skill's classification table should
-   be seeded from whatever functions Claude has actually needed to test
-   by then, not designed in the abstract.
+The original plan proposed a `ahk-test` skill that classifies functions by side-effect type and runs appropriate post-checks per category. It hasn't been built and probably shouldn't be:
 
----
+- Window-changing functions are well-served by the existing harness.
+- App-opener verification is covered by `verify.ps1 process|window|active` already.
+- Process-restart verification is rare enough to do ad-hoc.
+- The per-category post-checks proposed in the original plan ended up being trivial in practice — the manual inspection approach hasn't been a bottleneck.
 
-## Related context
-- `_DEBUGGING_GUIDE.py` in the caster rules dir — existing Caster<->AHK
-  debug doc (different scope: Caster-side chain + log files + rdescript).
-  `ahk-test` is the missing **post-dispatch verification** layer that
-  guide doesn't cover.
-- `mainfun_calls.log` — already written by the dispatcher; Layer 1 just
-  reads it.
-- `reference_ahk_functions.md` memory — already lists Claude-callable
-  AHK functions and verify.ps1 check tools. Update when Layer 1 ships.
+If a future bug class emerges that genuinely needs per-function post-checks, *then* build it.
+
+## Future expansion ideas
+
+If the harness needs to cover more cases, the natural extensions:
+
+1. **More scenarios** — staged starting states beyond the current five. Add a function in `_THStageScenario` and a name in `_THSnapScenarios()`. ~10 lines.
+2. **Different test targets** — replace `_THSetupNotepadPP` with `_THSetupExplorer` / `_THSetupCalculator` etc. for testing functions that aren't N++-specific. The capture/log functions are app-agnostic.
+3. **Open/close lifecycle tests** — capture process state too (already in `_THCaptureWindowState`), assert app exits cleanly when closer fires.
+4. **Focus/detect tests** — pure-read functions like `CheckWindowExists`, `GetActiveWindowTitle`. Would just be wrappers around `_THCaptureWindowState` + assertion.
+5. **Pixel-correctness checks** — would catch the Notepad++ Scintilla paint glitch but requires screenshot diffing. Big lift, narrow benefit, defer until a second case justifies it.
