@@ -1,0 +1,45 @@
+# Default: let git auto-detect text vs binary, normalize line endings on commit.
+* text=auto
+
+# Force CRLF for Windows-only script types.
+*.ahk    text eol=crlf
+*.ps1    text eol=crlf
+*.psm1   text eol=crlf
+*.psd1   text eol=crlf
+*.bat    text eol=crlf
+*.cmd    text eol=crlf
+*.reg    text eol=crlf
+
+# Force LF for cross-platform / Unix-y files.
+*.sh     text eol=lf
+*.py     text eol=lf
+*.json   text eol=lf
+*.yml    text eol=lf
+*.yaml   text eol=lf
+*.toml   text eol=lf
+*.md     text eol=lf
+
+# Common binaries.
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.webp   binary
+*.bmp    binary
+*.ico    binary
+*.tiff   binary
+*.pdf    binary
+*.zip    binary
+*.7z     binary
+*.exe    binary
+*.dll    binary
+*.mp3    binary
+*.wav    binary
+*.ogg    binary
+*.flac   binary
+*.m4a    binary
+*.mp4    binary
+*.mov    binary
+*.avi    binary
+*.mkv    binary
+*.webm   binary
