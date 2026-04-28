@@ -1,13 +1,12 @@
-Okay I would really like to get some clipart. I would like clipart that is minimalist line art, just black and white. I want stuff that looks like classy and naturey for the most part. I don't want anything like goofy. Mostly like a lot of just physical objects and stuff. What are our best options for that
+5. Okay I would really like to get some clipart. I would like clipart that is minimalist line art, just black and white. I want stuff that looks like classy and naturey for the most part. I don't want anything like goofy. Mostly like a lot of just physical objects and stuff. What are our best options for that
 ---
-Okay I've noticed that we have very few background images. It feels like the same for five of them over and over. How do we get more of those? I would like at least like 20 or 30 ideally but I also don't want to watered-down quality if they are going to be crappy.
+4. Okay I've noticed that we have very few background images. It feels like the same for five of them over and over. How do we get more of those? I would like at least like 20 or 30 ideally but I also don't want to watered-down quality if they are going to be crappy.
 ---
-What is a smoke test
+3. Wait we can tell how much edge touching happens within an image? Can we tell which edges and image touches?
 ---
-Wait we can tell how much edge touching happens within an image? Can we tell which edges and image touches?
+2. I was indicating that I want that baseline image to show up as the first image to the right of the contact sheet so that when I'm scrolling through them with my arrow keys it shows up nicely and I can do direct comparisons. 
+
 ---
-I feel like we need to build out a better debugging system. You keep writing and destroying debugging code, and then just giving me images to look at but they always have issues. Are you able to write some debugging code that like analyzes the HTML and the sizes of things in the overlap things, are there like any skills that you have or that we could get or is this just something we can do with a Python script? It feels really necessary it feels like we are working blind
+1. I feel like we need to build out a better debugging system. You keep writing and destroying debugging code, and then just giving me images to look at but they always have issues. Are you able to write some debugging code that like analyzes the HTML and the sizes of things in the overlap things, are there like any skills that you have or that we could get or is this just something we can do with a Python script? It feels really necessary it feels like we are working blind
 
 And I feel like this debugging script could potentially be code that gets run on generations that can detect issues that arise with certain combinations, that might be like a future thing but I feel like at least for now we just need some debugging. Like for example it could generate it and then analyze them and then if the text is below the thing it generates a new one? Because I feel like sometimes no matter how we how well we do all of this there will just always be some images that kind of look goofy
----
-I was indicating that I want that baseline image to show up as the first image to the right of the contact sheet so that when I'm scrolling through them with my arrow keys it shows up nicely and I can do direct comparisons. 

@@ -1,5 +1,22 @@
-3. [ ] Testing infra expansions — TestLogMarkers, verify.ps1 ahk-run, UIA inner-view inspection, DisplayFusionCommand CLI spelunk. Full writeup: [[TESTING_INFRASTRUCTURE_EXPANSIONS]]
+9. [ ] Testing infra expansions — TestLogMarkers, verify.ps1 ahk-run, UIA inner-view inspection, DisplayFusionCommand CLI spelunk. Full writeup: [[TESTING_INFRASTRUCTURE_EXPANSIONS]]
 ---
-2. [ ] Testing infra expansions — TestLogMarkers, verify.ps1 ahk-run, UIA inner-view inspection, DisplayFusionCommand CLI spelunk. Full writeup: [[TESTING_INFRASTRUCTURE_EXPANSIONS]]
+8. [ ] Testing infra expansions — TestLogMarkers, verify.ps1 ahk-run, UIA inner-view inspection, DisplayFusionCommand CLI spelunk. Full writeup: [[TESTING_INFRASTRUCTURE_EXPANSIONS]]
 ---
-1. understanding how arguments are passed from caster to AutoHotkey  should be super obvious from the documentation. if it is not currently obvious please make it so.
+7. understanding how arguments are passed from caster to AutoHotkey  should be super obvious from the documentation. if it is not currently obvious please make it so.
+---
+6. I would really like to remake meet at the fig tree for Cedar.  using a photo of a fig tree and a photo of us
+---
+5. okay I feel like we definitely need to make everything we just did repeatable,  what is the word for that? 
+
+ I would like to be able to give you an album of images,   and have you process them either in all modes or with specific modes. and with optional parameters for each mode.  I'm thinking maybe we have like a default Json file of default parameters.  I would also like to be able to do this exclusively to the command line/ the user interface.
+---
+4. I am having an idea but it's not time to say it yet
+---
+3. I was indicating that I want that baseline image to show up as the first image to the right of the contact sheet so that when I'm scrolling through them with my arrow keys it shows up nicely and I can do direct comparisons. 
+
+---
+2. I feel like we need to build out a better debugging system. You keep writing and destroying debugging code, and then just giving me images to look at but they always have issues. Are you able to write some debugging code that like analyzes the HTML and the sizes of things in the overlap things, are there like any skills that you have or that we could get or is this just something we can do with a Python script? It feels really necessary it feels like we are working blind
+
+And I feel like this debugging script could potentially be code that gets run on generations that can detect issues that arise with certain combinations, that might be like a future thing but I feel like at least for now we just need some debugging. Like for example it could generate it and then analyze them and then if the text is below the thing it generates a new one? Because I feel like sometimes no matter how we how well we do all of this there will just always be some images that kind of look goofy
+---
+1. What is a smoke test
