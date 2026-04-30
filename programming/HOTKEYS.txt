@@ -11,6 +11,7 @@ NAMESPACE KEY
   GLOBAL-CTL    Ctrl+Alt+Shift hotkeys (AHK MAINFUNCTIONS.ahk)
   DF-SNAP       Win+Ctrl+Alt+number (DisplayFusion — window snapping)
   DF-OTHER      Other DisplayFusion hotkeys
+  Q0MAX         Keychron Q0 Max numpad — Alt+F13–F24 + Ctrl+Alt+F13–F17 + Shift+Alt+F13–F16 (keys) + Ctrl+Alt+F20–F24 (M-keys)
   WIN           Windows native hotkeys
   APP-*         Program-specific hotkeys (Chrome, VS Code, etc.)
 
@@ -132,6 +133,43 @@ MODIFIER CONVENTIONS
   Ctrl+Shift+Alt+L   → LoadNextMonitorProfile
 
 ================================================================================
+  Q0MAX  —  Keychron Q0 Max numpad  (firmware-mapped via q0max.py)
+================================================================================
+  Hardware: 6x4 matrix + rotary encoder. Left column rows 1-5 are M1-M5
+  (page-switchers). Encoder zone = native media (mute/vol-down/vol-up).
+  All other keys send Alt+F13-F24 / Ctrl+Alt+F13-F17. AHK reads a global
+  $Q0MaxPage variable to route each hotkey to a page-specific action
+  (5 pages planned).
+
+  Tool:    c:\Users\jamie\Desktop\Important\AutoHotkey\Scripts\KeychronQ0Max\q0max.py
+  Keymap:  c:\Users\jamie\Desktop\Important\AutoHotkey\Scripts\KeychronQ0Max\keymap_v1.json
+  Loader:  TBD — AHK reads JSON of per-page actions, picks by $Q0MaxPage.
+
+  ── Page-aware hotkeys (22 used, page-routed by AHK) ─────────────────────
+  Physical layout (rN cN = row, col):
+    r0c0 = encoder click   → KC_MUTE  (firmware, NOT page-aware)
+    r0c1 = Alt+F13         r0c2 = Alt+F14         r0c3 = Alt+F15        r0c4 = Shift+Alt+F13 (BSPC)
+    r1c1 = Alt+F16         r1c2 = Alt+F17         r1c3 = Alt+F18        r1c4 = Shift+Alt+F14 (-)
+    r2c1 = Alt+F19         r2c2 = Alt+F20         r2c3 = Alt+F21        r2c4 = Shift+Alt+F15 (+)
+    r3c1 = Alt+F22         r3c2 = Alt+F23         r3c3 = Alt+F24        r3c4 = (no switch — + is 2u tall)
+    r4c1 = Ctrl+Alt+F13    r4c2 = Ctrl+Alt+F14    r4c3 = Ctrl+Alt+F15   r4c4 = Shift+Alt+F16 (ENTER)
+    r5c1 = Ctrl+Alt+F16    r5c2 = (no switch)     r5c3 = Ctrl+Alt+F17   r5c4 = (no switch — ENTER 2u tall)
+    encoder CCW = KC_VOLD   encoder CW = KC_VOLU   (firmware, NOT page-aware)
+
+  ── M-keys (page switchers, left column, 5 pages) ────────────────────────
+  r1c0 = Ctrl+Alt+F20  → M1 (set $Q0MaxPage = 1)
+  r2c0 = Ctrl+Alt+F21  → M2 (set $Q0MaxPage = 2)
+  r3c0 = Ctrl+Alt+F22  → M3 (set $Q0MaxPage = 3)
+  r4c0 = Ctrl+Alt+F23  → M4 (set $Q0MaxPage = 4)
+  r5c0 = Ctrl+Alt+F24  → M5 (set $Q0MaxPage = 5)
+
+  ── Buffer / unused hotkeys (reserved, available for expansion) ──────────
+  Ctrl+Alt+F18, Ctrl+Alt+F19    (2 hotkeys spare)
+
+  ── NOT used by Q0 Max (free for other purposes) ─────────────────────────
+  Shift+Alt+F13-F24             (intentionally not consumed)
+
+================================================================================
   WIN  —  Windows native hotkeys
 ================================================================================
   Win+Left/Right     → Snap window to left/right half (Windows Snap)
@@ -170,9 +208,14 @@ MODIFIER CONVENTIONS
 ================================================================================
   RESERVED / DO NOT USE
 ================================================================================
-  Win+Ctrl+Alt+1–8   → Reserved for DF-SNAP (fully occupied)
-  Ctrl+Alt+Shift+7/8/9 → Reserved for SwitchThree (MAINFUNCTIONS.ahk)
-  F1–F4, F8–F10, F12  → Reserved for GLOBAL-F remaps
+  Win+Ctrl+Alt+1–8       → Reserved for DF-SNAP (fully occupied)
+  Ctrl+Alt+Shift+7/8/9   → Reserved for SwitchThree (MAINFUNCTIONS.ahk)
+  F1–F4, F8–F10, F12     → Reserved for GLOBAL-F remaps
+  Alt+F13–F24            → Reserved for Q0MAX numpad (12 hotkeys, all in use)
+  Ctrl+Alt+F13–F17       → Reserved for Q0MAX numpad (5 hotkeys, all in use)
+  Ctrl+Alt+F18, F19      → Reserved for Q0MAX numpad (2 hotkeys, BUFFER — currently unused)
+  Ctrl+Alt+F20–F24       → Reserved for Q0MAX M-keys (5 hotkeys, page switchers)
+  Shift+Alt+F13–F16      → Reserved for Q0MAX numpad right column (BSPC, -, +, ENTER)
 
 ================================================================================
   STREAM DECK HOTKEY BUTTONS (direct keystrokes, not MAINFUN.bat)

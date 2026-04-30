@@ -1,6 +1,52 @@
 4. https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f
 ---
-3. LLM Wiki
+3. https://github.com/tobi/qmd
+---
+2. Here is a cleaned, LLM-ready synthesis of the relevant ideas only, rewritten in a more continuous “spec / reasoning dump” format with minimal formatting and no extraneous topics.
+
+---
+
+You are describing the design of a persistent knowledge system that extends beyond traditional retrieval augmented generation (RAG). The core idea is to move from stateless retrieval over documents to a continuously maintained intermediate knowledge layer that is actively curated by an LLM.
+
+In standard RAG systems, the workflow is: user query ? retrieve relevant chunks from a document corpus ? inject those chunks into an LLM context ? generate an answer. This works but has a key limitation: the system does not accumulate knowledge. Every query is reconstructed from raw sources, meaning synthesis across time is not preserved. There is no durable representation of understanding, only repeated re-retrieval.
+
+To improve this, the proposed system introduces a persistent knowledge layer, often structured as a wiki of markdown documents. Instead of only retrieving from raw sources at query time, the LLM also maintains an evolving set of structured artifacts that represent the system’s current understanding of the domain. This wiki is not user-authored; it is maintained by the LLM through ingestion, updates, and cross-linking.
+
+The architecture can be understood as three layers.
+
+First is the raw source layer. This contains immutable documents such as notes, articles, code, or other external inputs. These are treated as ground truth inputs and are never modified by the system.
+
+Second is the knowledge layer, which is a structured wiki maintained by the LLM. This layer contains synthesized markdown pages such as entity pages, concept pages, summaries, comparisons, and relationship mappings. When a new source is introduced, the LLM does not simply index it. Instead, it extracts key information, integrates it into existing pages, updates related concepts, resolves or flags contradictions, and potentially creates new pages. This makes the knowledge layer a compounding artifact that improves over time rather than being recomputed per query.
+
+Third is the schema or control layer, which defines rules for how the LLM should behave when maintaining the wiki. This includes conventions for page structure, naming, linking, ingestion workflows, and update policies. The purpose of this layer is to enforce consistency so that the LLM does not drift or create incoherent structure over time.
+
+On top of this system, retrieval still exists, but it becomes more structured. Instead of retrieving directly from raw documents, queries often begin by searching the wiki first. The wiki acts as a compressed, curated representation of the underlying knowledge space. Only when necessary does the system fall back to raw document retrieval.
+
+Retrieval itself is typically hybrid. There are three complementary mechanisms. Keyword search provides exact matching over text, which is useful for identifiers, code, and precise terminology. Vector search provides semantic matching via embeddings, allowing retrieval based on meaning rather than exact wording. These two are often combined, and results are optionally reranked using an LLM or scoring model to improve relevance ordering.
+
+Embeddings are a key component of this system. They are vector representations of text that encode semantic meaning such that similar concepts are located near each other in vector space. This enables retrieval systems to match queries like “user login flow” to content that may not explicitly contain those words but expresses the same concept.
+
+In parallel, keyword search (often based on BM25) provides deterministic lexical matching. While weaker semantically, it is highly effective for exact matches and structured code references. The combination of keyword and vector retrieval produces a hybrid system that balances precision and semantic recall.
+
+Within the knowledge layer, docstrings and structured annotations inside code or documents significantly improve retrieval quality. These are inline natural language descriptions of functions, modules, or concepts. They act as semantic anchors that improve embedding quality and make retrieval more aligned with intent rather than raw syntax.
+
+As the system evolves, it begins to resemble more than a document retrieval engine. It becomes closer to a continuously maintained knowledge model. However, maintaining consistency becomes a central challenge. LLMs can generate summaries and relationships, but they are not inherently reliable at enforcing global structural correctness over time.
+
+To address this, external graph constraints can be introduced. These are rules enforced outside the LLM that validate the structure of the knowledge representation. For example, constraints may enforce uniqueness of entities, restrict valid relationship types between nodes, ensure type correctness of nodes and edges, or require that every entity is connected to at least one other node. These constraints act as a guardrail, ensuring the system behaves like a consistent knowledge graph rather than a loosely structured collection of pages.
+
+This leads naturally to graph-based representations. In a graph model, nodes represent entities such as concepts, files, functions, or real-world objects, while edges represent relationships such as dependency, reference, contradiction, or association. Graph databases are specialized systems designed to store and query this structure efficiently. They enable multi-hop reasoning, such as traversing relationships across multiple connected concepts, which is difficult in traditional relational or document-based systems.
+
+Graph databases therefore complement the wiki layer by providing structured relationship traversal, while the wiki provides human-readable synthesized knowledge. Together, they form a dual representation: one optimized for human interpretation, the other for machine reasoning.
+
+A related tool in this ecosystem is systems like QMD (Query Markup Documents). QMD functions as a local hybrid retrieval engine over a markdown corpus. It combines keyword search, vector search, and LLM reranking to enable semantic querying over local files. It is essentially a lightweight retrieval layer that turns a directory of markdown documents into a searchable knowledge system. Unlike the wiki system described above, QMD does not maintain or evolve knowledge. It focuses purely on retrieval and ranking.
+
+In the broader architecture, QMD-like systems typically serve as the retrieval backbone, feeding relevant context into an LLM. The LLM then performs reasoning and, in more advanced systems, updates the persistent wiki layer. Over time, this creates a loop: raw documents are ingested, structured into a wiki, retrieved via hybrid search, and refined through LLM reasoning.
+
+The overall system therefore can be understood as a pipeline with feedback loops: raw data is extracted, transformed by an LLM into structured knowledge, loaded into a persistent wiki and optionally a graph representation, and then retrieved through hybrid search mechanisms. The LLM sits at the center as both a transformation engine and reasoning layer, while external retrieval systems and structural constraints ensure scalability and consistency.
+
+The key conceptual shift is moving from “retrieval per query” to “accumulated knowledge maintenance.” Instead of re-deriving understanding every time, the system incrementally builds a structured representation of knowledge that improves with each ingestion and interaction.I would like to discuss my auto hotkey code base and whether I should be using stuff like Python auto GUI, keyboard, Python input, selenium, or any other libraries or other technologies rather than some of the ways that I've done things in auto hotkey. Specifically some of the like Json insertion scripts we've written recently that I've gotten pretty complicated. Do you think the auto hotkey is the best or at least unacceptable technology for what we are trying to do or do you think we should start using more Python instead? What are the benefits and trade-offs
+---
+1. LLM Wiki
 
 A pattern for building personal knowledge bases using LLMs.
 
@@ -75,49 +121,3 @@ The idea is related in spirit to Vannevar Bush's Memex (1945) — a personal, cura
 ## Note
 
 This document is intentionally abstract. It describes the idea, not a specific implementation. The exact directory structure, the schema conventions, the page formats, the tooling — all of that will depend on your domain, your preferences, and your LLM of choice. Everything mentioned above is optional and modular — pick what's useful, ignore what isn't. For example: your sources might be text-only, so you don't need image handling at all. Your wiki might be small enough that the index file is all you need, no search engine required. You might not care about slide decks and just want markdown pages. You might want a completely different set of output formats. The right way to use this is to share it with your LLM agent and work together to instantiate a version that fits your needs. The document's only job is to communicate the pattern. Your LLM can figure out the rest.
----
-2. https://github.com/tobi/qmd
----
-1. Here is a cleaned, LLM-ready synthesis of the relevant ideas only, rewritten in a more continuous “spec / reasoning dump” format with minimal formatting and no extraneous topics.
-
----
-
-You are describing the design of a persistent knowledge system that extends beyond traditional retrieval augmented generation (RAG). The core idea is to move from stateless retrieval over documents to a continuously maintained intermediate knowledge layer that is actively curated by an LLM.
-
-In standard RAG systems, the workflow is: user query ? retrieve relevant chunks from a document corpus ? inject those chunks into an LLM context ? generate an answer. This works but has a key limitation: the system does not accumulate knowledge. Every query is reconstructed from raw sources, meaning synthesis across time is not preserved. There is no durable representation of understanding, only repeated re-retrieval.
-
-To improve this, the proposed system introduces a persistent knowledge layer, often structured as a wiki of markdown documents. Instead of only retrieving from raw sources at query time, the LLM also maintains an evolving set of structured artifacts that represent the system’s current understanding of the domain. This wiki is not user-authored; it is maintained by the LLM through ingestion, updates, and cross-linking.
-
-The architecture can be understood as three layers.
-
-First is the raw source layer. This contains immutable documents such as notes, articles, code, or other external inputs. These are treated as ground truth inputs and are never modified by the system.
-
-Second is the knowledge layer, which is a structured wiki maintained by the LLM. This layer contains synthesized markdown pages such as entity pages, concept pages, summaries, comparisons, and relationship mappings. When a new source is introduced, the LLM does not simply index it. Instead, it extracts key information, integrates it into existing pages, updates related concepts, resolves or flags contradictions, and potentially creates new pages. This makes the knowledge layer a compounding artifact that improves over time rather than being recomputed per query.
-
-Third is the schema or control layer, which defines rules for how the LLM should behave when maintaining the wiki. This includes conventions for page structure, naming, linking, ingestion workflows, and update policies. The purpose of this layer is to enforce consistency so that the LLM does not drift or create incoherent structure over time.
-
-On top of this system, retrieval still exists, but it becomes more structured. Instead of retrieving directly from raw documents, queries often begin by searching the wiki first. The wiki acts as a compressed, curated representation of the underlying knowledge space. Only when necessary does the system fall back to raw document retrieval.
-
-Retrieval itself is typically hybrid. There are three complementary mechanisms. Keyword search provides exact matching over text, which is useful for identifiers, code, and precise terminology. Vector search provides semantic matching via embeddings, allowing retrieval based on meaning rather than exact wording. These two are often combined, and results are optionally reranked using an LLM or scoring model to improve relevance ordering.
-
-Embeddings are a key component of this system. They are vector representations of text that encode semantic meaning such that similar concepts are located near each other in vector space. This enables retrieval systems to match queries like “user login flow” to content that may not explicitly contain those words but expresses the same concept.
-
-In parallel, keyword search (often based on BM25) provides deterministic lexical matching. While weaker semantically, it is highly effective for exact matches and structured code references. The combination of keyword and vector retrieval produces a hybrid system that balances precision and semantic recall.
-
-Within the knowledge layer, docstrings and structured annotations inside code or documents significantly improve retrieval quality. These are inline natural language descriptions of functions, modules, or concepts. They act as semantic anchors that improve embedding quality and make retrieval more aligned with intent rather than raw syntax.
-
-As the system evolves, it begins to resemble more than a document retrieval engine. It becomes closer to a continuously maintained knowledge model. However, maintaining consistency becomes a central challenge. LLMs can generate summaries and relationships, but they are not inherently reliable at enforcing global structural correctness over time.
-
-To address this, external graph constraints can be introduced. These are rules enforced outside the LLM that validate the structure of the knowledge representation. For example, constraints may enforce uniqueness of entities, restrict valid relationship types between nodes, ensure type correctness of nodes and edges, or require that every entity is connected to at least one other node. These constraints act as a guardrail, ensuring the system behaves like a consistent knowledge graph rather than a loosely structured collection of pages.
-
-This leads naturally to graph-based representations. In a graph model, nodes represent entities such as concepts, files, functions, or real-world objects, while edges represent relationships such as dependency, reference, contradiction, or association. Graph databases are specialized systems designed to store and query this structure efficiently. They enable multi-hop reasoning, such as traversing relationships across multiple connected concepts, which is difficult in traditional relational or document-based systems.
-
-Graph databases therefore complement the wiki layer by providing structured relationship traversal, while the wiki provides human-readable synthesized knowledge. Together, they form a dual representation: one optimized for human interpretation, the other for machine reasoning.
-
-A related tool in this ecosystem is systems like QMD (Query Markup Documents). QMD functions as a local hybrid retrieval engine over a markdown corpus. It combines keyword search, vector search, and LLM reranking to enable semantic querying over local files. It is essentially a lightweight retrieval layer that turns a directory of markdown documents into a searchable knowledge system. Unlike the wiki system described above, QMD does not maintain or evolve knowledge. It focuses purely on retrieval and ranking.
-
-In the broader architecture, QMD-like systems typically serve as the retrieval backbone, feeding relevant context into an LLM. The LLM then performs reasoning and, in more advanced systems, updates the persistent wiki layer. Over time, this creates a loop: raw documents are ingested, structured into a wiki, retrieved via hybrid search, and refined through LLM reasoning.
-
-The overall system therefore can be understood as a pipeline with feedback loops: raw data is extracted, transformed by an LLM into structured knowledge, loaded into a persistent wiki and optionally a graph representation, and then retrieved through hybrid search mechanisms. The LLM sits at the center as both a transformation engine and reasoning layer, while external retrieval systems and structural constraints ensure scalability and consistency.
-
-The key conceptual shift is moving from “retrieval per query” to “accumulated knowledge maintenance.” Instead of re-deriving understanding every time, the system incrementally builds a structured representation of knowledge that improves with each ingestion and interaction.I would like to discuss my auto hotkey code base and whether I should be using stuff like Python auto GUI, keyboard, Python input, selenium, or any other libraries or other technologies rather than some of the ways that I've done things in auto hotkey. Specifically some of the like Json insertion scripts we've written recently that I've gotten pretty complicated. Do you think the auto hotkey is the best or at least unacceptable technology for what we are trying to do or do you think we should start using more Python instead? What are the benefits and trade-offs
