@@ -32,4 +32,4 @@ Also do you think that classical machine learning algorithms have any place in t
 ---
 2. I would really like to have a system for comparing the ones we post against all of the existing examples that we have from production. Are we currently using that data effectively to do testing and analysis?
 ---
-1. I want to make sure that we are storing all of the loads that we download,  or sorry all of the emails.  that will be useful for historical analysis.  are we currently doing anything like that?  on my system I would like to store all of them forever,  in production I will likely want to store them up to like six months of data?  or maybe some like maximum folder size.
+1. okay one of the biggest current issues with our testing is that currently I am pretty blind to what's actually happening on the backend during tests.  we need to build and more sanity checking.  I would like to be able to view  the posted orders on the MacLeod board alongside the actual emails that you used to generate them in a very simple way.  how can we build something where that is practical and very simple for me and Tali to review  side-by-side.

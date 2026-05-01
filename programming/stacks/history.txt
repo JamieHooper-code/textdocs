@@ -1,29 +1,29 @@
-12. [ ] Testing infra expansions — TestLogMarkers, verify.ps1 ahk-run, UIA inner-view inspection, DisplayFusionCommand CLI spelunk. Full writeup: [[TESTING_INFRASTRUCTURE_EXPANSIONS]]
+18. [ ] Testing infra expansions — TestLogMarkers, verify.ps1 ahk-run, UIA inner-view inspection, DisplayFusionCommand CLI spelunk. Full writeup: [[TESTING_INFRASTRUCTURE_EXPANSIONS]]
 ---
-11. [ ] Testing infra expansions — TestLogMarkers, verify.ps1 ahk-run, UIA inner-view inspection, DisplayFusionCommand CLI spelunk. Full writeup: [[TESTING_INFRASTRUCTURE_EXPANSIONS]]
+17. [ ] Testing infra expansions — TestLogMarkers, verify.ps1 ahk-run, UIA inner-view inspection, DisplayFusionCommand CLI spelunk. Full writeup: [[TESTING_INFRASTRUCTURE_EXPANSIONS]]
 ---
-10. understanding how arguments are passed from caster to AutoHotkey  should be super obvious from the documentation. if it is not currently obvious please make it so.
+16. understanding how arguments are passed from caster to AutoHotkey  should be super obvious from the documentation. if it is not currently obvious please make it so.
 ---
-9. I would really like to remake meet at the fig tree for Cedar.  using a photo of a fig tree and a photo of us
+15. I would really like to remake meet at the fig tree for Cedar.  using a photo of a fig tree and a photo of us
 ---
-8. okay I feel like we definitely need to make everything we just did repeatable,  what is the word for that? 
+14. okay I feel like we definitely need to make everything we just did repeatable,  what is the word for that? 
 
  I would like to be able to give you an album of images,   and have you process them either in all modes or with specific modes. and with optional parameters for each mode.  I'm thinking maybe we have like a default Json file of default parameters.  I would also like to be able to do this exclusively to the command line/ the user interface.
 ---
-7. I am having an idea but it's not time to say it yet
+13. I am having an idea but it's not time to say it yet
 ---
-6. I was indicating that I want that baseline image to show up as the first image to the right of the contact sheet so that when I'm scrolling through them with my arrow keys it shows up nicely and I can do direct comparisons. 
+12. I was indicating that I want that baseline image to show up as the first image to the right of the contact sheet so that when I'm scrolling through them with my arrow keys it shows up nicely and I can do direct comparisons. 
 
 ---
-5. I feel like we need to build out a better debugging system. You keep writing and destroying debugging code, and then just giving me images to look at but they always have issues. Are you able to write some debugging code that like analyzes the HTML and the sizes of things in the overlap things, are there like any skills that you have or that we could get or is this just something we can do with a Python script? It feels really necessary it feels like we are working blind
+11. I feel like we need to build out a better debugging system. You keep writing and destroying debugging code, and then just giving me images to look at but they always have issues. Are you able to write some debugging code that like analyzes the HTML and the sizes of things in the overlap things, are there like any skills that you have or that we could get or is this just something we can do with a Python script? It feels really necessary it feels like we are working blind
 
 And I feel like this debugging script could potentially be code that gets run on generations that can detect issues that arise with certain combinations, that might be like a future thing but I feel like at least for now we just need some debugging. Like for example it could generate it and then analyze them and then if the text is below the thing it generates a new one? Because I feel like sometimes no matter how we how well we do all of this there will just always be some images that kind of look goofy
 ---
-4. What is a smoke test
+10. What is a smoke test
 ---
-3. Consider putting my add to send functions through haiku or sonnet to have it auto generate the responses. Also the true/false thing should just be like a selector not an input field..........
+9. Consider putting my add to send functions through haiku or sonnet to have it auto generate the responses. Also the true/false thing should just be like a selector not an input field..........
 ---
-2. LLM Wiki
+8. LLM Wiki
 
 A pattern for building personal knowledge bases using LLMs.
 
@@ -99,4 +99,16 @@ The idea is related in spirit to Vannevar Bush's Memex (1945) — a personal, cura
 
 This document is intentionally abstract. It describes the idea, not a specific implementation. The exact directory structure, the schema conventions, the page formats, the tooling — all of that will depend on your domain, your preferences, and your LLM of choice. Everything mentioned above is optional and modular — pick what's useful, ignore what isn't. For example: your sources might be text-only, so you don't need image handling at all. Your wiki might be small enough that the index file is all you need, no search engine required. You might not care about slide decks and just want markdown pages. You might want a completely different set of output formats. The right way to use this is to share it with your LLM agent and work together to instantiate a version that fits your needs. The document's only job is to communicate the pattern. Your LLM can figure out the rest.
 ---
-1. I need this whole project to be deployable and re-deployable  on an Atlantic virtual server.  what might that look like in terms of code side implementation,  what kind of specifications do you think we need on that server including like RAM and hard drive space and what technologies  and permissions.  what are some other considerations?  the ideal scenario is I never have to personally manually do anything inside of the virtual machine and you are able to do everything from my PC over SSH or whatever.  it could theoretically run on Linux or Windows.
+7. I need this whole project to be deployable and re-deployable  on an Atlantic virtual server.  what might that look like in terms of code side implementation,  what kind of specifications do you think we need on that server including like RAM and hard drive space and what technologies  and permissions.  what are some other considerations?  the ideal scenario is I never have to personally manually do anything inside of the virtual machine and you are able to do everything from my PC over SSH or whatever.  it could theoretically run on Linux or Windows.
+---
+6. I want to make sure that we are storing all of the loads that we download,  or sorry all of the emails.  that will be useful for historical analysis.  are we currently doing anything like that?  on my system I would like to store all of them forever,  in production I will likely want to store them up to like six months of data?  or maybe some like maximum folder size.
+---
+5. Tell me about Visual Studio code insiders and its recent implementation of cloud code agents.
+---
+4. Make and everything search and the Plex search. Make it modular so that different things can implement it.
+---
+3. Add a macro to toggle where I can just add a number of hours.
+---
+2. At the end of every day when we put the emails down I would like an email update of all the emails process that day,  and how many loads posted per customer/sender.  I would like it to be short and concise.
+---
+1. okay one of the biggest current issues with our testing is that currently I am pretty blind to what's actually happening on the backend during tests.  we need to build and more sanity checking.  I would like to be able to view  the posted orders on the MacLeod board alongside the actual emails that you used to generate them in a very simple way.  how can we build something where that is practical and very simple for me and Tali to review  side-by-side.
