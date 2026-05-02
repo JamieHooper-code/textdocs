@@ -1,4 +1,9 @@
- Windows 11 Fresh Install — Setup Guide
+# DEPRECATED — Windows 11 Fresh Install — Setup Guide
+
+> **DEPRECATED 2026-05-01.** This guide was written for a *previous* PC transfer (the move that created the current Dell machine, with the Nate → Jamie username flip). It is not the active migration plan. For the current Dell → Acer Nitro 60 transfer, see `MIGRATE_TO_NEW_COMPUTER.md` and the freshly-written notes for that move. Specifics in this file (Nate paths, Dragon 15 → 16 upgrade, "old SSD is staying" framing, GitHub repo Nate paths, fresh-install backup inventory) are historical context only — do **not** treat any of it as the active to-do list. Kept for reference because some app-restore details (PowerToys, Audacity, ShareX, etc.) may still be useful as a checklist of what apps existed pre-Dell.
+
+---
+
 > Organized by priority: get accessible first, then everything else.
 > Items marked [Claude can help] are ones I can assist with directly.
 

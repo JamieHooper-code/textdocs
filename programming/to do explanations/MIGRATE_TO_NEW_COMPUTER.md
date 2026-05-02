@@ -1,4 +1,8 @@
-# Migrating to a New Computer
+# SUPERSEDED — Migrating to a New Computer
+
+> **Superseded 2026-05-01 by `MIGRATE_DELL_TO_ACER.md`.** This doc was written before the target hardware was known, and includes Dragon 15→16 upgrade context (no longer relevant — already on Dragon 16), Nate→Jamie username flip context (no longer relevant — already Jamie), and an RTX 2070 install path (no longer relevant — Acer Nitro 60 ships with an RTX 5060 Ti 16GB, which strictly outperforms the 2070). Use `MIGRATE_DELL_TO_ACER.md` for the active plan; this file is kept for the workflow shape and gotcha list, but do not follow it as a literal checklist.
+
+---
 
 ## Why this exists
 
