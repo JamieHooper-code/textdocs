@@ -1,8 +1,8 @@
-9. I am going to want a series ofClaude Commands  that are like show blank
+10. I am going to want a series ofClaude Commands  that are like show blank
 
  so I can say like show usage  and it will type /account  and press enter
 ---
-8. From now on, whenever you have any text you want me to paste, send, copy, or use anywhere (commit messages, shell commands, code snippets, messages, quotes, anything at all), put it in BOTH of these places automatically without me asking:
+9. From now on, whenever you have any text you want me to paste, send, copy, or use anywhere (commit messages, shell commands, code snippets, messages, quotes, anything at all), put it in BOTH of these places automatically without me asking:
 
 1. My Windows clipboard. Use PowerShell Set-Clipboard, for example: Get-Content -Raw 'C:\Users\jamie\Desktop\Important\AutoHotkey\INIDATA\CopyPasteSlots\claude.txt' | Set-Clipboard. Or pipe directly: your text goes through clip.exe.
 
@@ -10,9 +10,9 @@
 
 Do this for every pasteable chunk you produce for the rest of this conversation, automatically, without being reminded. When you do it, say one short sentence telling me it is ready so I know to paste it.
 ---
-7. Okay it seems like you are not very good at making key logic buttons please add that to the Python script in the skill
+8. Okay it seems like you are not very good at making key logic buttons please add that to the Python script in the skill
 ---
-6. https://tms.shipatlantic.com:6790/designer/ui/custom/McLeodTailor
+7. https://tms.shipatlantic.com:6790/designer/ui/custom/McLeodTailor
 
 https://share.articulate.com/eYSU4cAbFyNveSgIZKc7L
 https://share.articulate.com/fIx_-TufaCV5WRxPUhJn5
@@ -22,14 +22,20 @@ https://share.articulate.com/GCRqjnyB741laSBR0g_FD
 
 Further TMS development section for the user interface I have all of these tutorials that are publicly accessible. Would any of these help you with understanding what is wrong with my board?
 ---
-5. Okay so in machine learning there is a concept on testing data set versus building data set. I'm a little bit fuzzy on how exactly that applies to what we are doing with our emails in this project in terms of what is our data and what are we testing on. Including like getting subject orders from production and comparing against. Can you tell me a bit about that, how our project and current pipeline interacts with those systems, and what we might do better or are doing well or are not doing well?
+6. Okay so in machine learning there is a concept on testing data set versus building data set. I'm a little bit fuzzy on how exactly that applies to what we are doing with our emails in this project in terms of what is our data and what are we testing on. Including like getting subject orders from production and comparing against. Can you tell me a bit about that, how our project and current pipeline interacts with those systems, and what we might do better or are doing well or are not doing well?
 
 Also do you think that classical machine learning algorithms have any place in this pipeline in terms of like Ensemble or anything?
 ---
-4. Tell me about Pytest, should we have that?
+5. Tell me about Pytest, should we have that?
 ---
-3. Please say the memory to global memory that if we are bashing our heads against the wall looking through configuration files we should stop and Google it, you should stop and remind me to Google it or just automatically do it depending on situation. This comes up a lot where you are just like digging and digging and digging and we haven't even checked github issues
+4. Please say the memory to global memory that if we are bashing our heads against the wall looking through configuration files we should stop and Google it, you should stop and remind me to Google it or just automatically do it depending on situation. This comes up a lot where you are just like digging and digging and digging and we haven't even checked github issues
 ---
-2. I would really like to have a system for comparing the ones we post against all of the existing examples that we have from production. Are we currently using that data effectively to do testing and analysis?
+3. I would really like to have a system for comparing the ones we post against all of the existing examples that we have from production. Are we currently using that data effectively to do testing and analysis?
 ---
-1. okay so one big consideration I wanted to flag. on a lot of like the Excel tables and stuff  the header never changes, are we able to like parse the header in a specific way that validates that it's always the exact same?  and then if it's not the same we can prompt sonnet or opus  to analyze it and see if we need to change the configuration files for that customer  or send it up for review?  I think that is a case where like when something changes is when I would be happy to invoke opus  when it is something that changes that is not supposed to change and we can detect that programmatically and then do it after
+2. okay so one big consideration I wanted to flag. on a lot of like the Excel tables and stuff  the header never changes, are we able to like parse the header in a specific way that validates that it's always the exact same?  and then if it's not the same we can prompt sonnet or opus  to analyze it and see if we need to change the configuration files for that customer  or send it up for review?  I think that is a case where like when something changes is when I would be happy to invoke opus  when it is something that changes that is not supposed to change and we can detect that programmatically and then do it after
+---
+1. I just found a bug. http://127.0.0.1:5050/replay/wirejafl-2026-04-27-1777740565/email/T130354Z_6UoiAAAAAAEMAAAwyizAwyIKQptyrFMU6UoiAAAIrwlMAAA_
+
+ for this email I see a bunch of pickup dates of April 27,  but when I look at April 27 in the by day log  I see them all posted as April 28.  every single load from the whole email regardless of what he actually said is posted is pickup on the 28th,  why is this happening?
+
+ also I validated that yes it can be the same origin and destination,  just remote that validated entirely.

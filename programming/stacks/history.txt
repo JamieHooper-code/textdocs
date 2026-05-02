@@ -1,29 +1,29 @@
+25. [ ] Testing infra expansions — TestLogMarkers, verify.ps1 ahk-run, UIA inner-view inspection, DisplayFusionCommand CLI spelunk. Full writeup: [[TESTING_INFRASTRUCTURE_EXPANSIONS]]
+---
 24. [ ] Testing infra expansions — TestLogMarkers, verify.ps1 ahk-run, UIA inner-view inspection, DisplayFusionCommand CLI spelunk. Full writeup: [[TESTING_INFRASTRUCTURE_EXPANSIONS]]
 ---
-23. [ ] Testing infra expansions — TestLogMarkers, verify.ps1 ahk-run, UIA inner-view inspection, DisplayFusionCommand CLI spelunk. Full writeup: [[TESTING_INFRASTRUCTURE_EXPANSIONS]]
+23. understanding how arguments are passed from caster to AutoHotkey  should be super obvious from the documentation. if it is not currently obvious please make it so.
 ---
-22. understanding how arguments are passed from caster to AutoHotkey  should be super obvious from the documentation. if it is not currently obvious please make it so.
+22. I would really like to remake meet at the fig tree for Cedar.  using a photo of a fig tree and a photo of us
 ---
-21. I would really like to remake meet at the fig tree for Cedar.  using a photo of a fig tree and a photo of us
----
-20. okay I feel like we definitely need to make everything we just did repeatable,  what is the word for that? 
+21. okay I feel like we definitely need to make everything we just did repeatable,  what is the word for that? 
 
  I would like to be able to give you an album of images,   and have you process them either in all modes or with specific modes. and with optional parameters for each mode.  I'm thinking maybe we have like a default Json file of default parameters.  I would also like to be able to do this exclusively to the command line/ the user interface.
 ---
-19. I am having an idea but it's not time to say it yet
+20. I am having an idea but it's not time to say it yet
 ---
-18. I was indicating that I want that baseline image to show up as the first image to the right of the contact sheet so that when I'm scrolling through them with my arrow keys it shows up nicely and I can do direct comparisons. 
+19. I was indicating that I want that baseline image to show up as the first image to the right of the contact sheet so that when I'm scrolling through them with my arrow keys it shows up nicely and I can do direct comparisons. 
 
 ---
-17. I feel like we need to build out a better debugging system. You keep writing and destroying debugging code, and then just giving me images to look at but they always have issues. Are you able to write some debugging code that like analyzes the HTML and the sizes of things in the overlap things, are there like any skills that you have or that we could get or is this just something we can do with a Python script? It feels really necessary it feels like we are working blind
+18. I feel like we need to build out a better debugging system. You keep writing and destroying debugging code, and then just giving me images to look at but they always have issues. Are you able to write some debugging code that like analyzes the HTML and the sizes of things in the overlap things, are there like any skills that you have or that we could get or is this just something we can do with a Python script? It feels really necessary it feels like we are working blind
 
 And I feel like this debugging script could potentially be code that gets run on generations that can detect issues that arise with certain combinations, that might be like a future thing but I feel like at least for now we just need some debugging. Like for example it could generate it and then analyze them and then if the text is below the thing it generates a new one? Because I feel like sometimes no matter how we how well we do all of this there will just always be some images that kind of look goofy
 ---
-16. What is a smoke test
+17. What is a smoke test
 ---
-15. Consider putting my add to send functions through haiku or sonnet to have it auto generate the responses. Also the true/false thing should just be like a selector not an input field..........
+16. Consider putting my add to send functions through haiku or sonnet to have it auto generate the responses. Also the true/false thing should just be like a selector not an input field..........
 ---
-14. LLM Wiki
+15. LLM Wiki
 
 A pattern for building personal knowledge bases using LLMs.
 
@@ -99,32 +99,36 @@ The idea is related in spirit to Vannevar Bush's Memex (1945) — a personal, cura
 
 This document is intentionally abstract. It describes the idea, not a specific implementation. The exact directory structure, the schema conventions, the page formats, the tooling — all of that will depend on your domain, your preferences, and your LLM of choice. Everything mentioned above is optional and modular — pick what's useful, ignore what isn't. For example: your sources might be text-only, so you don't need image handling at all. Your wiki might be small enough that the index file is all you need, no search engine required. You might not care about slide decks and just want markdown pages. You might want a completely different set of output formats. The right way to use this is to share it with your LLM agent and work together to instantiate a version that fits your needs. The document's only job is to communicate the pattern. Your LLM can figure out the rest.
 ---
-13. I need this whole project to be deployable and re-deployable  on an Atlantic virtual server.  what might that look like in terms of code side implementation,  what kind of specifications do you think we need on that server including like RAM and hard drive space and what technologies  and permissions.  what are some other considerations?  the ideal scenario is I never have to personally manually do anything inside of the virtual machine and you are able to do everything from my PC over SSH or whatever.  it could theoretically run on Linux or Windows.
+14. I need this whole project to be deployable and re-deployable  on an Atlantic virtual server.  what might that look like in terms of code side implementation,  what kind of specifications do you think we need on that server including like RAM and hard drive space and what technologies  and permissions.  what are some other considerations?  the ideal scenario is I never have to personally manually do anything inside of the virtual machine and you are able to do everything from my PC over SSH or whatever.  it could theoretically run on Linux or Windows.
 ---
-12. I want to make sure that we are storing all of the loads that we download,  or sorry all of the emails.  that will be useful for historical analysis.  are we currently doing anything like that?  on my system I would like to store all of them forever,  in production I will likely want to store them up to like six months of data?  or maybe some like maximum folder size.
+13. I want to make sure that we are storing all of the loads that we download,  or sorry all of the emails.  that will be useful for historical analysis.  are we currently doing anything like that?  on my system I would like to store all of them forever,  in production I will likely want to store them up to like six months of data?  or maybe some like maximum folder size.
 ---
-11. Tell me about Visual Studio code insiders and its recent implementation of cloud code agents.
+12. Tell me about Visual Studio code insiders and its recent implementation of cloud code agents.
 ---
-10. Make and everything search and the Plex search. Make it modular so that different things can implement it.
+11. Make and everything search and the Plex search. Make it modular so that different things can implement it.
 ---
-9. Add a macro to toggle where I can just add a number of hours.
+10. Add a macro to toggle where I can just add a number of hours.
 ---
-8. At the end of every day when we put the emails down I would like an email update of all the emails process that day,  and how many loads posted per customer/sender.  I would like it to be short and concise.
+9. At the end of every day when we put the emails down I would like an email update of all the emails process that day,  and how many loads posted per customer/sender.  I would like it to be short and concise.
+---
+8. okay one of the biggest current issues with our testing is that currently I am pretty blind to what's actually happening on the backend during tests.  we need to build and more sanity checking.  I would like to be able to view  the posted orders on the MacLeod board alongside the actual emails that you used to generate them in a very simple way.  how can we build something where that is practical and very simple for me and Tali to review  side-by-side.
 ---
 7. okay one of the biggest current issues with our testing is that currently I am pretty blind to what's actually happening on the backend during tests.  we need to build and more sanity checking.  I would like to be able to view  the posted orders on the MacLeod board alongside the actual emails that you used to generate them in a very simple way.  how can we build something where that is practical and very simple for me and Tali to review  side-by-side.
 ---
-6. okay one of the biggest current issues with our testing is that currently I am pretty blind to what's actually happening on the backend during tests.  we need to build and more sanity checking.  I would like to be able to view  the posted orders on the MacLeod board alongside the actual emails that you used to generate them in a very simple way.  how can we build something where that is practical and very simple for me and Tali to review  side-by-side.
+6. okay I would like to do a test run.  all of Dean's emails  from this week.  I want you to process them sequentially  and go through the receiving the first email on Monday, different emails during the day, swapping over to Tuesday, etc.  and then all the way through to today EOD.  I want to see all of the data in a format that is comprehensible to me,  including mistakes, limitations, etc.  this is a specific test that I will be running to sanity check customers to see if they are ready.  this is a test that I really want to flesh out and get working properly and I want my interface for understanding the results to be really good so that I don't have to come through a million logs.  I want you to be able to understand what went right, what went wrong, what could be improved,  and tell me that and show me the actual data the actual things posted to development,  the actual loads  that got removed maybe end of day or  when a new email came in, etc.
 ---
-5. okay I would like to do a test run.  all of Dean's emails  from this week.  I want you to process them sequentially  and go through the receiving the first email on Monday, different emails during the day, swapping over to Tuesday, etc.  and then all the way through to today EOD.  I want to see all of the data in a format that is comprehensible to me,  including mistakes, limitations, etc.  this is a specific test that I will be running to sanity check customers to see if they are ready.  this is a test that I really want to flesh out and get working properly and I want my interface for understanding the results to be really good so that I don't have to come through a million logs.  I want you to be able to understand what went right, what went wrong, what could be improved,  and tell me that and show me the actual data the actual things posted to development,  the actual loads  that got removed maybe end of day or  when a new email came in, etc.
+5. okay I would like to do a test run.  all of Dean's emails  from this week.  I want you to process them sequentially  and go through the receiving the first email on Monday, different emails during the day, swapping over to Tuesday, etc.  and then all the way through to today EOD.  I want to see all of the data in a format that is comprehensible to me,  including mistakes, limitations, etc.  this is a specific test that I will be running to sanity check customers to see if they are ready.  this is a test that I really want to flesh out and get working properly and I want my interface for understanding the results to be really good so that I don't have to come through a million logs.  I want you to be able to understand what went right, what went wrong, what could be improved,  and tell me that and show me the actual data the actual things posted to development,  the actual loads  that got removed maybe end of day or  when a new email came in, etc.  I want as much of this is possible to be  deterministic,  but then I want you to be able to analyze the results and explain it to me.  what you think about this plan?  I wanted to include as many of the tests that we've already built as possible so that were not reinventing the wheel
 ---
-4. okay I would like to do a test run.  all of Dean's emails  from this week.  I want you to process them sequentially  and go through the receiving the first email on Monday, different emails during the day, swapping over to Tuesday, etc.  and then all the way through to today EOD.  I want to see all of the data in a format that is comprehensible to me,  including mistakes, limitations, etc.  this is a specific test that I will be running to sanity check customers to see if they are ready.  this is a test that I really want to flesh out and get working properly and I want my interface for understanding the results to be really good so that I don't have to come through a million logs.  I want you to be able to understand what went right, what went wrong, what could be improved,  and tell me that and show me the actual data the actual things posted to development,  the actual loads  that got removed maybe end of day or  when a new email came in, etc.  I want as much of this is possible to be  deterministic,  but then I want you to be able to analyze the results and explain it to me.  what you think about this plan?  I wanted to include as many of the tests that we've already built as possible so that were not reinventing the wheel
+4. I knew it.  there are two different emails that we are parsing here,  and every time an Illinois load list comes in you remove all of the other loads.  that is the kind of bug we need this to detect.  why were you not picking that up?  I don't want to just patch that specific bug right now I want to figure out how to prevent that from happening again in the future. it's clearly two different emails and the subject says Illinois updated list for today,  and a lot of the lows you were destroying were not Illinois loads
 ---
 3. I knew it.  there are two different emails that we are parsing here,  and every time an Illinois load list comes in you remove all of the other loads.  that is the kind of bug we need this to detect.  why were you not picking that up?  I don't want to just patch that specific bug right now I want to figure out how to prevent that from happening again in the future. it's clearly two different emails and the subject says Illinois updated list for today,  and a lot of the lows you were destroying were not Illinois loads
----
-2. I knew it.  there are two different emails that we are parsing here,  and every time an Illinois load list comes in you remove all of the other loads.  that is the kind of bug we need this to detect.  why were you not picking that up?  I don't want to just patch that specific bug right now I want to figure out how to prevent that from happening again in the future. it's clearly two different emails and the subject says Illinois updated list for today,  and a lot of the lows you were destroying were not Illinois loads
 
  this actually makes me so happy,  up to this point I have had such a hard time understanding what is going on in the backend  and there's just so much logic to track all at once,  this visual interface has been so helpful in like 45 minutes at coming up with so many bugs.
 ---
-1. I knew it.  there are two different emails that we are parsing here,  and every time an Illinois load list comes in you remove all of the other loads.  that is the kind of bug we need this to detect.  why were you not picking that up?  I don't want to just patch that specific bug right now I want to figure out how to prevent that from happening again in the future. it's clearly two different emails and the subject says Illinois updated list for today,  and a lot of the lows you were destroying were not Illinois loads
+2. I knew it.  there are two different emails that we are parsing here,  and every time an Illinois load list comes in you remove all of the other loads.  that is the kind of bug we need this to detect.  why were you not picking that up?  I don't want to just patch that specific bug right now I want to figure out how to prevent that from happening again in the future. it's clearly two different emails and the subject says Illinois updated list for today,  and a lot of the lows you were destroying were not Illinois loads
 
  this actually makes me so happy,  up to this point I have had such a hard time understanding what is going on in the backend  and there's just so much logic to track all at once,  this visual interface has been so helpful in like 45 minutes at coming up with so many bugs.  that being said I do think we should be all to make a system where you can catch bugs like that.  but let's discuss that at length where the gaps are
+---
+1. I just found a bug. http://127.0.0.1:5050/replay/wirejafl-2026-04-27-1777740565/email/T130354Z_6UoiAAAAAAEMAAAwyizAwyIKQptyrFMU6UoiAAAIrwlMAAA_
+
+ for this email I see a bunch of pickup dates of April 27,  but when I look at April 27 in the by day log  I see them all posted as April 28.  every single load from the whole email regardless of what he actually said is posted is pickup on the 28th,  why is this happening?
