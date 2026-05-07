@@ -1,36 +1,46 @@
-16. do we need to beef up the UIA  documentation?  it feels like at a anytime I ask you to do any form of that you have to look up a bunch of stuff
+21. do we need to beef up the UIA  documentation?  it feels like at a anytime I ask you to do any form of that you have to look up a bunch of stuff
 ---
-15. I am extremely interested in figuring out some way to highlight text on my screen better. For example you just sent me that PowerShell link, I don't use a mouse at all. That is very hard to make it copy to my clipboard. I told you to remember to automatically copy stuff to make the board but you always forget, but that is a separate issue. This is an issue I encounter in a variety of applications and websites. I would really like to brainstorm this and potentially make a tool or find one that would help with this. I would like you to be as efficient and easy to use as possible and with as much power as possible. I've used a few different things for this like Legion that is built into caster and it just didn't quite work super well but I'm also interested in ways that we can prove that.
+20. I am extremely interested in figuring out some way to highlight text on my screen better. For example you just sent me that PowerShell link, I don't use a mouse at all. That is very hard to make it copy to my clipboard. I told you to remember to automatically copy stuff to make the board but you always forget, but that is a separate issue. This is an issue I encounter in a variety of applications and websites. I would really like to brainstorm this and potentially make a tool or find one that would help with this. I would like you to be as efficient and easy to use as possible and with as much power as possible. I've used a few different things for this like Legion that is built into caster and it just didn't quite work super well but I'm also interested in ways that we can prove that.
 ---
-14. I would like to look into some Visual Studio code versus Claude code kind of stuff
+19. I would like to look into some Visual Studio code versus Claude code kind of stuff
 ---
-13. [ ] Testing infra expansions — TestLogMarkers, verify.ps1 ahk-run, UIA inner-view inspection, DisplayFusionCommand CLI spelunk. Full writeup: [[TESTING_INFRASTRUCTURE_EXPANSIONS]]
+18. [ ] Testing infra expansions — TestLogMarkers, verify.ps1 ahk-run, UIA inner-view inspection, DisplayFusionCommand CLI spelunk. Full writeup: [[TESTING_INFRASTRUCTURE_EXPANSIONS]]
 ---
-12. Stream decks Json importing and exporting. Maybe an issue with editing inside of the app if it loses state
+17. Stream decks Json importing and exporting. Maybe an issue with editing inside of the app if it loses state
 ---
-11. Adding World of Warcraft YouTube MP3s to my lockout timer. Could make it so that it cycles through each different database I have per week.
+16. Adding World of Warcraft YouTube MP3s to my lockout timer. Could make it so that it cycles through each different database I have per week.
 ---
-10. Consider putting my add to send functions through haiku or sonnet to have it auto generate the responses. Also the true/false thing should just be like a selector not an input field..........  also the ad to stream decks thing should difficult to no
+15. Consider putting my add to send functions through haiku or sonnet to have it auto generate the responses. Also the true/false thing should just be like a selector not an input field..........  also the ad to stream decks thing should difficult to no
 ---
-9. I need to come up with a better food system
+14. I need to come up with a better food system
 ---
-8. Process all of my quotes and tag them. Make it so that I can add them very easily with tags.
+13. Process all of my quotes and tag them. Make it so that I can add them very easily with tags.
 ---
-7. Fix my adding notepad files, for some reason it was not detecting my quotes. At least find some way to easily get the location of the file.
+12. Fix my adding notepad files, for some reason it was not detecting my quotes. At least find some way to easily get the location of the file.
 ---
-6. what is the best way to shut down my computer in terms of Dragon and caster?
+11. what is the best way to shut down my computer in terms of Dragon and caster?
 ---
-5. Tell me about Visual Studio code insiders and its recent implementation of cloud code agents.
+10. Tell me about Visual Studio code insiders and its recent implementation of cloud code agents.
 ---
-4. Improve my calendar commands and at reminders
+9. Improve my calendar commands and at reminders
 ---
-3. {
+8. {
   "command": "Start-Process MAINFUN.bat -ArgumentList 'OpenSearchExe', 'C:\\Program Files\\Everything\\Everything.exe', 'ahk_exe Everything.exe', '-search \"test query\"' -WindowStyle Hidden; Start-Sleep 4; Get-Content \"$env:TEMP\\ahk_last_result.txt\"",
   "description": "Test OpenSearchExe directly with Everything"
 }
 
 When you run these tests I get little window pop-ups with the errors is there way to get them to show silently
 ---
-2. At my obsidian fault to my auto hotkey caster workspace
+7. At my obsidian fault to my auto hotkey caster workspace
 ---
-1. Add commands like add that to my Dragon dictation box commands
+6. Add commands like add that to my Dragon dictation box commands
+---
+5. Make a way to add the current directory as a macro of like add directory
+---
+4. Improve my spotify macros . Not like the existing ones I would like to make some are like actual navigation of the user interface. Probably a whole stream decks page. Navigate the left bar. Figure out a way to full-screen the left bar or just like some way to better view all of my recent, maybe there's like a page or something for that?
+---
+3. I want to add a lot more search functionalities. I want to add a macro to programmatically add a search functionality for website. So I say like add search and it will attempt to navigate the URL to figure out how to add it.
+---
+2. please analyze the data from that replay run report and tell me about any code changes that we should make
+---
+1. Figure out how to do my emoji is better. A lot of them are hard to say like <3 I would like a system for updating them and adding them and making sure they are hardcoded.
