@@ -1,0 +1,11 @@
+3. Move new tab page back to hosted locally
+
+Get to do linked with it and possibly even current stack?
+---
+2. Get daily goals added and make a little user interface I can easily modify the so like meditating twice today was a big goal. I can have like general daily goals and specific ones
+---
+1. I would like to discuss expanding my new tab page to be like a hub for all of my different things. So from within it like it open my 'open lockout' or my 'open timers' or just other stuff like that. I want lots of my different parts of my set up that have interfaces and stuff and and the like editable configurations and stuff that I have user interfaces for I want to be accessible from within that. I still want them a new tab page to be like kind of it's own thing but there would be like a hyperlink to a more global page and that would contain everything. 
+
+So I guess the new tab page isn't really the main hub but we are going to build the main hub and it should be accessible from every page with like a small button in the corner
+
+Can we discuss this design philosophy, I think it would be helpful to get everything more centralized or at least like one central hub where everything is accessible from.

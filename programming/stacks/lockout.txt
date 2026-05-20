@@ -1,0 +1,10 @@
+1. https://www.youtube.com/watch?v=cIMKJ43TFLs
+
+I want to download some kind of random videos of different categories. And add those to genres. I would like to be able to add playlists or individual videos to a genre. So a genre could be made up of multiple playlists and videos. I need an easy way to do this, I could potentially just had the playlists and videos to a YouTube playlist, and then make it so my scraper can update genres based on changes to playlists. Or I just add them directly, not sure what is the best solution what you think?
+
+I just realized I already have genres which is exactly what this is. I just need to be able to download a genre to add it to the local list. So that's basically the only change that needs to happen. 
+
+I also want a show genres command. It will show me a list of all the genres but also if I am in a youtube or spotify thing it will show me the genres that that belongs to at the top. 
+
+Also my spot show command should show me the genres that something is in.
+
