@@ -1,0 +1,293 @@
+AutoHotkey\auto hot key
+ahk\a h k
+MAINFUN\main fun
+MAINFUNCTIONS\main functions
+WinActivate\win activate
+WinExist\win exist
+WinWaitActive\win wait active
+WinClose\win close
+WinMove\win move
+SendInput\send input
+ControlSend\control send
+ControlClick\control click
+MsgBox\message box
+ToolTip
+Hotkey
+Hotstring\hot string
+GuiCreate\gooey create
+ListView\list view
+StatusBar\status bar
+SetTimer\set timer
+SetWorkingDir\set working dir
+A_ScriptDir\a script dir
+A_AppData\a app data
+DllCall\d l l call
+ComObject\com object
+RegRead\reg read
+RegWrite\reg write
+Caster
+Castervoice\caster voice
+Dragonfly
+Natlink
+MappingRule\mapping rule
+MergeRule\merge rule
+RuleDetails\rule details
+IntegerRef\integer ref
+Dictation
+Repeat
+Choice
+mainfun_action\main fun action
+named_mainfun_action_with_args\named main fun action with args
+rdescript\r descript
+extras
+defaults
+get_rule\get rule
+Streamdeck\stream deck
+Elgato
+sdProfile\s d profile
+ProfilesV3\profiles v 3
+ActionID\action i d
+manifest
+Anthropic
+Claude
+Sonnet
+Opus
+Haiku
+LLM\l l m
+MCP\m c p
+subagent\sub agent
+prompt
+tokenizer
+embedding
+inference
+agentic
+context window
+prompt caching
+tool use
+ripgrep\rip grep
+fzf\f z f
+jq\j q
+yq\y q
+gh\g h
+pipx\pip x
+uvicorn
+gunicorn
+pytest\pie test
+poetry
+pyenv\pie env
+venv\v env
+PowerShell\power shell
+WSL\w s l
+Bash
+zsh\z s h
+ffmpeg\f f mpeg
+ImageMagick\image magick
+yt-dlp\y t d l p
+Python
+JavaScript
+TypeScript
+Node.js\node j s
+React
+Vite\veet
+Webpack\web pack
+ESLint\e s lint
+Prettier
+SQLite\s q lite
+PostgreSQL\postgres q l
+MongoDB\mongo d b
+Redis
+Docker
+Kubernetes
+nginx\engine x
+argparse\arg parse
+asyncio\a sync i o
+pydantic\pie dantic
+FastAPI\fast a p i
+Flask
+Django
+SQLAlchemy\s q l alchemy
+requests
+httpx\h t t p x
+numpy\num pie
+pandas
+matplotlib\mat plot lib
+scikit-learn\sci kit learn
+PyTorch\pie torch
+TensorFlow\tensor flow
+async\a sync
+await
+coroutine
+callback
+closure
+decorator
+generator
+iterator
+iterable
+middleware
+namespace
+boolean
+integer
+enum
+struct
+tuple
+lambda
+mutex
+semaphore
+deadlock
+race condition
+regex
+regexp\regex p
+delimiter
+whitespace
+sigil
+stdin\standard in
+stdout\standard out
+stderr\standard error
+kwargs\kay wargs
+argv\arg v
+camelCase\camel case
+PascalCase\pascal case
+snake_case\snake case
+kebab-case\kebab case
+SCREAMING_SNAKE_CASE\screaming snake case
+docstring\doc string
+linter
+formatter
+typechecker\type checker
+hashmap\hash map
+linked list
+binary tree
+red-black tree
+big O\big oh
+runtime
+compile time
+codebase\code base
+repo
+monorepo\mono repo
+gitignore\git ignore
+gitattributes\git attributes
+rebase
+cherry-pick\cherry pick
+stash
+refspec\ref spec
+upstream
+downstream
+HEAD\head
+hunk
+diff
+merge conflict
+fast-forward\fast forward
+squash
+amend
+GitHub\git hub
+GitLab\git lab
+Bitbucket\bit bucket
+pull request
+PR\p r
+CI\c i
+CD\c d
+CICD\c i c d
+API\a p i
+REST\rest
+GraphQL\graph q l
+gRPC\g r p c
+WebSocket\web socket
+webhook\web hook
+HTTP\h t t p
+HTTPS\h t t p s
+URL\u r l
+URI\u r i
+UUID\you you i d
+GUID\g u i d
+CLI\c l i
+GUI\gooey
+TUI\t u i
+IDE\i d e
+SDK\s d k
+JSON\jay son
+JSONL\jay son l
+YAML\yamel
+TOML\tomel
+XML\x m l
+HTML\h t m l
+CSS\c s s
+SQL\sequel
+NoSQL\no sequel
+ORM\o r m
+DOM\dom
+JWT\j w t
+OAuth\o auth
+SSL\s s l
+TLS\t l s
+SHA256\shaw 2 56
+bcrypt\b crypt
+Markdown\mark down
+frontmatter\front matter
+Obsidian
+wikilink\wiki link
+backlink\back link
+Toggl\toggle
+Keychron\key chron
+QMK\q m k
+Arduino
+Leonardo
+HID\h i d
+USB\u s b
+GPIO\g p i o
+firmware
+bootloader\boot loader
+serial port
+VSCode\v s code
+JetBrains\jet brains
+PyCharm\pie charm
+IntelliJ\intelli j
+linting
+debugger
+breakpoint
+stacktrace\stack trace
+heap
+stack frame
+null pointer
+segfault\seg fault
+deserialize\de serialize
+serialize
+parse
+tokenize
+transpile
+minify
+bundle
+backend\back end
+frontend\front end
+fullstack\full stack
+endpoint
+payload
+header
+cookie
+session
+cache
+caching
+TTL\t t l
+CDN\c d n
+DNS\d n s
+proxy
+reverse proxy
+load balancer
+deploy
+deployment
+rollback
+canary
+blue-green\blue green
+feature flag
+A/B test\a b test
+telemetry
+observability
+metric
+logging
+log level
+debug
+info
+warn
+error
+fatal
+trace
+qmd\q m d
