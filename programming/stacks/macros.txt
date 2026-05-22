@@ -1,41 +1,29 @@
-30. I am extremely interested in figuring out some way to highlight text on my screen better. For example you just sent me that PowerShell link, I don't use a mouse at all. That is very hard to make it copy to my clipboard. I told you to remember to automatically copy stuff to make the board but you always forget, but that is a separate issue. This is an issue I encounter in a variety of applications and websites. I would really like to brainstorm this and potentially make a tool or find one that would help with this. I would like you to be as efficient and easy to use as possible and with as much power as possible. I've used a few different things for this like Legion that is built into caster and it just didn't quite work super well but I'm also interested in ways that we can prove that.
+31. Adding World of Warcraft YouTube MP3s to my lockout timer. Could make it so that it cycles through each different database I have per week.
 ---
-29. Stream decks Json importing and exporting. Maybe an issue with editing inside of the app if it loses state
+30. Consider putting my add to send functions through haiku or sonnet to have it auto generate the responses. Also the true/false thing should just be like a selector not an input field..........  also the ad to stream decks thing should difficult to no
 ---
-28. Adding World of Warcraft YouTube MP3s to my lockout timer. Could make it so that it cycles through each different database I have per week.
+29. Process all of my quotes and tag them. Make it so that I can add them very easily with tags.
 ---
-27. Consider putting my add to send functions through haiku or sonnet to have it auto generate the responses. Also the true/false thing should just be like a selector not an input field..........  also the ad to stream decks thing should difficult to no
+28. Fix my adding notepad files, for some reason it was not detecting my quotes. At least find some way to easily get the location of the file.
 ---
-26. I need to come up with a better food system
+27. Tell me about Visual Studio code insiders and its recent implementation of cloud code agents.
 ---
-25. Process all of my quotes and tag them. Make it so that I can add them very easily with tags.
+26. Improve my calendar commands and at reminders
 ---
-24. Fix my adding notepad files, for some reason it was not detecting my quotes. At least find some way to easily get the location of the file.
+25. At my obsidian fault to my auto hotkey caster workspace
 ---
-23. Tell me about Visual Studio code insiders and its recent implementation of cloud code agents.
+24. Add commands like add that to my Dragon dictation box commands
 ---
-22. Improve my calendar commands and at reminders
+23. Make a way to add the current directory as a macro of like add directory
 ---
-21. At my obsidian fault to my auto hotkey caster workspace
----
-20. Add commands like add that to my Dragon dictation box commands
----
-19. Make a way to add the current directory as a macro of like add directory
----
-18. tell me more about the issue of my RAM not being properly configured
----
-17. {
+22. {
   "command": "Start-Process MAINFUN.bat -ArgumentList 'OpenSearchExe', 'C:\\Program Files\\Everything\\Everything.exe', 'ahk_exe Everything.exe', '-search \"test query\"' -WindowStyle Hidden; Start-Sleep 4; Get-Content \"$env:TEMP\\ahk_last_result.txt\"",
   "description": "Test OpenSearchExe directly with Everything"
 }
 
 When you run these tests I get little window pop-ups with the errors is there way to get them to show silently
 ---
-16. I would really like to get moving on improving my Obsidian Vault to set up. Currently just kind of exists but I don't have like voice commands to interact with it or like add new markdown files in specific areas or effectively open specific files/locations/folders or navigate.
-
-I would like voice commands/auto hotkey stuff for all of these things but I had a few specific ones in mind, I would like to create like main files, or even folders maybe will have to discuss the exact architecture/layout but for example I want to have like a Cedar file which is the primary file and other files related to Cedar would be linked within that larger file as like permit links or embedded or whatever, and so I would like a voice command to like create a new Cedar file which would probably go in the Cedar directory and then an auto hotkey GUI to like automatically embed it into a section within the main file. And then I would want a separate voice command to manually embed something or link something. Stuff like that so that I kind of control the shape of the Obsidian Vault effectively and the linking of things effectively. And the tagging of things. I know this is a lot, this is a lot of like design decisions that we need to discuss and work through, I am open to many ideas of how to implement this effectively and I would like to lay it all out with the functionality that we need before we begin implementing. I want the system to be modular and programmatic and easy to add more functionality to.
----
-15. Okay I want to create a completion log. Basically just a recording of all of the things that I do in a day. So I say add completion and it will open the little user interface, possibly PowerShell possibly auto hotkey. I say open completion and it will open the log itself.
+21. Okay I want to create a completion log. Basically just a recording of all of the things that I do in a day. So I say add completion and it will open the little user interface, possibly PowerShell possibly auto hotkey. I say open completion and it will open the log itself.
 
 The user interface will be in type something in and press enter and it will add it to the log, and then recursively open the same UI so I can add more things. It will also have a list of things I pick from from 0 to 99 and I either type the first few letters of them and press enter to add them or I type the corresponding number. So swimming will be one of the things I do, and it will be like [10] Swimming so if I type X and press enter it at that I swam that day. I have things as belonging to categories, so after I add something manually I choose to add it to a category if I want. Or I can pick a category like Atlantic logistics and then type the thing in. And categories can belong to other categories so like Atlantic logistics always belongs to programming and it belongs to work. So those are like tags. So swimming would belong to like exercise/physical therapy/outside/health. And meditate would belong to mindfulness and health. And so if I pick meditate I default to 22 minutes but I can also put in time. So different things have different input fields that belong to them and most of them should have defaults with things. So for like worked on Atlantic logistics it could have number of hours and/or what I did
 
@@ -47,13 +35,13 @@ Also this will interact with my to do list so when I mark something off the to d
 
 Also on my new tab page I am going to eventually build a section where I can add recurring tasks like watering my plants that need to happen like at least every three days. So it will like count up all the time from the last time I've done it so I can see how long it's been, when I add one of those things to my completion log it will reset the time to zero.
 ---
-14. APM tracker design (not built yet; paused after shipping the mindfulness bell): [DESIGN.md](C:\Users\jamie\Desktop\Important\AutoHotkey\Scripts\apm-tracker\DESIGN.md)
+20. APM tracker design (not built yet; paused after shipping the mindfulness bell): [DESIGN.md](C:\Users\jamie\Desktop\Important\AutoHotkey\Scripts\apm-tracker\DESIGN.md)
 ---
-13. Make a button on stream deck 2 macros that is currently tested command and it's like super easy to swap over to whatever command I'm currently testing
+19. Make a button on stream deck 2 macros that is currently tested command and it's like super easy to swap over to whatever command I'm currently testing
 ---
-12. Okay I would like to add a new macro for adding stream decks buttons. The voice command will be add button. And it will open up an auto hotkey GUI. That I navigate entirely with the number pad or arrow keys, make sure to use my hotkey standards. I will select a or B, and then I will select the page which will all be presented to me and I type and number or use the arrow keys. And then I will select a location in the same way and it will populate the open fields for me that I select. And then for adding the button I either pick from my list of recently activated auto hotkey macros or I put in a hotkey.
+18. Okay I would like to add a new macro for adding stream decks buttons. The voice command will be add button. And it will open up an auto hotkey GUI. That I navigate entirely with the number pad or arrow keys, make sure to use my hotkey standards. I will select a or B, and then I will select the page which will all be presented to me and I type and number or use the arrow keys. And then I will select a location in the same way and it will populate the open fields for me that I select. And then for adding the button I either pick from my list of recently activated auto hotkey macros or I put in a hotkey.
 ---
-11. Okay I would like to add a stream decks button that is for testing my current macro that I'm trying out. I often have a problem with like when we were testing the remote Atlantic voice command I just have to say the same thing over and over, so I want a voice command and stream decks button that is for testing the currently tested auto hotkey function. Basically I will run a voice command something like 'make current'
+17. Okay I would like to add a stream decks button that is for testing my current macro that I'm trying out. I often have a problem with like when we were testing the remote Atlantic voice command I just have to say the same thing over and over, so I want a voice command and stream decks button that is for testing the currently tested auto hotkey function. Basically I will run a voice command something like 'make current'
 
 And then on my Stream Deck 2 macros page I will have a button that always activates whatever the current function is.
 
@@ -73,15 +61,7 @@ I know that this is a time to implement, let's discuss the design and what makes
 
 I would also like to store the history of each key, both globally and specifically like for global hotkeys and for chrome hotkeys and for like spotify chrome tab hotkeys. And then when I go to change like F3 for instance I both see the most recent AHK functions but also the recent global and specific F3 settings
 ---
-10. Somewhere in my caster base for my voice typing set up I have a series of voice commands like direct variable
-
-It should be a list of directories. I would like to re-create that and merge it over into my new set up. A lot of those all directories will not end up carrying over so we need to like look through them.
-
-But a lot of the voice commands will carry over but double check with me. I would like to be able to add directory with that voice command anytime I am in like Explorer or maybe even PowerShell or command line if that is reasonable. I will just say add directory and then that directory will be accessible with open <directory>, go <directory>, etc. if I am already in an Explorer window then go will redirect me but open will open a new window. And open works from anywhere. I can also say direct <directory> and it will just print it. 
-
-This should obviously turn into a auto hotkey forward set up
----
-9. I want to add a filter to my Claude code searching through chat. Like searching through my chats with Claude in VS code. I have buttons to click on the new conversation and to look at old conversations. But they are hardcoded coordinate clickers, I want those to use UI automation or hotkeys. Or at least negative coordinates so it picks them up on different screen sizes better
+16. I want to add a filter to my Claude code searching through chat. Like searching through my chats with Claude in VS code. I have buttons to click on the new conversation and to look at old conversations. But they are hardcoded coordinate clickers, I want those to use UI automation or hotkeys. Or at least negative coordinates so it picks them up on different screen sizes better
 
 And then if I say filter <text> it will open up the chats and then type that in so I can see the results
 
@@ -89,13 +69,7 @@ When I say fix chat I wanted to traverse the UI to modify the name of the curren
 
 In general I want to improve the way that I am able to switch chats and do stuff like that and interact with Claude code inside of VS code, let me know if you have any other ideas
 ---
-8. I would like to discuss upgrading my UI a dump. It would take a screenshot, but that at a specific location. It would record the current mouse position, and put that in the information as well. 
-
-And then it would upgrade the text that it sends to very briefly explain all of that with locations
-
-I would also like a voice command called make dump, unless you can think of a better verb for that namespace.
----
-7. I would like to discuss and document norms for name spaces of caster voice commands. I generally like them to start with a verb in then a noun. 
+15. I would like to discuss and document norms for name spaces of caster voice commands. I generally like them to start with a verb in then a noun. 
 
 I really like ones like open blank
 
@@ -113,7 +87,7 @@ How can we like write all of this down in a way that is so synced but memorable,
 
 I'm assuming we put this in the skill but I'm wondering what format would be effective?
 ---
-6. I am interested in a better way to highlight stuff on my Kindle. I don't use a mouse at all. Some programmatic way to do it. I am thinking that I could make a command like
+14. I am interested in a better way to highlight stuff on my Kindle. I don't use a mouse at all. Some programmatic way to do it. I am thinking that I could make a command like
 
 Highlight 'jarring rush' to 'exosuit' 
 
@@ -123,14 +97,42 @@ I am using the Kindle app on Windows desktop I am unable to use the chrome versi
 
 I'm interested in different options like maybe detecting different paragraphs and numbering them and then just picking like numbers one through four, that would be fine.
 ---
-5. We should take a look at QMD. We had a design file or something for somewhere, but I now have my graphics card so we should take another look at doing the more complicated AI version and see if that is fast enough to be part of the workflow. I don't think right now it's using my graphics card at all.
+13. We should take a look at QMD. We had a design file or something for somewhere, but I now have my graphics card so we should take another look at doing the more complicated AI version and see if that is fast enough to be part of the workflow. I don't think right now it's using my graphics card at all.
 ---
-4. I want to program the front buttons on my remote to be easily programmable with auto hotkey. Pretty much every button that I don't actively use. I want to have like a very nice Json profile or something for editing them just like with my number pad.
+12. I want to program the front buttons on my remote to be easily programmable with auto hotkey. Pretty much every button that I don't actively use. I want to have like a very nice Json profile or something for editing them just like with my number pad.
 
 And just like with my footpedals I would like to have modes. So I can say like toggle blank and it will be a new mode. And for each website it will have the default that it falls back to if nothing is set for that domain in that mode. But certain modes will override all global hotkeys. So I could have like a navigation mode and that would override any hotkeys that are set in that global mode.
 ---
-3. I have a second microphone that is a miniature headset I would like to create a voice commands/auto hotkey function that will swap Dragon between the two microphones
+11. I have a second microphone that is a miniature headset I would like to create a voice commands/auto hotkey function that will swap Dragon between the two microphones
 ---
-2. I want to build an auto hotkey GUI for editing modifying and viewing my stacks. He will now open when I say open stack instead of notepad plus plus. I want to be able to delete stacks, view them very easily. In the individual stack list view I wanted to smartly display a certain amount of each item depending on how many items in the stack and how long they are. For example my macros stack has some really long entries. So I would want to probably just display like two or three lines from each.
+10. Okay I want to create modes for my F-15 key. If I say switch tab I want it to toggle between the current mode and a new mode where it will go to the previously viewed window. And then if I press it again it will go to the previously previously viewed window. So basically it will be cycling through all of my open windows once per button press. So if I have three windows open I can just tap it and it will cycle through all of them one at a time as I tap.
 ---
-1. Okay I want to create modes for my F-15 key. If I say switch tab I want it to toggle between the current mode and a new mode where it will go to the previously viewed window. And then if I press it again it will go to the previously previously viewed window. So basically it will be cycling through all of my open windows once per button press. So if I have three windows open I can just tap it and it will cycle through all of them one at a time as I tap.
+9. I am extremely interested in figuring out some way to highlight text on my screen better. For example you just sent me that PowerShell link, I don't use a mouse at all. That is very hard to make it copy to my clipboard. I told you to remember to automatically copy stuff to make the board but you always forget, but that is a separate issue. This is an issue I encounter in a variety of applications and websites. I would really like to brainstorm this and potentially make a tool or find one that would help with this. I would like you to be as efficient and easy to use as possible and with as much power as possible. I've used a few different things for this like Legion that is built into caster and it just didn't quite work super well but I'm also interested in ways that we can prove that.
+---
+8. Stream decks Json importing and exporting. Maybe an issue with editing inside of the app if it loses state
+---
+7. I need to come up with a better food system
+---
+6. tell me more about the issue of my RAM not being properly configured
+---
+5. I would really like to get moving on improving my Obsidian Vault to set up. Currently just kind of exists but I don't have like voice commands to interact with it or like add new markdown files in specific areas or effectively open specific files/locations/folders or navigate.
+
+I would like voice commands/auto hotkey stuff for all of these things but I had a few specific ones in mind, I would like to create like main files, or even folders maybe will have to discuss the exact architecture/layout but for example I want to have like a Cedar file which is the primary file and other files related to Cedar would be linked within that larger file as like permit links or embedded or whatever, and so I would like a voice command to like create a new Cedar file which would probably go in the Cedar directory and then an auto hotkey GUI to like automatically embed it into a section within the main file. And then I would want a separate voice command to manually embed something or link something. Stuff like that so that I kind of control the shape of the Obsidian Vault effectively and the linking of things effectively. And the tagging of things. I know this is a lot, this is a lot of like design decisions that we need to discuss and work through, I am open to many ideas of how to implement this effectively and I would like to lay it all out with the functionality that we need before we begin implementing. I want the system to be modular and programmatic and easy to add more functionality to.
+---
+4. Somewhere in my caster base for my voice typing set up I have a series of voice commands like direct variable
+
+It should be a list of directories. I would like to re-create that and merge it over into my new set up. A lot of those all directories will not end up carrying over so we need to like look through them.
+
+But a lot of the voice commands will carry over but double check with me. I would like to be able to add directory with that voice command anytime I am in like Explorer or maybe even PowerShell or command line if that is reasonable. I will just say add directory and then that directory will be accessible with open <directory>, go <directory>, etc. if I am already in an Explorer window then go will redirect me but open will open a new window. And open works from anywhere. I can also say direct <directory> and it will just print it. 
+
+This should obviously turn into a auto hotkey forward set up
+---
+3. I would like to discuss upgrading my UI a dump. It would take a screenshot, but that at a specific location. It would record the current mouse position, and put that in the information as well. 
+
+And then it would upgrade the text that it sends to very briefly explain all of that with locations
+
+I would also like a voice command called make dump, unless you can think of a better verb for that namespace. in stock
+---
+2. I need to fix my stream decks sliding so much.
+---
+1. I want to start using my virtual desktops more effectively. I would like to use desktop one just a house like my chrome and my Kindle and stuff, and then I will switch to desktop to and open my Visual Studio code. Do you think that this is a good way to approach this? I really get overstimulated having like four or five windows open and I can't just tap alttaba single time using my hockey. Are there any other good things I should be considering

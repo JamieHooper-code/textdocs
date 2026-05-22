@@ -1,6 +1,6 @@
-voice command injection confirmed vscode rule loaded successfully
+2. voice command injection confirmed vscode rule loaded successfully
 ---
-I'm ready to start Step 2 of habit-rpg: building `ingest_cmangos.py`. Before writing any code, read these files in full:
+1. I'm ready to start Step 2 of habit-rpg: building `ingest_cmangos.py`. Before writing any code, read these files in full:
 
 1. `C:\Users\jamie\Desktop\Important\projects\habit-rpg\BUILD_PLAN.md` GÇö canonical plan. **Critical sections**: 2.1 (data sources, earliest-source-wins dedupe rule, schema divergence across expansions, DBC sidecar), 2.2 (items.db storage model), 2.18 (expansion progression), and Step 2 itself. Don't re-litigate anything already locked in.
 2. `C:\Users\jamie\Desktop\Important\projects\habit-rpg\README.md` GÇö quick orientation
