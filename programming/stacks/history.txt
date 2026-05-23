@@ -1,31 +1,31 @@
-87. APM tracker design (not built yet; paused after shipping the mindfulness bell): [DESIGN.md](C:\Users\jamie\Desktop\Important\AutoHotkey\Scripts\apm-tracker\DESIGN.md)
+88. APM tracker design (not built yet; paused after shipping the mindfulness bell): [DESIGN.md](C:\Users\jamie\Desktop\Important\AutoHotkey\Scripts\apm-tracker\DESIGN.md)
+---
+87. [ ] Testing infra expansions — TestLogMarkers, verify.ps1 ahk-run, UIA inner-view inspection, DisplayFusionCommand CLI spelunk. Full writeup: [[TESTING_INFRASTRUCTURE_EXPANSIONS]]
 ---
 86. [ ] Testing infra expansions — TestLogMarkers, verify.ps1 ahk-run, UIA inner-view inspection, DisplayFusionCommand CLI spelunk. Full writeup: [[TESTING_INFRASTRUCTURE_EXPANSIONS]]
 ---
-85. [ ] Testing infra expansions — TestLogMarkers, verify.ps1 ahk-run, UIA inner-view inspection, DisplayFusionCommand CLI spelunk. Full writeup: [[TESTING_INFRASTRUCTURE_EXPANSIONS]]
+85. understanding how arguments are passed from caster to AutoHotkey  should be super obvious from the documentation. if it is not currently obvious please make it so.
 ---
-84. understanding how arguments are passed from caster to AutoHotkey  should be super obvious from the documentation. if it is not currently obvious please make it so.
+84. I would really like to remake meet at the fig tree for Cedar.  using a photo of a fig tree and a photo of us
 ---
-83. I would really like to remake meet at the fig tree for Cedar.  using a photo of a fig tree and a photo of us
----
-82. okay I feel like we definitely need to make everything we just did repeatable,  what is the word for that? 
+83. okay I feel like we definitely need to make everything we just did repeatable,  what is the word for that? 
 
  I would like to be able to give you an album of images,   and have you process them either in all modes or with specific modes. and with optional parameters for each mode.  I'm thinking maybe we have like a default Json file of default parameters.  I would also like to be able to do this exclusively to the command line/ the user interface.
 ---
-81. I am having an idea but it's not time to say it yet
+82. I am having an idea but it's not time to say it yet
 ---
-80. I was indicating that I want that baseline image to show up as the first image to the right of the contact sheet so that when I'm scrolling through them with my arrow keys it shows up nicely and I can do direct comparisons. 
+81. I was indicating that I want that baseline image to show up as the first image to the right of the contact sheet so that when I'm scrolling through them with my arrow keys it shows up nicely and I can do direct comparisons. 
 
 ---
-79. I feel like we need to build out a better debugging system. You keep writing and destroying debugging code, and then just giving me images to look at but they always have issues. Are you able to write some debugging code that like analyzes the HTML and the sizes of things in the overlap things, are there like any skills that you have or that we could get or is this just something we can do with a Python script? It feels really necessary it feels like we are working blind
+80. I feel like we need to build out a better debugging system. You keep writing and destroying debugging code, and then just giving me images to look at but they always have issues. Are you able to write some debugging code that like analyzes the HTML and the sizes of things in the overlap things, are there like any skills that you have or that we could get or is this just something we can do with a Python script? It feels really necessary it feels like we are working blind
 
 And I feel like this debugging script could potentially be code that gets run on generations that can detect issues that arise with certain combinations, that might be like a future thing but I feel like at least for now we just need some debugging. Like for example it could generate it and then analyze them and then if the text is below the thing it generates a new one? Because I feel like sometimes no matter how we how well we do all of this there will just always be some images that kind of look goofy
 ---
-78. What is a smoke test
+79. What is a smoke test
 ---
-77. Consider putting my add to send functions through haiku or sonnet to have it auto generate the responses. Also the true/false thing should just be like a selector not an input field..........
+78. Consider putting my add to send functions through haiku or sonnet to have it auto generate the responses. Also the true/false thing should just be like a selector not an input field..........
 ---
-76. LLM Wiki
+77. LLM Wiki
 
 A pattern for building personal knowledge bases using LLMs.
 
@@ -101,78 +101,78 @@ The idea is related in spirit to Vannevar Bush's Memex (1945) — a personal, cura
 
 This document is intentionally abstract. It describes the idea, not a specific implementation. The exact directory structure, the schema conventions, the page formats, the tooling — all of that will depend on your domain, your preferences, and your LLM of choice. Everything mentioned above is optional and modular — pick what's useful, ignore what isn't. For example: your sources might be text-only, so you don't need image handling at all. Your wiki might be small enough that the index file is all you need, no search engine required. You might not care about slide decks and just want markdown pages. You might want a completely different set of output formats. The right way to use this is to share it with your LLM agent and work together to instantiate a version that fits your needs. The document's only job is to communicate the pattern. Your LLM can figure out the rest.
 ---
-75. I need this whole project to be deployable and re-deployable  on an Atlantic virtual server.  what might that look like in terms of code side implementation,  what kind of specifications do you think we need on that server including like RAM and hard drive space and what technologies  and permissions.  what are some other considerations?  the ideal scenario is I never have to personally manually do anything inside of the virtual machine and you are able to do everything from my PC over SSH or whatever.  it could theoretically run on Linux or Windows.
+76. I need this whole project to be deployable and re-deployable  on an Atlantic virtual server.  what might that look like in terms of code side implementation,  what kind of specifications do you think we need on that server including like RAM and hard drive space and what technologies  and permissions.  what are some other considerations?  the ideal scenario is I never have to personally manually do anything inside of the virtual machine and you are able to do everything from my PC over SSH or whatever.  it could theoretically run on Linux or Windows.
 ---
-74. I want to make sure that we are storing all of the loads that we download,  or sorry all of the emails.  that will be useful for historical analysis.  are we currently doing anything like that?  on my system I would like to store all of them forever,  in production I will likely want to store them up to like six months of data?  or maybe some like maximum folder size.
+75. I want to make sure that we are storing all of the loads that we download,  or sorry all of the emails.  that will be useful for historical analysis.  are we currently doing anything like that?  on my system I would like to store all of them forever,  in production I will likely want to store them up to like six months of data?  or maybe some like maximum folder size.
 ---
-73. Tell me about Visual Studio code insiders and its recent implementation of cloud code agents.
+74. Tell me about Visual Studio code insiders and its recent implementation of cloud code agents.
 ---
-72. Make and everything search and the Plex search. Make it modular so that different things can implement it.
+73. Make and everything search and the Plex search. Make it modular so that different things can implement it.
 ---
-71. Add a macro to toggle where I can just add a number of hours.
+72. Add a macro to toggle where I can just add a number of hours.
 ---
-70. At the end of every day when we put the emails down I would like an email update of all the emails process that day,  and how many loads posted per customer/sender.  I would like it to be short and concise.
+71. At the end of every day when we put the emails down I would like an email update of all the emails process that day,  and how many loads posted per customer/sender.  I would like it to be short and concise.
+---
+70. okay one of the biggest current issues with our testing is that currently I am pretty blind to what's actually happening on the backend during tests.  we need to build and more sanity checking.  I would like to be able to view  the posted orders on the MacLeod board alongside the actual emails that you used to generate them in a very simple way.  how can we build something where that is practical and very simple for me and Tali to review  side-by-side.
 ---
 69. okay one of the biggest current issues with our testing is that currently I am pretty blind to what's actually happening on the backend during tests.  we need to build and more sanity checking.  I would like to be able to view  the posted orders on the MacLeod board alongside the actual emails that you used to generate them in a very simple way.  how can we build something where that is practical and very simple for me and Tali to review  side-by-side.
 ---
-68. okay one of the biggest current issues with our testing is that currently I am pretty blind to what's actually happening on the backend during tests.  we need to build and more sanity checking.  I would like to be able to view  the posted orders on the MacLeod board alongside the actual emails that you used to generate them in a very simple way.  how can we build something where that is practical and very simple for me and Tali to review  side-by-side.
+68. okay I would like to do a test run.  all of Dean's emails  from this week.  I want you to process them sequentially  and go through the receiving the first email on Monday, different emails during the day, swapping over to Tuesday, etc.  and then all the way through to today EOD.  I want to see all of the data in a format that is comprehensible to me,  including mistakes, limitations, etc.  this is a specific test that I will be running to sanity check customers to see if they are ready.  this is a test that I really want to flesh out and get working properly and I want my interface for understanding the results to be really good so that I don't have to come through a million logs.  I want you to be able to understand what went right, what went wrong, what could be improved,  and tell me that and show me the actual data the actual things posted to development,  the actual loads  that got removed maybe end of day or  when a new email came in, etc.
 ---
-67. okay I would like to do a test run.  all of Dean's emails  from this week.  I want you to process them sequentially  and go through the receiving the first email on Monday, different emails during the day, swapping over to Tuesday, etc.  and then all the way through to today EOD.  I want to see all of the data in a format that is comprehensible to me,  including mistakes, limitations, etc.  this is a specific test that I will be running to sanity check customers to see if they are ready.  this is a test that I really want to flesh out and get working properly and I want my interface for understanding the results to be really good so that I don't have to come through a million logs.  I want you to be able to understand what went right, what went wrong, what could be improved,  and tell me that and show me the actual data the actual things posted to development,  the actual loads  that got removed maybe end of day or  when a new email came in, etc.
+67. okay I would like to do a test run.  all of Dean's emails  from this week.  I want you to process them sequentially  and go through the receiving the first email on Monday, different emails during the day, swapping over to Tuesday, etc.  and then all the way through to today EOD.  I want to see all of the data in a format that is comprehensible to me,  including mistakes, limitations, etc.  this is a specific test that I will be running to sanity check customers to see if they are ready.  this is a test that I really want to flesh out and get working properly and I want my interface for understanding the results to be really good so that I don't have to come through a million logs.  I want you to be able to understand what went right, what went wrong, what could be improved,  and tell me that and show me the actual data the actual things posted to development,  the actual loads  that got removed maybe end of day or  when a new email came in, etc.  I want as much of this is possible to be  deterministic,  but then I want you to be able to analyze the results and explain it to me.  what you think about this plan?  I wanted to include as many of the tests that we've already built as possible so that were not reinventing the wheel
 ---
-66. okay I would like to do a test run.  all of Dean's emails  from this week.  I want you to process them sequentially  and go through the receiving the first email on Monday, different emails during the day, swapping over to Tuesday, etc.  and then all the way through to today EOD.  I want to see all of the data in a format that is comprehensible to me,  including mistakes, limitations, etc.  this is a specific test that I will be running to sanity check customers to see if they are ready.  this is a test that I really want to flesh out and get working properly and I want my interface for understanding the results to be really good so that I don't have to come through a million logs.  I want you to be able to understand what went right, what went wrong, what could be improved,  and tell me that and show me the actual data the actual things posted to development,  the actual loads  that got removed maybe end of day or  when a new email came in, etc.  I want as much of this is possible to be  deterministic,  but then I want you to be able to analyze the results and explain it to me.  what you think about this plan?  I wanted to include as many of the tests that we've already built as possible so that were not reinventing the wheel
+66. I knew it.  there are two different emails that we are parsing here,  and every time an Illinois load list comes in you remove all of the other loads.  that is the kind of bug we need this to detect.  why were you not picking that up?  I don't want to just patch that specific bug right now I want to figure out how to prevent that from happening again in the future. it's clearly two different emails and the subject says Illinois updated list for today,  and a lot of the lows you were destroying were not Illinois loads
 ---
 65. I knew it.  there are two different emails that we are parsing here,  and every time an Illinois load list comes in you remove all of the other loads.  that is the kind of bug we need this to detect.  why were you not picking that up?  I don't want to just patch that specific bug right now I want to figure out how to prevent that from happening again in the future. it's clearly two different emails and the subject says Illinois updated list for today,  and a lot of the lows you were destroying were not Illinois loads
----
-64. I knew it.  there are two different emails that we are parsing here,  and every time an Illinois load list comes in you remove all of the other loads.  that is the kind of bug we need this to detect.  why were you not picking that up?  I don't want to just patch that specific bug right now I want to figure out how to prevent that from happening again in the future. it's clearly two different emails and the subject says Illinois updated list for today,  and a lot of the lows you were destroying were not Illinois loads
 
  this actually makes me so happy,  up to this point I have had such a hard time understanding what is going on in the backend  and there's just so much logic to track all at once,  this visual interface has been so helpful in like 45 minutes at coming up with so many bugs.
 ---
-63. I knew it.  there are two different emails that we are parsing here,  and every time an Illinois load list comes in you remove all of the other loads.  that is the kind of bug we need this to detect.  why were you not picking that up?  I don't want to just patch that specific bug right now I want to figure out how to prevent that from happening again in the future. it's clearly two different emails and the subject says Illinois updated list for today,  and a lot of the lows you were destroying were not Illinois loads
+64. I knew it.  there are two different emails that we are parsing here,  and every time an Illinois load list comes in you remove all of the other loads.  that is the kind of bug we need this to detect.  why were you not picking that up?  I don't want to just patch that specific bug right now I want to figure out how to prevent that from happening again in the future. it's clearly two different emails and the subject says Illinois updated list for today,  and a lot of the lows you were destroying were not Illinois loads
 
  this actually makes me so happy,  up to this point I have had such a hard time understanding what is going on in the backend  and there's just so much logic to track all at once,  this visual interface has been so helpful in like 45 minutes at coming up with so many bugs.  that being said I do think we should be all to make a system where you can catch bugs like that.  but let's discuss that at length where the gaps are
 ---
-62. I just found a bug. http://127.0.0.1:5050/replay/wirejafl-2026-04-27-1777740565/email/T130354Z_6UoiAAAAAAEMAAAwyizAwyIKQptyrFMU6UoiAAAIrwlMAAA_
+63. I just found a bug. http://127.0.0.1:5050/replay/wirejafl-2026-04-27-1777740565/email/T130354Z_6UoiAAAAAAEMAAAwyizAwyIKQptyrFMU6UoiAAAIrwlMAAA_
 
  for this email I see a bunch of pickup dates of April 27,  but when I look at April 27 in the by day log  I see them all posted as April 28.  every single load from the whole email regardless of what he actually said is posted is pickup on the 28th,  why is this happening?
 ---
-61. I just found a bug. http://127.0.0.1:5050/replay/wirejafl-2026-04-27-1777740565/email/T130354Z_6UoiAAAAAAEMAAAwyizAwyIKQptyrFMU6UoiAAAIrwlMAAA_
+62. I just found a bug. http://127.0.0.1:5050/replay/wirejafl-2026-04-27-1777740565/email/T130354Z_6UoiAAAAAAEMAAAwyizAwyIKQptyrFMU6UoiAAAIrwlMAAA_
 
  for this email I see a bunch of pickup dates of April 27,  but when I look at April 27 in the by day log  I see them all posted as April 28.  every single load from the whole email regardless of what he actually said is posted is pickup on the 28th,  why is this happening?
 
  also I validated that yes it can be the same origin and destination,  just remote that validated entirely.
 ---
-60. okay so one big consideration I wanted to flag. on a lot of like the Excel tables and stuff  the header never changes, are we able to like parse the header in a specific way that validates that it's always the exact same?  and then if it's not the same we can prompt sonnet or opus  to analyze it and see if we need to change the configuration files for that customer  or send it up for review?  I think that is a case where like when something changes is when I would be happy to invoke opus  when it is something that changes that is not supposed to change and we can detect that programmatically and then do it after
+61. okay so one big consideration I wanted to flag. on a lot of like the Excel tables and stuff  the header never changes, are we able to like parse the header in a specific way that validates that it's always the exact same?  and then if it's not the same we can prompt sonnet or opus  to analyze it and see if we need to change the configuration files for that customer  or send it up for review?  I think that is a case where like when something changes is when I would be happy to invoke opus  when it is something that changes that is not supposed to change and we can detect that programmatically and then do it after
 ---
-59. when we do replays in testing and stuff  it should automatically compare our new data against historical data, does that sound like a good idea that
+60. when we do replays in testing and stuff  it should automatically compare our new data against historical data, does that sound like a good idea that
 ---
-58. please analyze the data from that replay run report and tell me about any code changes that we should make
+59. please analyze the data from that replay run report and tell me about any code changes that we should make
 ---
-57. Improve my spotify macros . Not like the existing ones I would like to make some are like actual navigation of the user interface. Probably a whole stream decks page. Navigate the left bar. Figure out a way to full-screen the left bar or just like some way to better view all of my recent, maybe there's like a page or something for that?
+58. Improve my spotify macros . Not like the existing ones I would like to make some are like actual navigation of the user interface. Probably a whole stream decks page. Navigate the left bar. Figure out a way to full-screen the left bar or just like some way to better view all of my recent, maybe there's like a page or something for that?
 ---
-56. dd
+57. dd
 ---
-55. I want to add a lot more search functionalities. I want to add a macro to programmatically add a search functionality for website. So I say like add search and it will attempt to navigate the URL to figure out how to add it.
+56. I want to add a lot more search functionalities. I want to add a macro to programmatically add a search functionality for website. So I say like add search and it will attempt to navigate the URL to figure out how to add it.
 ---
-54. do we need to beef up the UIA  documentation?  it feels like at a anytime I ask you to do any form of that you have to look up a bunch of stuff
+55. do we need to beef up the UIA  documentation?  it feels like at a anytime I ask you to do any form of that you have to look up a bunch of stuff
 ---
-53. I would like to look into some Visual Studio code versus Claude code kind of stuff
+54. I would like to look into some Visual Studio code versus Claude code kind of stuff
 ---
-52. [ ] Testing infra expansions — TestLogMarkers, verify.ps1 ahk-run, UIA inner-view inspection, DisplayFusionCommand CLI spelunk. Full writeup: [[TESTING_INFRASTRUCTURE_EXPANSIONS]]
+53. [ ] Testing infra expansions — TestLogMarkers, verify.ps1 ahk-run, UIA inner-view inspection, DisplayFusionCommand CLI spelunk. Full writeup: [[TESTING_INFRASTRUCTURE_EXPANSIONS]]
 ---
-51. {
+52. {
   "command": "Start-Process MAINFUN.bat -ArgumentList 'OpenSearchExe', 'C:\\Program Files\\Everything\\Everything.exe', 'ahk_exe Everything.exe', '-search \"test query\"' -WindowStyle Hidden; Start-Sleep 4; Get-Content \"$env:TEMP\\ahk_last_result.txt\"",
   "description": "Test OpenSearchExe directly with Everything"
 }
 
 When you run these tests I get little window pop-ups with the errors is there way to get them to show silently
 ---
-50. Figure out how to do my emoji is better. A lot of them are hard to say like <3 I would like a system for updating them and adding them and making sure they are hardcoded.
+51. Figure out how to do my emoji is better. A lot of them are hard to say like <3 I would like a system for updating them and adding them and making sure they are hardcoded.
 ---
-49. Sometimes when you are running tests I will get error pop-ups like this. When you are running that canonical test it hung waiting for me to press enter through them. Is there a way to get those to not show to me but to show to you?
+50. Sometimes when you are running tests I will get error pop-ups like this. When you are running that canonical test it hung waiting for me to press enter through them. Is there a way to get those to not show to me but to show to you?
 
 Also it feels like sometimes you write a lot of different tests over and over what programming and thing, should we be adding that to some sort of actual testing CodeBase or do you think the way you're doing is good? Specifically if we could write like some form of generic testing that you can run new code against so we don't have to rewrite a bunch of stuff every time.
 ---
-48. Okay I want to create a completion log. Basically just a recording of all of the things that I do in a day. So I say add completion and it will open the little user interface, possibly PowerShell possibly auto hotkey. I say open completion and it will open the log itself.
+49. Okay I want to create a completion log. Basically just a recording of all of the things that I do in a day. So I say add completion and it will open the little user interface, possibly PowerShell possibly auto hotkey. I say open completion and it will open the log itself.
 
 The user interface will be in type something in and press enter and it will add it to the log, and then recursively open the same UI so I can add more things. It will also have a list of things I pick from from 0 to 99 and I either type the first few letters of them and press enter to add them or I type the corresponding number. So swimming will be one of the things I do, and it will be like [10] Swimming so if I type X and press enter it at that I swam that day. I have things as belonging to categories, so after I add something manually I choose to add it to a category if I want. Or I can pick a category like Atlantic logistics and then type the thing in. And categories can belong to other categories so like Atlantic logistics always belongs to programming and it belongs to work. So those are like tags. So swimming would belong to like exercise/physical therapy/outside/health. And meditate would belong to mindfulness and health. And so if I pick meditate I default to 22 minutes but I can also put in time. So different things have different input fields that belong to them and most of them should have defaults with things. So for like worked on Atlantic logistics it could have number of hours and/or what I did
 
@@ -180,9 +180,15 @@ I will also have friends in here so like hang out with Cedar. So I like pick Ced
 
 I will be using this data for other things so I want the data especially for like the premade ones like swimming or meditate to be very future proof for using that data for anything else. So I like see all the days in the last year that I meditated or how many times I meditated per month, we can discuss the design of that philosophy.
 ---
-47. Make my F1 button switch window to left position of left monitor if window is currently on right monitor or it'll switch to bottom position of right monitor if window is currently on left monitor.
+48. Make my F1 button switch window to left position of left monitor if window is currently on right monitor or it'll switch to bottom position of right monitor if window is currently on left monitor.
 ---
-46. APM tracker design (not built yet; paused after shipping the mindfulness bell): [DESIGN.md](C:\Users\jamie\Desktop\Important\AutoHotkey\Scripts\apm-tracker\DESIGN.md)
+47. APM tracker design (not built yet; paused after shipping the mindfulness bell): [DESIGN.md](C:\Users\jamie\Desktop\Important\AutoHotkey\Scripts\apm-tracker\DESIGN.md)
+---
+46. I would like to be able to use the left and right arrow keys to go forward or back through the music options. And it will remember the history to allow me to go backward or forward. But if I go forward into new terrain it just randoms again. I would like to be able to press S to add the currently playing song to a permanent skipped list. It will not auto skip but it will show the (S) and then I skip manually if I want.
+
+Also during my meditation timers when the meditation finishes I wanted to continue playing interval bills until I cancel the lockout.
+
+Are there any other hotkeys that you think would be useful?
 ---
 45. I would like to be able to use the left and right arrow keys to go forward or back through the music options. And it will remember the history to allow me to go backward or forward. But if I go forward into new terrain it just randoms again. I would like to be able to press S to add the currently playing song to a permanent skipped list. It will not auto skip but it will show the (S) and then I skip manually if I want.
 
@@ -190,11 +196,13 @@ Also during my meditation timers when the meditation finishes I wanted to contin
 
 Are there any other hotkeys that you think would be useful?
 ---
-44. I would like to be able to use the left and right arrow keys to go forward or back through the music options. And it will remember the history to allow me to go backward or forward. But if I go forward into new terrain it just randoms again. I would like to be able to press S to add the currently playing song to a permanent skipped list. It will not auto skip but it will show the (S) and then I skip manually if I want.
+44. Okay I would like to add a stream decks button that is for testing my current macro that I'm trying out. I often have a problem with like when we were testing the remote Atlantic voice command I just have to say the same thing over and over, so I want a voice command and stream decks button that is for testing the currently tested auto hotkey function. Basically I will run a voice command something like 'make current'
 
-Also during my meditation timers when the meditation finishes I wanted to continue playing interval bills until I cancel the lockout.
+And then on my Stream Deck 2 macros page I will have a button that always activates whatever the current function is.
 
-Are there any other hotkeys that you think would be useful?
+In the voice command to activate the current function will be 'try do' 
+
+When I activate make current a little auto hotkey GUI will pop up where I picked which command I wanted out of the log of recently activated commands. It will show like the most recent 15.
 ---
 43. Okay I would like to add a stream decks button that is for testing my current macro that I'm trying out. I often have a problem with like when we were testing the remote Atlantic voice command I just have to say the same thing over and over, so I want a voice command and stream decks button that is for testing the currently tested auto hotkey function. Basically I will run a voice command something like 'make current'
 
@@ -203,6 +211,10 @@ And then on my Stream Deck 2 macros page I will have a button that always activa
 In the voice command to activate the current function will be 'try do' 
 
 When I activate make current a little auto hotkey GUI will pop up where I picked which command I wanted out of the log of recently activated commands. It will show like the most recent 15.
+
+Okay a big addition to this is I want to be able to set other macros using a similar functionality. For example on my number pad I would like to be able to toggle like macro setting mode. With the voice command and then I pressed the button and it will pop open a similar GUI and I press enter to pick the first one is in the most recent or I use the arrows to pick from the list. We could potentially do something similar with my F keys as well and my footpedals. 
+
+I'm thinking for the number pad we might just update the whole thing to run off of like a very simple Json configuration, or maybe we already do that? I'm thinking either way we can rebuild it if necessary to make it as configurable as possible with this kind of design mentality.
 ---
 42. Okay I would like to add a stream decks button that is for testing my current macro that I'm trying out. I often have a problem with like when we were testing the remote Atlantic voice command I just have to say the same thing over and over, so I want a voice command and stream decks button that is for testing the currently tested auto hotkey function. Basically I will run a voice command something like 'make current'
 
@@ -216,31 +228,19 @@ Okay a big addition to this is I want to be able to set other macros using a sim
 
 I'm thinking for the number pad we might just update the whole thing to run off of like a very simple Json configuration, or maybe we already do that? I'm thinking either way we can rebuild it if necessary to make it as configurable as possible with this kind of design mentality.
 ---
-41. Okay I would like to add a stream decks button that is for testing my current macro that I'm trying out. I often have a problem with like when we were testing the remote Atlantic voice command I just have to say the same thing over and over, so I want a voice command and stream decks button that is for testing the currently tested auto hotkey function. Basically I will run a voice command something like 'make current'
-
-And then on my Stream Deck 2 macros page I will have a button that always activates whatever the current function is.
-
-In the voice command to activate the current function will be 'try do' 
-
-When I activate make current a little auto hotkey GUI will pop up where I picked which command I wanted out of the log of recently activated commands. It will show like the most recent 15.
-
-Okay a big addition to this is I want to be able to set other macros using a similar functionality. For example on my number pad I would like to be able to toggle like macro setting mode. With the voice command and then I pressed the button and it will pop open a similar GUI and I press enter to pick the first one is in the most recent or I use the arrows to pick from the list. We could potentially do something similar with my F keys as well and my footpedals. 
-
-I'm thinking for the number pad we might just update the whole thing to run off of like a very simple Json configuration, or maybe we already do that? I'm thinking either way we can rebuild it if necessary to make it as configurable as possible with this kind of design mentality.
----
-40. My Skyrim ones all just say Skyrim they don't have a descriptive name.
+41. My Skyrim ones all just say Skyrim they don't have a descriptive name.
 
 Also they keep opening muted for some reason on my auto lockout
 ---
-39. Move new tab page back to hosted locally
+40. Move new tab page back to hosted locally
 
 Get to do linked with it and possibly even current stack?
 ---
-38. I would like to discuss upgrading my UI a dump. It would take a screenshot, but that at a specific location. It would record the current mouse position, and put that in the information as well. 
+39. I would like to discuss upgrading my UI a dump. It would take a screenshot, but that at a specific location. It would record the current mouse position, and put that in the information as well. 
 
 And then it would upgrade the text that it sends to very briefly explain all of that with locations
 ---
-37. I would like to discuss and document norms for name spaces of caster voice commands. I generally like them to start with a verb in then a noun. 
+38. I would like to discuss and document norms for name spaces of caster voice commands. I generally like them to start with a verb in then a noun. 
 
 I really like ones like open blank
 
@@ -256,11 +256,11 @@ I don't like commands that start on a really harsh syllable like K or a lot of C
 
 How can we like write all of this down in a way that is so synced but memorable, and easy for you to implement when choosing voice commands. I wanted to be like general guidelines that are decently structured and not vague but also not like so specific that it boxes us in.
 ---
-36. https://www.youtube.com/watch?v=cIMKJ43TFLs
+37. https://www.youtube.com/watch?v=cIMKJ43TFLs
 
 I want to download some kind of random videos of different categories. And add those to genres. I would like to be able to add playlists or individual videos to a genre. So a genre could be made up of multiple playlists and videos. I need an easy way to do this, I could potentially just had the playlists and videos to a YouTube playlist, and then make it so my scraper can update genres based on changes to playlists. Or I just add them directly, not sure what is the best solution what you think?
 ---
-35. https://www.youtube.com/watch?v=cIMKJ43TFLs
+36. https://www.youtube.com/watch?v=cIMKJ43TFLs
 
 I want to download some kind of random videos of different categories. And add those to genres. I would like to be able to add playlists or individual videos to a genre. So a genre could be made up of multiple playlists and videos. I need an easy way to do this, I could potentially just had the playlists and videos to a YouTube playlist, and then make it so my scraper can update genres based on changes to playlists. Or I just add them directly, not sure what is the best solution what you think?
 
@@ -270,9 +270,9 @@ I also want a show genres command. It will show me a list of all the genres but 
 
 Also my spot show command should show me the genres that something is in.
 ---
-34. what is the best way to shut down my computer in terms of Dragon and caster?
+35. what is the best way to shut down my computer in terms of Dragon and caster?
 ---
-33. https://www.youtube.com/watch?v=cIMKJ43TFLs
+34. https://www.youtube.com/watch?v=cIMKJ43TFLs
 
 I want to download some kind of random videos of different categories. And add those to genres. I would like to be able to add playlists or individual videos to a genre. So a genre could be made up of multiple playlists and videos. I need an easy way to do this, I could potentially just had the playlists and videos to a YouTube playlist, and then make it so my scraper can update genres based on changes to playlists. Or I just add them directly, not sure what is the best solution what you think?
 
@@ -284,21 +284,21 @@ Also my spot show command should show me the genres that something is in.
 
 Also when I say like Show spotify commands I wanted to pull all of the INIdata so I see like all of my genres automatically and all of my saved albums even the soft saved ones. This should go at the very very bottom because it will be a a lot of clutter
 ---
-32. I would like to upgrade my search functionality like when I say show voice or show spotify commands 
+33. I would like to upgrade my search functionality like when I say show voice or show spotify commands 
 
 
 ---
-31. I want to program the front buttons on my remote to be easily programmable with auto hotkey. Pretty much every button that I don't actively use. I want to have like a very nice Json profile or something for editing them just like with my number pad.
+32. I want to program the front buttons on my remote to be easily programmable with auto hotkey. Pretty much every button that I don't actively use. I want to have like a very nice Json profile or something for editing them just like with my number pad.
 ---
-30. I would like to upgrade my search functionality like when I say show voice or show spotify commands I want the built-in Dragon and caster functions to be displayed beneath my functions that I created. So mine and then caster and then Dragon.
+31. I would like to upgrade my search functionality like when I say show voice or show spotify commands I want the built-in Dragon and caster functions to be displayed beneath my functions that I created. So mine and then caster and then Dragon.
 
 How will you be able to figure out and index all of those functions? 
 
 Also when I say like Show spotify commands I wanted to pull all of the INIdata so I see like all of my genres automatically and all of my saved albums even the soft saved ones. This should go at the very very bottom because it will be a a lot of clutter
 ---
-29. When I hit my right foot pedal in VS code I wanted to also maximize my Claude could window which I have a function for and then scroll to the bottom, there should be auto hotkey functions to plug into for this
+30. When I hit my right foot pedal in VS code I wanted to also maximize my Claude could window which I have a function for and then scroll to the bottom, there should be auto hotkey functions to plug into for this
 ---
-28. I would like to work on my GUI building with auto hotkey. It feels like every time I ask you to build even the smallest one you have to search all over the code base to find examples and understand the way I want them formatted. 
+29. I would like to work on my GUI building with auto hotkey. It feels like every time I ask you to build even the smallest one you have to search all over the code base to find examples and understand the way I want them formatted. 
 
 I'm thinking we build like a section of the skill that has a deep explanation of GUI building with examples of different types. Not just like norms but more like actual code or something?
 
@@ -306,13 +306,13 @@ I'm thinking we can potentially have like templates that either can be used dire
 
 If you think that is too much we could at least have templates that could be copied and adapted rather than just like plugged into? I'm not entirely sure what I'm looking for here but we should discuss design possibilities. I am building more and more auto hotkey templates and I don't want them to take forever to make and I don't want like 25 versions of the same GUI rebuilt over and over when we could just like build something we can plug into and that have options depending on the actual needs of the use case.
 ---
-27. I would like to discuss upgrading my UI a dump. It would take a screenshot, but that at a specific location. It would record the current mouse position, and put that in the information as well. 
+28. I would like to discuss upgrading my UI a dump. It would take a screenshot, but that at a specific location. It would record the current mouse position, and put that in the information as well. 
 
 And then it would upgrade the text that it sends to very briefly explain all of that with locations
 
 I would also like a voice command called make dump, unless you can think of a better verb for that namespace.
 ---
-26. I would like to discuss upgrading my UI a dump. It would take a screenshot, but that at a specific location. It would record the current mouse position, and put that in the information as well. 
+27. I would like to discuss upgrading my UI a dump. It would take a screenshot, but that at a specific location. It would record the current mouse position, and put that in the information as well. 
 
 And then it would upgrade the text that it sends to very briefly explain all of that with locations
 
@@ -320,7 +320,7 @@ I would also like a voice command called make dump, unless you can think of a be
 
 Also I have a print screen button that I use off of my stream deck. When I do that I would like a really good way
 ---
-25. I would like to discuss upgrading my UI a dump. It would take a screenshot, but that at a specific location. It would record the current mouse position, and put that in the information as well. 
+26. I would like to discuss upgrading my UI a dump. It would take a screenshot, but that at a specific location. It would record the current mouse position, and put that in the information as well. 
 
 And then it would upgrade the text that it sends to very briefly explain all of that with locations
 
@@ -328,9 +328,15 @@ I would also like a voice command called make dump, unless you can think of a be
 
 Also I have a print screen button that I use off of my stream deck. When I do that I would like a really good way to easily print a path to the screenshot that we just took, maybe like a spit screen or something, there are times when I want to add a screenshot to like a stack or something but I'm not really sure what is the best way to do that.
 ---
-24. Testing testing testing
+25. Testing testing testing
 ---
-23. I want to build an auto hotkey GUI for editing modifying and viewing my stacks. He will now open when I say open stack instead of notepad plus plus. I want to be able to delete stacks, view them very easily. In the individual stack list view I wanted to smartly display a certain amount of each item depending on how many items in the stack and how long they are. For example my macros stack has some really long entries. So I would want to probably just display like two or three lines from each.
+24. I want to build an auto hotkey GUI for editing modifying and viewing my stacks. He will now open when I say open stack instead of notepad plus plus. I want to be able to delete stacks, view them very easily. In the individual stack list view I wanted to smartly display a certain amount of each item depending on how many items in the stack and how long they are. For example my macros stack has some really long entries. So I would want to probably just display like two or three lines from each.
+---
+23. I would like to discuss upgrading my UI a dump. It would take a screenshot, but that at a specific location. It would record the current mouse position, and put that in the information as well. 
+
+And then it would upgrade the text that it sends to very briefly explain all of that with locations
+
+I would also like a voice command called make dump, unless you can think of a better verb for that namespace.
 ---
 22. I would like to discuss upgrading my UI a dump. It would take a screenshot, but that at a specific location. It would record the current mouse position, and put that in the information as well. 
 
@@ -344,17 +350,11 @@ And then it would upgrade the text that it sends to very briefly explain all of 
 
 I would also like a voice command called make dump, unless you can think of a better verb for that namespace.
 ---
-20. I would like to discuss upgrading my UI a dump. It would take a screenshot, but that at a specific location. It would record the current mouse position, and put that in the information as well. 
-
-And then it would upgrade the text that it sends to very briefly explain all of that with locations
-
-I would also like a voice command called make dump, unless you can think of a better verb for that namespace.
----
-19. I would really like to get moving on improving my Obsidian Vault to set up. Currently just kind of exists but I don't have like voice commands to interact with it or like add new markdown files in specific areas or effectively open specific files/locations/folders or navigate.
+20. I would really like to get moving on improving my Obsidian Vault to set up. Currently just kind of exists but I don't have like voice commands to interact with it or like add new markdown files in specific areas or effectively open specific files/locations/folders or navigate.
 
 I would like voice commands/auto hotkey stuff for all of these things but I had a few specific ones in mind, I would like to create like main files, or even folders maybe will have to discuss the exact architecture/layout but for example I want to have like a Cedar file which is the primary file and other files related to Cedar would be linked within that larger file as like permit links or embedded or whatever, and so I would like a voice command to like create a new Cedar file which would probably go in the Cedar directory and then an auto hotkey GUI to like automatically embed it into a section within the main file. And then I would want a separate voice command to manually embed something or link something. Stuff like that so that I kind of control the shape of the Obsidian Vault effectively and the linking of things effectively. And the tagging of things. I know this is a lot, this is a lot of like design decisions that we need to discuss and work through, I am open to many ideas of how to implement this effectively and I would like to lay it all out with the functionality that we need before we begin implementing. I want the system to be modular and programmatic and easy to add more functionality to.
 ---
-18. Somewhere in my caster base for my voice typing set up I have a series of voice commands like direct variable
+19. Somewhere in my caster base for my voice typing set up I have a series of voice commands like direct variable
 
 It should be a list of directories. I would like to re-create that and merge it over into my new set up. A lot of those all directories will not end up carrying over so we need to like look through them.
 
@@ -362,52 +362,52 @@ But a lot of the voice commands will carry over but double check with me. I woul
 
 This should obviously turn into a auto hotkey forward set up
 ---
-17. tell me more about the issue of my RAM not being properly configured
+18. tell me more about the issue of my RAM not being properly configured
 ---
-16. Stream decks Json importing and exporting. Maybe an issue with editing inside of the app if it loses state
+17. Stream decks Json importing and exporting. Maybe an issue with editing inside of the app if it loses state
 ---
-15. I am extremely interested in figuring out some way to highlight text on my screen better. For example you just sent me that PowerShell link, I don't use a mouse at all. That is very hard to make it copy to my clipboard. I told you to remember to automatically copy stuff to make the board but you always forget, but that is a separate issue. This is an issue I encounter in a variety of applications and websites. I would really like to brainstorm this and potentially make a tool or find one that would help with this. I would like you to be as efficient and easy to use as possible and with as much power as possible. I've used a few different things for this like Legion that is built into caster and it just didn't quite work super well but I'm also interested in ways that we can prove that.
+16. I am extremely interested in figuring out some way to highlight text on my screen better. For example you just sent me that PowerShell link, I don't use a mouse at all. That is very hard to make it copy to my clipboard. I told you to remember to automatically copy stuff to make the board but you always forget, but that is a separate issue. This is an issue I encounter in a variety of applications and websites. I would really like to brainstorm this and potentially make a tool or find one that would help with this. I would like you to be as efficient and easy to use as possible and with as much power as possible. I've used a few different things for this like Legion that is built into caster and it just didn't quite work super well but I'm also interested in ways that we can prove that.
 ---
-14. I need to come up with a better food system
+15. I need to come up with a better food system
 ---
-13. I want to build an auto hotkey GUI for editing modifying and viewing my stacks. He will now open when I say open stack instead of notepad plus plus. I want to be able to delete stacks, view them very easily. In the individual stack list view I wanted to smartly display a certain amount of each item depending on how many items in the stack and how long they are. For example my macros stack has some really long entries. So I would want to probably just display like two or three lines from each.
+14. I want to build an auto hotkey GUI for editing modifying and viewing my stacks. He will now open when I say open stack instead of notepad plus plus. I want to be able to delete stacks, view them very easily. In the individual stack list view I wanted to smartly display a certain amount of each item depending on how many items in the stack and how long they are. For example my macros stack has some really long entries. So I would want to probably just display like two or three lines from each.
 ---
-12. I would like to discuss upgrading my UI a dump. It would take a screenshot, but that at a specific location. It would record the current mouse position, and put that in the information as well. 
+13. I would like to discuss upgrading my UI a dump. It would take a screenshot, but that at a specific location. It would record the current mouse position, and put that in the information as well. 
 
 And then it would upgrade the text that it sends to very briefly explain all of that with locations
 
 I would also like a voice command called make dump, unless you can think of a better verb for that namespace.
 ---
-11. I would like to discuss upgrading my UI a dump. It would take a screenshot, but that at a specific location. It would record the current mouse position, and put that in the information as well. 
+12. I would like to discuss upgrading my UI a dump. It would take a screenshot, but that at a specific location. It would record the current mouse position, and put that in the information as well. 
 
 And then it would upgrade the text that it sends to very briefly explain all of that with locations
 
 I would also like a voice command called make dump, unless you can think of a better verb for that namespace. in stock
 ---
-10. I want to start using my virtual desktops more effectively. I would like to use desktop one just a house like my chrome and my Kindle and stuff, and then I will switch to desktop to and open my Visual Studio code. Do you think that this is a good way to approach this? I really get overstimulated having like four or five windows open and I can't just tap alttaba single time using my hockey. Are there any other good things I should be considering
+11. I want to start using my virtual desktops more effectively. I would like to use desktop one just a house like my chrome and my Kindle and stuff, and then I will switch to desktop to and open my Visual Studio code. Do you think that this is a good way to approach this? I really get overstimulated having like four or five windows open and I can't just tap alttaba single time using my hockey. Are there any other good things I should be considering
 ---
-9. I need to fix my stream decks sliding so much.
+10. I need to fix my stream decks sliding so much.
 ---
-8. I would like to discuss upgrading my UI a dump. It would take a screenshot, but that at a specific location. It would record the current mouse position, and put that in the information as well. 
+9. I would like to discuss upgrading my UI a dump. It would take a screenshot, but that at a specific location. It would record the current mouse position, and put that in the information as well. 
 
 And then it would upgrade the text that it sends to very briefly explain all of that with locations
 
 I would also like a voice command called make dump, unless you can think of a better verb for that namespace. in stock
 ---
-7. I'm interested in improving my auto hotkey logging. Notice when I send this you often check the last like 40 lines which is a lot of text and therefore a lot of tokens. Do you think it would be useful to may be stored all in Json or something so that you can search it better? I would also probably like to store the file that a function is and when I log it, and any other useful information that would help you to navigate my CodeBase just by looking at the most recent log. Go ahead and take a look at it and think about any other information that would be useful and any other format the information could be in that would be useful. 
+8. I'm interested in improving my auto hotkey logging. Notice when I send this you often check the last like 40 lines which is a lot of text and therefore a lot of tokens. Do you think it would be useful to may be stored all in Json or something so that you can search it better? I would also probably like to store the file that a function is and when I log it, and any other useful information that would help you to navigate my CodeBase just by looking at the most recent log. Go ahead and take a look at it and think about any other information that would be useful and any other format the information could be in that would be useful. 
 
 Tail-AHK -- I just ran the function(s) we're talking about. tail C:\Users\jamie\Desktop\Important\AutoHotkey\ahk_event.log and read the last ~5 DISPATCH/in lines. The function names there are the ones I'm referring to.
 
 
 ---
-6. I'm interested in improving my auto hotkey logging. Notice when I send this you often check the last like 40 lines which is a lot of text and therefore a lot of tokens. Do you think it would be useful to may be stored all in Json or something so that you can search it better? I would also probably like to store the file that a function is and when I log it, and any other useful information that would help you to navigate my CodeBase just by looking at the most recent log. Go ahead and take a look at it and think about any other information that would be useful and any other format the information could be in that would be useful. 
+7. I'm interested in improving my auto hotkey logging. Notice when I send this you often check the last like 40 lines which is a lot of text and therefore a lot of tokens. Do you think it would be useful to may be stored all in Json or something so that you can search it better? I would also probably like to store the file that a function is and when I log it, and any other useful information that would help you to navigate my CodeBase just by looking at the most recent log. Go ahead and take a look at it and think about any other information that would be useful and any other format the information could be in that would be useful. 
 
 Would it be possible to get the deck number and page and location of stream decks button presses? Figure that might not be possible?
 
 Tail-AHK -- I just ran the function(s) we're talking about. tail C:\Users\jamie\Desktop\Important\AutoHotkey\ahk_event.log and read the last ~5 DISPATCH/in lines. The function names there are the ones I'm referring to.
 
 ---
-5. I'm interested in creating modes for my new desktop switching macros. The first mode I want would be switch desk watch
+6. I'm interested in creating modes for my new desktop switching macros. The first mode I want would be switch desk watch
 
 The normal mode is switch desk normal
 
@@ -415,9 +415,9 @@ This is for watching YouTube videos will I work or television in general, if I'm
 
 I will be creating many more modes so please make it like modular and programmatic the way we can switch between them.
 ---
-4. Get daily goals added and make a little user interface I can easily modify the so like meditating twice today was a big goal. I can have like general daily goals and specific ones
+5. Get daily goals added and make a little user interface I can easily modify the so like meditating twice today was a big goal. I can have like general daily goals and specific ones
 ---
-3. Okay I would like to add a stream decks button that is for testing my current macro that I'm trying out. I often have a problem with like when we were testing the remote Atlantic voice command I just have to say the same thing over and over, so I want a voice command and stream decks button that is for testing the currently tested auto hotkey function. Basically I will run a voice command something like 'make current'
+4. Okay I would like to add a stream decks button that is for testing my current macro that I'm trying out. I often have a problem with like when we were testing the remote Atlantic voice command I just have to say the same thing over and over, so I want a voice command and stream decks button that is for testing the currently tested auto hotkey function. Basically I will run a voice command something like 'make current'
 
 And then on my Stream Deck 2 macros page I will have a button that always activates whatever the current function is.
 
@@ -437,8 +437,10 @@ I know that this is a time to implement, let's discuss the design and what makes
 
 I would also like to store the history of each key, both globally and specifically like for global hotkeys and for chrome hotkeys and for like spotify chrome tab hotkeys. And then when I go to change like F3 for instance I both see the most recent AHK functions but also the recent global and specific F3 settings
 ---
-2. Okay I want to create modes for my F-15 key. If I say switch tab I want it to toggle between the current mode and a new mode where it will go to the previously viewed window. And then if I press it again it will go to the previously previously viewed window. So basically it will be cycling through all of my open windows once per button press. So if I have three windows open I can just tap it and it will cycle through all of them one at a time as I tap.
+3. Okay I want to create modes for my F-15 key. If I say switch tab I want it to toggle between the current mode and a new mode where it will go to the previously viewed window. And then if I press it again it will go to the previously previously viewed window. So basically it will be cycling through all of my open windows once per button press. So if I have three windows open I can just tap it and it will cycle through all of them one at a time as I tap.
 ---
-1. I want to program the front buttons on my remote to be easily programmable with auto hotkey. Pretty much every button that I don't actively use. I want to have like a very nice Json profile or something for editing them just like with my number pad.
+2. I want to program the front buttons on my remote to be easily programmable with auto hotkey. Pretty much every button that I don't actively use. I want to have like a very nice Json profile or something for editing them just like with my number pad.
 
 And just like with my footpedals I would like to have modes. So I can say like toggle blank and it will be a new mode. And for each website it will have the default that it falls back to if nothing is set for that domain in that mode. But certain modes will override all global hotkeys. So I could have like a navigation mode and that would override any hotkeys that are set in that global mode.
+---
+1. I have a virtual stream deck which is meant for profile switching. It's called profile switcher. There is a hotkey to open it and it will open on the screen and we can resize it and update it to contain all of my profiles on both decks. So with this we can pop it open and then click where we know a deck is possibly with UI automation or possibly just hardcoded positioning. I'm interested in setting this up so that we have built-in auto hotkey functions for switching to any profile on either deck and those can just be called from anywhere and work with like a one line function call. I will need you to build out the profile switcher page, I currently only have one item on.
