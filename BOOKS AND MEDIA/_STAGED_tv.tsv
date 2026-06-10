@@ -1,0 +1,26 @@
+# Staged TV SHOWS from MEDIACONTENTANIMESHOWSMOVIES.txt. status queued = to-watch.
+# Columns: status <TAB> title <TAB> creator(blank) <TAB> tags(comma) <TAB> rec
+# Reclassified from the MOVIES section (they're shows, not films): I May Destroy You, Kipo.
+# "LotR" under SHOWS is ambiguous — read as the Rings of Power series; change to films if you meant those.
+queued	The Bear		comedy, drama
+queued	The Boys		superhero, action
+queued	Arcane		animation, fantasy
+queued	The Wire		crime, drama
+queued	The Lord of the Rings: The Rings of Power		fantasy
+queued	Hannibal		crime, thriller, horror
+queued	Succession		drama	erin
+queued	Veep		comedy	erin
+queued	True Detective		crime, thriller
+queued	Atlanta		comedy, drama	jessie
+queued	Castlevania		animation, fantasy, action
+queued	BoJack Horseman		animation, comedy, drama	hannah
+queued	Twin Peaks		mystery, drama	allan
+queued	The Expanse		science fiction
+queued	Firefly		science fiction
+queued	Fleabag		comedy, drama	erin
+queued	Heartstopper		romance, queer, drama	tupelo
+queued	Los Espookys		comedy	jamila
+queued	Sharp Objects		thriller, drama	jamila
+queued	Star Trek: Deep Space Nine		science fiction	ripley
+queued	I May Destroy You		drama	jamila
+queued	Kipo and the Age of Wonderbeasts		animation, adventure	shy

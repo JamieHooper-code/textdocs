@@ -1,0 +1,31 @@
+# Staged to-read import from TOCONSUMEBOOKSGENDER.txt + TOCONSUMEBOOKSRACE.txt — REVIEW, then I commit.
+# Columns:  status <TAB> title <TAB> author <TAB> tags(comma) <TAB> recommended_by
+# I extracted ONLY books — skipped video essays, articles/PDFs, toolkits, podcasts, social accounts, and URLs.
+# Braiding Sweetgrass + All About Love are already in your library (dedup will skip them).
+# RECOMMENDER GUESS: the race file is headed "FROM KAYLA ABOUT CMC" — I tentatively set race books to Kayla. Clear the 5th column on any that aren't hers. The gender file had no attribution (left blank).
+#
+# --- TRANS / GENDER THEORY ---
+to_read	Whipping Girl	Julia Serano	trans, queer, feminism, theory
+to_read	Transgender History	Susan Stryker	trans, queer, history
+to_read	Black on Both Sides	C. Riley Snorton	trans, queer, race, history, theory
+to_read	Normal Life	Dean Spade	trans, queer, abolition, theory
+to_read	Transgender Warriors	Leslie Feinberg	trans, queer, marxism, history
+to_read	Testo Junkie	Paul B. Preciado	trans, queer, memoir, theory
+to_read	Transgender Marxism	Jules Joanne Gleeson	trans, queer, marxism, theory
+to_read	A Short History of Trans Misogyny	Jules Gill-Peterson	trans, queer, transmisogyny, history, theory
+# --- RACE / WHITE-SUPREMACY CULTURE (rec guess: Kayla — verify) ---
+to_read	Emergent Strategy	adrienne maree brown	organizing, race, theory	Kayla
+to_read	Holding Change	adrienne maree brown	organizing, race	Kayla
+to_read	My Grandmother's Hands	Resmaa Menakem	race, therapy, body	Kayla
+to_read	As We Have Always Done	Leanne Betasamosake Simpson	indigenous, theory, organizing	Kayla
+to_read	Braiding Sweetgrass	Robin Wall Kimmerer	nature, indigenous	Kayla
+to_read	Grassroots Post-Modernism	Gustavo Esteva	theory, indigenous	Kayla
+to_read	All About Love	bell hooks	love, feminism	Kayla
+to_read	Teaching Community	bell hooks	race, theory	Kayla
+to_read	Octavia's Brood	Walidah Imarisha	science fiction, race	Kayla
+to_read	I Hope We Choose Love	Kai Cheng Thom	queer, race, theory	Kayla
+to_read	Killing Rage	bell hooks	race, feminism, theory	Kayla
+to_read	Me and White Supremacy	Layla F. Saad	race, theory	Kayla
+to_read	Eloquent Rage	Brittney Cooper	race, feminism, memoir	Kayla
+to_read	White Fragility	Robin DiAngelo	race, theory	Kayla
+to_read	The Racial Contract	Charles W. Mills	race, philosophy, theory	Kayla

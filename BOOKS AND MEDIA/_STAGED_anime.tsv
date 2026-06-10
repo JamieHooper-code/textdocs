@@ -1,0 +1,21 @@
+# Staged ANIME from MEDIACONTENTANIMESHOWSMOVIES.txt. status queued = to-watch.
+# Columns: status <TAB> title <TAB> creator(studio, usually blank) <TAB> tags(comma) <TAB> rec
+# NOTE: "Parasite" in the anime list is almost certainly Parasyte (the anime), NOT the film — verify.
+# "Samurai Shampoo" = Samurai Champloo (misspelling). Akira lived in BOTH anime+movies; filed here once as anime.
+queued	Fullmetal Alchemist		action, fantasy
+queued	Naruto		action
+queued	Neon Genesis Evangelion		science fiction, mecha
+queued	Frieren		fantasy, adventure
+queued	Kill la Kill		action
+queued	Tower of God		fantasy, action
+queued	Puella Magi Madoka Magica		fantasy	avatarbanban
+queued	Samurai Champloo		action, adventure
+queued	Akira		science fiction
+queued	Erased		thriller, mystery	adam
+queued	Parasyte		horror, science fiction
+queued	My Hero Academia		action, superhero
+queued	Solo Leveling		action, fantasy
+queued	Dorohedoro		action, horror
+queued	Akame ga Kill		action
+queued	Blue Lock		sports, drama
+queued	Re:Zero		fantasy

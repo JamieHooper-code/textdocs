@@ -1,0 +1,50 @@
+# Staged MOVIE import from MOVIES.txt + PoliticalMovies.md.
+# Columns:  status <TAB> title <TAB> director <TAB> tags(comma) <TAB> recommended_by
+# status: queued = to-watch (default) · done = seen.
+# NOTE: MOVIES.txt called the first block "my favorite movies" but Jamie isn't sure those are hers
+#       (possibly someone else's list, recommender unknown) — so they're queued with NO recommender.
+# Directors filled where confident; blank where not (verify).
+# SpanishMovies.md NOT imported — just links to external "best of" lists; better as a web/resource entry later.
+#
+# --- MOVIES.txt top block (unknown whose list — queued, no recommender) ---
+queued	Knives Out	Rian Johnson	mystery, comedy, crime
+queued	Isle of Dogs	Wes Anderson	animation, adventure, comedy
+queued	Fantastic Mr. Fox	Wes Anderson	animation, comedy
+queued	The Grand Budapest Hotel	Wes Anderson	comedy, adventure
+queued	Parasite	Bong Joon-ho	thriller, drama
+queued	Nightcrawler	Dan Gilroy	thriller, crime
+queued	Birdman	Alejandro G. Iñárritu	drama, comedy
+queued	Whiplash	Damien Chazelle	drama
+queued	Her	Spike Jonze	science fiction, romance, drama
+queued	In Bruges	Martin McDonagh	crime, comedy, drama
+queued	Spirited Away	Hayao Miyazaki	animation, fantasy
+queued	I Saw the Devil	Kim Jee-woon	thriller, horror, crime
+queued	Pan's Labyrinth	Guillermo del Toro	fantasy, war, drama
+queued	Oldboy	Park Chan-wook	thriller, mystery
+queued	Se7en	David Fincher	thriller, crime, mystery
+queued	The Silence of the Lambs	Jonathan Demme	thriller, crime, horror
+queued	Memories of Murder	Bong Joon-ho	crime, thriller, mystery
+queued	Sherlock Holmes	Guy Ritchie	mystery, adventure, action
+queued	Ocean's Eleven	Steven Soderbergh	crime, comedy
+queued	Ready Player One	Steven Spielberg	science fiction, adventure
+queued	Ender's Game	Gavin Hood	science fiction
+queued	X-Men: First Class	Matthew Vaughn	science fiction, action, superhero
+# --- OLIVE'S RECOMMENDATIONS (status: queued, rec: Olive) ---
+queued	Brick	Rian Johnson	mystery, crime, noir	Olive
+queued	Monster (Kaibutsu)	Hirokazu Kore-eda	drama, mystery	Olive
+queued	Penda's Fen	Alan Clarke	drama, fantasy	Olive
+queued	The Visit		horror	Olive
+queued	Titane	Julia Ducournau	horror, drama	Olive
+queued	Hereditary	Ari Aster	horror	Olive
+queued	Wind River	Taylor Sheridan	thriller, crime, mystery	Olive
+queued	Some of My Best Friends Are		drama, queer	Olive
+queued	Weekend	Andrew Haigh	romance, queer, drama	Olive
+queued	Tangerine	Sean Baker	comedy, drama, queer, trans	Olive
+queued	The Raid: Redemption	Gareth Evans	action	Olive
+# Olive said "everything Jane Schoenbrun has made" — I INFERRED these two titles; delete if wrong:
+queued	We're All Going to the World's Fair	Jane Schoenbrun	horror, queer, trans	Olive
+queued	I Saw the TV Glow	Jane Schoenbrun	horror, queer, trans	Olive
+# --- POLITICAL (PoliticalMovies.md; recommender unknown) ---
+queued	No Other Land		documentary, palestine, history
+#
+# SKIPPED as too vague (franchises, not specific titles): "New marvel movies", "Harry Potter", "Mission Impossible".

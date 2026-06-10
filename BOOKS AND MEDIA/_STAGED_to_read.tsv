@@ -1,0 +1,143 @@
+# Staged to-read import from TOCONSUMEBOOKS.txt — REVIEW THIS, then I commit it.
+# One book per line:  status <TAB> title <TAB> author <TAB> tags(comma) <TAB> recommended_by
+# Delete any line you don't want; fix titles/authors/tags freely. Lines starting with # are ignored.
+# status is to_read for everything except the 4 marked finished. Dupes vs your library are auto-skipped.
+#
+# --- FANTASY ---
+to_read	The Broken Earth Trilogy	N.K. Jemisin	fantasy, science fiction	Lena
+# --- MYTHS / STORYTELLING (rec: Rigo) ---
+to_read	The Flowering Wand	Sophie Strand	myth, masculinity, nonfiction	Rigo
+to_read	Sand Talk	Tyson Yunkaporta	indigenous, nonfiction, storytelling	Rigo
+to_read	Ways of Being	James Bridle	nonfiction, animism, technology	Rigo
+# --- SPANISH (to read in Spanish) ---
+to_read	El Jardín Secreto	Frances Hodgson Burnett	spanish, classic
+to_read	Harry Potter (Spanish)	J.K. Rowling	spanish, fantasy
+to_read	Percy Jackson (Spanish)	Rick Riordan	spanish, fantasy
+to_read	The Hobbit (Spanish)	J.R.R. Tolkien	spanish, fantasy
+# --- rec: Zach ---
+to_read	Pet	Akwaeke Emezi	fiction, queer, young adult	Zach
+to_read	The Stand	Stephen King	horror, fiction	Zach
+to_read	The Edge Chronicles	Paul Stewart	fantasy, young adult	Zach
+to_read	Invisible Cities	Italo Calvino	fiction, literary	Zach
+to_read	The Phantom Tollbooth	Norton Juster	fantasy, young adult	Zach
+# --- IMPERIALISM ---
+to_read	Neo-Colonialism: The Last Stage of Imperialism	Kwame Nkrumah	imperialism, politics
+to_read	Imperialism and Unequal Development	Samir Amin	imperialism, economics
+to_read	How Europe Underdeveloped Africa	Walter Rodney	imperialism, history
+# --- CURRENT READING (stale — defaulting to_read; move to reading if active) ---
+to_read	The Myth of Sisyphus	Albert Camus	philosophy
+to_read	Polysecure	Jessica Fern	polyamory, queer, relationships
+# --- rec: Kenise ---
+to_read	All About Love	bell hooks	love, feminism, nonfiction	Kenise
+to_read	Hood Feminism	Mikki Kendall	feminism, race	Kenise
+to_read	You Are the Placebo	Joe Dispenza	health, mind	Kenise
+to_read	The Five People You Meet in Heaven	Mitch Albom	fiction	Kenise
+to_read	Women Who Run with the Wolves	Clarissa Pinkola Estés	feminism, myth	Kenise
+# --- MINDFULNESS ---
+to_read	On Having No Head	Douglas Harding	mindfulness, zen
+to_read	Mindfulness in Plain English	Bhante Gunaratana	mindfulness
+to_read	The Untethered Soul	Michael A. Singer	mindfulness, spirituality
+# --- HEALTH ---
+to_read	The Brain's Way of Healing	Norman Doidge	health, neuroscience
+# --- COMMUNISM / MARXISM ---
+to_read	Marx	Andrew Collier	communism, philosophy
+# --- ANARCHISM ---
+to_read	How I Found Freedom in an Unfree World	Harry Browne	anarchism
+to_read	The Problem of Political Authority	Michael Huemer	anarchism, philosophy
+to_read	What Is Property?	Pierre-Joseph Proudhon	anarchism
+to_read	Anarchism and Other Essays	Emma Goldman	anarchism
+to_read	Anarchy	Errico Malatesta	anarchism
+to_read	God and the State	Mikhail Bakunin	anarchism
+to_read	Anarchism: Its Philosophy and Ideal	Peter Kropotkin	anarchism
+to_read	Anarchy in Action	Colin Ward	anarchism
+to_read	A Short History of Anarchism	Max Nettlau	anarchism, history
+to_read	The Conquest of Bread	Peter Kropotkin	anarchism, classic
+to_read	A People's History of the United States	Howard Zinn	history, leftism
+to_read	The Great Anarchists	Paul Eltzbacher	anarchism
+to_read	The Failure of Nonviolence	Peter Gelderloos	anarchism
+to_read	Crack Capitalism	John Holloway	marxism, anarchism
+to_read	Against the State	Crispin Sartwell	anarchism, philosophy
+# --- POPULAR SCIENCE ---
+to_read	The Blind Watchmaker	Richard Dawkins	science, evolution
+to_read	Why Evolution Is True	Jerry Coyne	science, evolution
+to_read	A Brief History of Time	Stephen Hawking	science, physics
+to_read	The Meaning of It All	Richard Feynman	science
+to_read	Surely You're Joking, Mr. Feynman	Richard Feynman	science, memoir
+to_read	A Short History of Nearly Everything	Bill Bryson	science
+to_read	Sapiens	Yuval Noah Harari	science, history
+# --- ATHEISM ---
+to_read	The God Delusion	Richard Dawkins	atheism
+to_read	God Is Not Great	Christopher Hitchens	atheism
+# --- LEFTIST SOCIOLOGY ---
+to_read	Black Reconstruction in America	W.E.B. Du Bois	history, leftism, race	Jacob Fiala
+to_read	A Theology of Liberation	Gustavo Gutiérrez	theology, leftism
+to_read	Let This Radicalize You	Kelly Hayes	organizing, leftism
+to_read	Manufacturing Consent	Noam Chomsky	politics, media
+# --- QUEER THEORY ---
+to_read	Relationship Anarchy: Occupy Intimacy	Juan Carlos Pérez Cortés	queer, relationships
+# --- PHILOSOPHICAL LIT ---
+to_read	Mortality	Christopher Hitchens	philosophy, memoir
+# --- CLASSICS ---
+to_read	Robinson Crusoe	Daniel Defoe	classic, fiction
+to_read	Fahrenheit 451	Ray Bradbury	classic, science fiction
+to_read	Frankenstein	Mary Shelley	classic, science fiction
+to_read	The Old Man and the Sea	Ernest Hemingway	classic, fiction
+to_read	Oliver Twist	Charles Dickens	classic, fiction
+to_read	Tess of the d'Urbervilles	Thomas Hardy	classic, fiction
+to_read	The Three Musketeers	Alexandre Dumas	classic, adventure
+to_read	Pride and Prejudice	Jane Austen	classic, romance
+to_read	The Picture of Dorian Gray	Oscar Wilde	classic, fiction
+to_read	The Alchemist	Paulo Coelho	fiction
+# --- PHILOSOPHICAL SCI-FI ---
+to_read	Dune	Frank Herbert	science fiction
+to_read	Solaris	Stanisław Lem	science fiction
+to_read	Cloud Atlas	David Mitchell	science fiction, literary
+to_read	Foundation	Isaac Asimov	science fiction
+to_read	A Canticle for Leibowitz	Walter M. Miller Jr.	science fiction
+to_read	Anathem	Neal Stephenson	science fiction
+# --- PHILOSOPHY ---
+to_read	The Problems of Philosophy	Bertrand Russell	philosophy
+to_read	Think	Simon Blackburn	philosophy
+# --- RACE ---
+to_read	Racism Without Racists	Eduardo Bonilla-Silva	race, sociology
+to_read	Native Son	Richard Wright	race, fiction
+to_read	I'm Still Here	Austin Channing Brown	race, memoir
+# --- PRISON ABOLITION ---
+to_read	Golden Gulag	Ruth Wilson Gilmore	abolition, prison
+to_read	Soledad Brother	George Jackson	prison, race
+to_read	Blood in My Eye	George Jackson	prison, race
+to_read	The Courage to Be Disliked	Ichiro Kishimi	psychology, philosophy
+# --- THERAPY ---
+to_read	Your Resonant Self	Sarah Peyton	therapy, psychology	Jack
+to_read	No Bad Parts	Richard Schwartz	therapy, psychology	Jen
+to_read	Love and Rage	Lama Rod Owens	therapy, buddhism	Jen
+# --- CLIMATE / ENERGY ---
+to_read	Electrify	Saul Griffith	climate, science
+to_read	The New Map	Daniel Yergin	energy, climate
+to_read	Short Circuiting Policy	Leah Stokes	climate, policy
+to_read	This Changes Everything	Naomi Klein	climate, politics
+to_read	The Shock Doctrine	Naomi Klein	politics, economics
+to_read	On Fire	Naomi Klein	climate, politics
+# --- MISC / SINGLES ---
+to_read	Sex at Dawn	Christopher Ryan	relationships, science
+to_read	When Breath Becomes Air	Paul Kalanithi	memoir, medicine
+to_read	Kim Jiyoung, Born 1982	Cho Nam-Joo	literary, feminism
+to_read	Flowers of Fire	Hawon Jung	feminism, korea
+to_read	Braiding Sweetgrass	Robin Wall Kimmerer	nature, indigenous
+to_read	Never Let Me Go	Kazuo Ishiguro	literary, science fiction
+to_read	Crying in H Mart	Michelle Zauner	memoir
+to_read	The Hundred Years' War on Palestine	Rashid Khalidi	history, palestine	Caroline
+to_read	The Demon-Haunted World	Carl Sagan	science, skepticism	Frankie
+to_read	How to Change Your Mind	Michael Pollan	science, psychedelics
+# --- PSYCHOLOGY ("taking people more seriously") ---
+to_read	Blink	Malcolm Gladwell	psychology
+to_read	The Invisible Gorilla	Christopher Chabris	psychology
+to_read	Talking to Strangers	Malcolm Gladwell	psychology
+to_read	The Beauty Myth	Naomi Wolf	feminism
+to_read	Everyday Bias	Howard J. Ross	psychology, bias
+to_read	The Body Is Not an Apology	Sonya Renee Taylor	self-love, body
+# --- FINISHED 2024 ---
+finished	The Communist Manifesto	Karl Marx	communism, leftism
+finished	Anarchy Works	Peter Gelderloos	anarchism
+finished	The Fall	Albert Camus	philosophy, fiction
+finished	Slaughterhouse-Five	Kurt Vonnegut	science fiction, fiction

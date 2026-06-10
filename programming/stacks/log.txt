@@ -1,0 +1,7 @@
+3. The user interface for adding a book is not great. It should pop open the regular tag adding after I finish adding it instead of having me add them is, separated. 
+
+
+---
+2. How I enabled the CSS like different colors
+---
+1. Is there some way to make it so that the I can edit the completion log just by editing the text document? I know the other one is the source of truth but if it like to text changes that were manually made like deletions can those carryover somehow

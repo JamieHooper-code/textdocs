@@ -1,5 +1,3 @@
-26. Consider putting my add to send functions through haiku or sonnet to have it auto generate the responses. Also the true/false thing should just be like a selector not an input field..........  also the ad to stream decks thing should difficult to no
----
 25. Process all of my quotes and tag them. Make it so that I can add them very easily with tags.
 ---
 24. Fix my adding notepad files, for some reason it was not detecting my quotes. At least find some way to easily get the location of the file.
@@ -10,38 +8,9 @@
 ---
 21. At my obsidian fault to my auto hotkey caster workspace
 ---
-20. Add commands like add that to my Dragon dictation box commands
+20. APM tracker design (not built yet; paused after shipping the mindfulness bell): [DESIGN.md](C:\Users\jamie\Desktop\Important\AutoHotkey\Scripts\apm-tracker\DESIGN.md)
 ---
-19. {
-  "command": "Start-Process MAINFUN.bat -ArgumentList 'OpenSearchExe', 'C:\\Program Files\\Everything\\Everything.exe', 'ahk_exe Everything.exe', '-search \"test query\"' -WindowStyle Hidden; Start-Sleep 4; Get-Content \"$env:TEMP\\ahk_last_result.txt\"",
-  "description": "Test OpenSearchExe directly with Everything"
-}
-
-When you run these tests I get little window pop-ups with the errors is there way to get them to show silently
----
-18. Okay I want to create a completion log. Basically just a recording of all of the things that I do in a day. So I say add completion and it will open the little user interface, possibly PowerShell possibly auto hotkey. I say open completion and it will open the log itself.
-
-The user interface will be in type something in and press enter and it will add it to the log, and then recursively open the same UI so I can add more things. It will also have a list of things I pick from from 0 to 99 and I either type the first few letters of them and press enter to add them or I type the corresponding number. So swimming will be one of the things I do, and it will be like [10] Swimming so if I type X and press enter it at that I swam that day. I have things as belonging to categories, so after I add something manually I choose to add it to a category if I want. Or I can pick a category like Atlantic logistics and then type the thing in. And categories can belong to other categories so like Atlantic logistics always belongs to programming and it belongs to work. So those are like tags. So swimming would belong to like exercise/physical therapy/outside/health. And meditate would belong to mindfulness and health. And so if I pick meditate I default to 22 minutes but I can also put in time. So different things have different input fields that belong to them and most of them should have defaults with things. So for like worked on Atlantic logistics it could have number of hours and/or what I did
-
-I will also have friends in here so like hang out with Cedar. So I like pick Cedar, and then a new pop-up opens of common things that I do with friends and I pick from the list or add something. If I add something unique I would like to be prompted to potentially add it to the list. 
-
-I will be using this data for other things so I want the data especially for like the premade ones like swimming or meditate to be very future proof for using that data for anything else. So I like see all the days in the last year that I meditated or how many times I meditated per month, we can discuss the design of that philosophy.
-
-Also this will interact with my to do list so when I mark something off the to do list it will prompt me to add it to the completion log. I'm not entirely sure what that will look like because the to do list is not fully done but that is likely something we will want to implement.
-
-Also on my new tab page I am going to eventually build a section where I can add recurring tasks like watering my plants that need to happen like at least every three days. So it will like count up all the time from the last time I've done it so I can see how long it's been, when I add one of those things to my completion log it will reset the time to zero.
----
-17. APM tracker design (not built yet; paused after shipping the mindfulness bell): [DESIGN.md](C:\Users\jamie\Desktop\Important\AutoHotkey\Scripts\apm-tracker\DESIGN.md)
----
-16. I want to add a filter to my Claude code searching through chat. Like searching through my chats with Claude in VS code. I have buttons to click on the new conversation and to look at old conversations. But they are hardcoded coordinate clickers, I want those to use UI automation or hotkeys. Or at least negative coordinates so it picks them up on different screen sizes better
-
-And then if I say filter <text> it will open up the chats and then type that in so I can see the results
-
-When I say fix chat I wanted to traverse the UI to modify the name of the current chat and then press left arrow to unfocused the text so I can add text to the beginning of it. We can either use tabs to do that or if there is a better way to do that let me know
-
-In general I want to improve the way that I am able to switch chats and do stuff like that and interact with Claude code inside of VS code, let me know if you have any other ideas
----
-15. I would like to discuss and document norms for name spaces of caster voice commands. I generally like them to start with a verb in then a noun. 
+19. I would like to discuss and document norms for name spaces of caster voice commands. I generally like them to start with a verb in then a noun. 
 
 I really like ones like open blank
 
@@ -59,7 +28,7 @@ How can we like write all of this down in a way that is so synced but memorable,
 
 I'm assuming we put this in the skill but I'm wondering what format would be effective?
 ---
-14. I am interested in a better way to highlight stuff on my Kindle. I don't use a mouse at all. Some programmatic way to do it. I am thinking that I could make a command like
+18. I am interested in a better way to highlight stuff on my Kindle. I don't use a mouse at all. Some programmatic way to do it. I am thinking that I could make a command like
 
 Highlight 'jarring rush' to 'exosuit' 
 
@@ -69,38 +38,77 @@ I am using the Kindle app on Windows desktop I am unable to use the chrome versi
 
 I'm interested in different options like maybe detecting different paragraphs and numbering them and then just picking like numbers one through four, that would be fine.
 ---
-13. We should take a look at QMD. We had a design file or something for somewhere, but I now have my graphics card so we should take another look at doing the more complicated AI version and see if that is fast enough to be part of the workflow. I don't think right now it's using my graphics card at all.
+17. I am extremely interested in figuring out some way to highlight text on my screen better. For example you just sent me that PowerShell link, I don't use a mouse at all. That is very hard to make it copy to my clipboard. I told you to remember to automatically copy stuff to make the board but you always forget, but that is a separate issue. This is an issue I encounter in a variety of applications and websites. I would really like to brainstorm this and potentially make a tool or find one that would help with this. I would like you to be as efficient and easy to use as possible and with as much power as possible. I've used a few different things for this like Legion that is built into caster and it just didn't quite work super well but I'm also interested in ways that we can prove that.
 ---
-12. I have a second microphone that is a miniature headset I would like to create a voice commands/auto hotkey function that will swap Dragon between the two microphones
+16. Stream decks Json importing and exporting. Maybe an issue with editing inside of the app if it loses state
 ---
-11. I am extremely interested in figuring out some way to highlight text on my screen better. For example you just sent me that PowerShell link, I don't use a mouse at all. That is very hard to make it copy to my clipboard. I told you to remember to automatically copy stuff to make the board but you always forget, but that is a separate issue. This is an issue I encounter in a variety of applications and websites. I would really like to brainstorm this and potentially make a tool or find one that would help with this. I would like you to be as efficient and easy to use as possible and with as much power as possible. I've used a few different things for this like Legion that is built into caster and it just didn't quite work super well but I'm also interested in ways that we can prove that.
+15. I need to come up with a better food system
 ---
-10. Stream decks Json importing and exporting. Maybe an issue with editing inside of the app if it loses state
+14. tell me more about the issue of my RAM not being properly configured
 ---
-9. I need to come up with a better food system
----
-8. tell me more about the issue of my RAM not being properly configured
----
-7. I would really like to get moving on improving my Obsidian Vault to set up. Currently just kind of exists but I don't have like voice commands to interact with it or like add new markdown files in specific areas or effectively open specific files/locations/folders or navigate.
+13. I would really like to get moving on improving my Obsidian Vault to set up. Currently just kind of exists but I don't have like voice commands to interact with it or like add new markdown files in specific areas or effectively open specific files/locations/folders or navigate.
 
 I would like voice commands/auto hotkey stuff for all of these things but I had a few specific ones in mind, I would like to create like main files, or even folders maybe will have to discuss the exact architecture/layout but for example I want to have like a Cedar file which is the primary file and other files related to Cedar would be linked within that larger file as like permit links or embedded or whatever, and so I would like a voice command to like create a new Cedar file which would probably go in the Cedar directory and then an auto hotkey GUI to like automatically embed it into a section within the main file. And then I would want a separate voice command to manually embed something or link something. Stuff like that so that I kind of control the shape of the Obsidian Vault effectively and the linking of things effectively. And the tagging of things. I know this is a lot, this is a lot of like design decisions that we need to discuss and work through, I am open to many ideas of how to implement this effectively and I would like to lay it all out with the functionality that we need before we begin implementing. I want the system to be modular and programmatic and easy to add more functionality to.
 ---
-6. I have a virtual stream deck which is meant for profile switching. It's called profile switcher. There is a hotkey to open it and it will open on the screen and we can resize it and update it to contain all of my profiles on both decks. So with this we can pop it open and then click where we know a deck is possibly with UI automation or possibly just hardcoded positioning. I'm interested in setting this up so that we have built-in auto hotkey functions for switching to any profile on either deck and those can just be called from anywhere and work with like a one line function call. I will need you to build out the profile switcher page, I currently only have one item on.
+12. I have a virtual stream deck which is meant for profile switching. It's called profile switcher. There is a hotkey to open it and it will open on the screen and we can resize it and update it to contain all of my profiles on both decks. So with this we can pop it open and then click where we know a deck is possibly with UI automation or possibly just hardcoded positioning. I'm interested in setting this up so that we have built-in auto hotkey functions for switching to any profile on either deck and those can just be called from anywhere and work with like a one line function call. I will need you to build out the profile switcher page, I currently only have one item on.
 
 We might have some documentation somewhere, we built out like a little profile switcher but it uses like opening executables, find that and look around and see what our options are. I'm open to other options but I'm interested in switching to this virtual stream decks though that opening executables thing never worked very well and is very limited
 ---
-5. Make my open Sesame command and other Claude code commands automatically open it on the second desktop. Or just like switch to second and then open. Make my chrome commands that are not directly work-related like open teams and open Outlook automatically switch to my main chrome window. Maybe it's possible to detect where the main chrome window is based on a few factors?
+11. Make my open Sesame command and other Claude code commands automatically open it on the second desktop. Or just like switch to second and then open. Make my chrome commands that are not directly work-related like open teams and open Outlook automatically switch to my main chrome window. Maybe it's possible to detect where the main chrome window is based on a few factors?
 ---
-4. Make my reboot caster automatically wake up caster and hide natlink
+10. Make my reboot caster automatically wake up caster and hide natlink
 ---
-3. Okay one big issue with my show voice command. The search is really not intelligent, when I say show voice toggle monitor it does not pick up on the toggle debug monitor command, what is the best way to fix this ? I would like to implement the best possible but still very fast search algorithm so that I can be as imprecise as possible with my searches but get the best results, can you look at how it currently searches and discuss design philosophies? Maybe even with QmD? 
+9. Okay one big issue with my show voice command. The search is really not intelligent, when I say show voice toggle monitor it does not pick up on the toggle debug monitor command, what is the best way to fix this ? I would like to implement the best possible but still very fast search algorithm so that I can be as imprecise as possible with my searches but get the best results, can you look at how it currently searches and discuss design philosophies? Maybe even with QmD? 
 
 Also it takes like a couple seconds to open no it didn't used to do that, what exactly is delaying it ?
 ---
-2. I have my spot check command which checks for spotify and youtube sites, I would like to make it more generic so it can check any website
+8. I have my spot check command which checks for spotify and youtube sites, I would like to make it more generic so it can check any website
 ---
-1. I am interested in developing agents, can we have conversations about that and maybe take a look at some of my skills like auto hockey and my voice skill and maybe even look at a couple of my chats and stuff like that and discuss the possibilities of developing an agent framework
+7. I am interested in developing agents, can we have conversations about that and maybe take a look at some of my skills like auto hockey and my voice skill and maybe even look at a couple of my chats and stuff like that and discuss the possibilities of developing an agent framework
 
 Tell me what you think about making a history of changes in features as well as like a feature list in Json format, specifically for my AHK/voice project or I guess the whole macro system as a whole, do you think this is overkill or do you think this would be useful? I find sometimes when discussing a previously implemented feature it can be difficult for you to find it or to remember that we have already implemented parts of the future or like scripts or tests or something that would be useful for the current task. 
 
 I would potentially also be interested in creating like search functions with Q MD currently we search all of our functions but we could also search the history and feature list all at once to simplify the way that you understand the current system and can iterate on it instead of writing bad parallel code. I don't want to like overengineered this or waste our time writing pointless harness stuff but anything that would be useful I am very interested in developing we spent a lot of tim working in this CodeBase so I'm definitely interested in improving the efficiency especially if we can retrieve the data with free tools like Q MD and it would be cheaper in the long run in terms of tokens
+---
+6. Add commands like add that to my Dragon dictation box commands
+---
+5. I want to add a filter to my Claude code searching through chat. Like searching through my chats with Claude in VS code. I have buttons to click on the new conversation and to look at old conversations. But they are hardcoded coordinate clickers, I want those to use UI automation or hotkeys. Or at least negative coordinates so it picks them up on different screen sizes better
+
+And then if I say filter <text> it will open up the chats and then type that in so I can see the results
+
+When I say next chat it will go to the next chat and when I say back chat it will go to the previous chat.
+
+
+
+When I say name chat I wanted to traverse the UI to modify the name of the current chat and then press left arrow to unfocused the text so I can add text to the beginning of it. We can either use tabs to do that or if there is a better way to do that let me know. When I say name chat macros it will do all of that and then type the word macros with a space after it so it's at the beginning of the name of the current chat. If there is a smarter way to rename the current chat we should do it that way instead.
+
+In general I want to improve the way that I am able to switch chats and do stuff like that and interact with Claude code inside of VS code, let me know if you have any other ideas
+---
+4. I really enjoy looking at art but because of my physical disability I often have trouble finding a website or something where it is highly accessible to me. What I ultimately want is really high quality images of art that I can look through with my left and right arrow keys. This could be like artists or genres or completely random. I would wanted to be like completely full screen with no distractions. What are some good websites for that or maybe I should download some art books or possibly even just like download large dumps of images and then scroll to myself on my computer?
+
+What you think are my best options? I found some good options but never great options
+---
+3. I would like to completely revamp my Kindle macros, I have some coded in caster but will probably basically scrapped them all and just start from scratch with UI automation probably. I would like to be able to save my books so for example right now I'm reading the wayfarer series. And I could say read swallow wayfarer while I'm in my Kindle app and it will save it. And then I can say read swallow wayfarer while I'm on a YouTube video or spotify playlist and it will save it as the relevant ambient music for it. And then when I say read wayfarer it will open both at once and open and focus my Kindle. 
+
+I will also end up revamping my Kindle stream deck page so that I have buttons that do more powerful things integrated better with auto hotkey.
+
+And then when I finish a book I can say read finish wayfarer and it will mark the book is read and save it to a completion log. If possible I can just say read finish well on the book and it will auto detect the relevant book
+---
+2. Okay I have a huge idea. I want to create like a unified user interface for my entire macro system. I have all of these random scripts floating around and I would like them to be accessible from a unified location. Stuff like setting my modes, checking on my reading log, basically all of these things I have random voice commands to like open user interfaces or do specific things I would like to create a unified hierarchical interface for interacting with all of it and finding all of it. So basically like commands like toggle ducking would go under sounds. And so would like open sound scraper. 
+
+And then under like debugging would be stuff like toggling my tooltips and stuff or opening that user interface we built to check the system health of my macro set up, I feel like I have like dozens of disparate systems floating all over my system and sometimes I can't remember the voice commands to open them or just like it feels like everything is random
+
+I would want the user interface to be as accessible as possible and to ideally bring to the front the most relevant information based on context. So for example right now I'm in VS code and I would want it to detect that and my VS code for an's would be near the top so like toggle accept. 
+
+I would want stuff like my timer/alarm system, my sound scraping, my music packs, all of my music libraries, all of my random scripts, my habit RPG. All of these things contained within a system that is very easy to navigate with just the number pad using my number pad conventions and with like the arrow keys. I wanted to be hierarchical so that I'm not overwhelmed with like a million different things all at once but I can like dig into different things when I need to. 
+
+I will eventually want this user interface to be accessible from inside of my new tab page in chrome in some format so I would like the backend of it to be as generic as possible so that we can very easily add new things to it after we create them and use it from within an auto hotkey user interface or within whatever one we will build for the new tab page. Currently I think it will just be auto hotkey tho.
+
+I want to design it so that it is as easy as possible to add new things to this, when I'm creating a new script or a new functionality or whatever I don't want it to be like a whole thing that I have to added to this I wanted to be like super simple and ideally somewhat automatic so I'm not wasting tons of tokens understanding the whole system every time I need to add like one line to VS code functionalities or something. And I would want to edit the skills to make sure that this happens every time we add a new feature that is relevant to the system. I don't need every single command in here like my StackShow command, but for like a general stack user interface or stack editor I would want that if that makes sense. 
+
+I really want this to be a really solid design so let's work through the design as much as possible to get it right instead of just building some trash.
+---
+1. make dump output — active-window snapshot for Claude. JSON below carries window/mouse/focus inline; artifact paths point to UIA tree and screenshot on disk. Open those only if needed.
+{"_meta":"make dump: active-window snapshot. mouse.abs is screen coords; mouse.rel is client-area coords (relative to active window's client origin). focus is the UIA-focused element (null when UIA was skipped). Open the uia/shot artifact files only if visually/structurally needed.","ts":"2026-06-08T20:32:04","window":{"title":"Jade Rose: The Valley (Album Video, Environmental Music) - YouTube - Google Chrome","class":"Chrome_WidgetWin_1","exe":"chrome.exe","rect":[-8,0,1296,1400]},"mouse":{"abs":[978,675],"rel":[978,675]},"focus":{"name":"Jade Rose: The Valley (Album Video, Environmental Music) - YouTube","type":"document","aid":"RootWebArea"},"artifacts":{"uia":"C:\\Users\\jamie\\AppData\\Local\\Temp\\UIA_Dump.txt","shot":"C:\\Users\\jamie\\AppData\\Local\\Temp\\dump_screenshot.png"}}
+
+Okay I have a big idea. When I say add music when I'm on YouTube I wanted to either add the current playlist to my library with the option to add it as a music pack. Please check my music pack codebase to understand what I mean. If I'm on a specific video I want to add it to my library possibly under a specific genre and possibly I want to scrape it with my scraper that already exists for my PACs. And possibly I want to add it to a pack. So I would like to be prompted in the most intuitive user interface possible using my templates and stuff to be able to do all of that. And I wanted to be gentle on failure and warned me and stuff like that.

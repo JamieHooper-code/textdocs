@@ -1,0 +1,6 @@
+# Staged BOOKS from the mixed dump -> book catalog (import with --type book).
+# Columns: status <TAB> title <TAB> author <TAB> tags <TAB> rec
+queued	The Hobbit	J.R.R. Tolkien	fantasy, classic
+queued	The Left Hand of Darkness	Ursula K. Le Guin	science fiction, queer
+queued	Bluets	Maggie Nelson	poetry	Fia
+queued	The Mars Trilogy	Kim Stanley Robinson	science fiction
