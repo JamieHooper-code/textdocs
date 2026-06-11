@@ -6,6 +6,10 @@ tags: [music, catalog, spotify, todo, planning]
 Living plan for the unified music catalog (`E:/Media/catalog/music.json`).
 Companion design doc: [[MEDIA_SYSTEM]]. AHK orchestrator:
 `Helpers/SpotifyAddFunctions.ahk`. Python ingest: `Scripts/MediaCatalog/`.
+**Read [[SPOTIFY_SCRAPING_INTERNALS]] before touching the scrape pipeline** —
+covers the /related dump format, wrong-URL detection layers, Spotify
+broken-state signatures, and the off-by-one parser bug that polluted every
+placeholder pre-2026-06-10.
 
 Each item below is sized into **wave 1** (quick wins, shippable in one
 session), **wave 2** (medium — needs new GUI / new schema field), or
@@ -15,6 +19,27 @@ relatedness graph).
 Add to this file when new asks surface; tick items as they ship.
 
 ## Wave 1 — quick wins (shippable now)
+
+- [x] Scrape pipeline correctness pass (2026-06-10)
+  - `_related_from_dump` rewritten: coord-pair `[link]`↔`[group] AID` lines
+    instead of FIFO. Old version was off-by-one for every card and poisoned
+    every placeholder. Background + signatures: [[SPOTIFY_SCRAPING_INTERNALS]].
+  - All 1280 stale placeholders nuked + 65 source-artist `related` arrays
+    cleared. Backups: `E:/Media/catalog/music.json.bak-*`.
+  - 7 catalog artists had wrong Spotify URLs (Elliott Smith → Newfound
+    Interest in Connecticut, Built To Spill → Sparklehorse, etc.) — fixed
+    from the queue's `mb_url_rel` URLs which were mostly correct. Bad
+    placeholder refs they generated were scrubbed.
+  - New CLI: `verify-spotify-url` (HTTP og:title fuzzy-match, ~500ms,
+    retries once). Wired into `BackfillPlaceholdersForAllSavedArtists` as
+    a Chrome-skip pre-flight.
+  - `save-placeholder-artists` got a window-title `WRONG_PAGE` guard
+    (defense-in-depth against Chrome diverging).
+  - `BackfillPlaceholdersForAllSavedArtists` now: takes a `maxCount` arg,
+    adaptive page-ready poll (was hardcoded `Sleep(2500)`), detects three
+    distinct Spotify-broken signatures + silent never-rendered, aborts
+    after 3 consecutive broken pages, sanitizes catalog IDs to avoid the
+    NTFS ADS gotcha.
 
 - [x] Right-side number entry in genre picker (legacy `_pickByNumber`)
   - Was: typing "54" for a right-row pick said "no entry numbered 54".
