@@ -1,16 +1,16 @@
-25. Process all of my quotes and tag them. Make it so that I can add them very easily with tags.
+26. Process all of my quotes and tag them. Make it so that I can add them very easily with tags.
 ---
-24. Fix my adding notepad files, for some reason it was not detecting my quotes. At least find some way to easily get the location of the file.
+25. Fix my adding notepad files, for some reason it was not detecting my quotes. At least find some way to easily get the location of the file.
 ---
-23. Tell me about Visual Studio code insiders and its recent implementation of cloud code agents.
+24. Tell me about Visual Studio code insiders and its recent implementation of cloud code agents.
 ---
-22. Improve my calendar commands and at reminders
+23. Improve my calendar commands and at reminders
 ---
-21. At my obsidian fault to my auto hotkey caster workspace
+22. At my obsidian fault to my auto hotkey caster workspace
 ---
-20. APM tracker design (not built yet; paused after shipping the mindfulness bell): [DESIGN.md](C:\Users\jamie\Desktop\Important\AutoHotkey\Scripts\apm-tracker\DESIGN.md)
+21. APM tracker design (not built yet; paused after shipping the mindfulness bell): [DESIGN.md](C:\Users\jamie\Desktop\Important\AutoHotkey\Scripts\apm-tracker\DESIGN.md)
 ---
-19. I would like to discuss and document norms for name spaces of caster voice commands. I generally like them to start with a verb in then a noun. 
+20. I would like to discuss and document norms for name spaces of caster voice commands. I generally like them to start with a verb in then a noun. 
 
 I really like ones like open blank
 
@@ -28,7 +28,7 @@ How can we like write all of this down in a way that is so synced but memorable,
 
 I'm assuming we put this in the skill but I'm wondering what format would be effective?
 ---
-18. I am interested in a better way to highlight stuff on my Kindle. I don't use a mouse at all. Some programmatic way to do it. I am thinking that I could make a command like
+19. I am interested in a better way to highlight stuff on my Kindle. I don't use a mouse at all. Some programmatic way to do it. I am thinking that I could make a command like
 
 Highlight 'jarring rush' to 'exosuit' 
 
@@ -38,41 +38,41 @@ I am using the Kindle app on Windows desktop I am unable to use the chrome versi
 
 I'm interested in different options like maybe detecting different paragraphs and numbering them and then just picking like numbers one through four, that would be fine.
 ---
-17. I am extremely interested in figuring out some way to highlight text on my screen better. For example you just sent me that PowerShell link, I don't use a mouse at all. That is very hard to make it copy to my clipboard. I told you to remember to automatically copy stuff to make the board but you always forget, but that is a separate issue. This is an issue I encounter in a variety of applications and websites. I would really like to brainstorm this and potentially make a tool or find one that would help with this. I would like you to be as efficient and easy to use as possible and with as much power as possible. I've used a few different things for this like Legion that is built into caster and it just didn't quite work super well but I'm also interested in ways that we can prove that.
+18. I am extremely interested in figuring out some way to highlight text on my screen better. For example you just sent me that PowerShell link, I don't use a mouse at all. That is very hard to make it copy to my clipboard. I told you to remember to automatically copy stuff to make the board but you always forget, but that is a separate issue. This is an issue I encounter in a variety of applications and websites. I would really like to brainstorm this and potentially make a tool or find one that would help with this. I would like you to be as efficient and easy to use as possible and with as much power as possible. I've used a few different things for this like Legion that is built into caster and it just didn't quite work super well but I'm also interested in ways that we can prove that.
 ---
-16. Stream decks Json importing and exporting. Maybe an issue with editing inside of the app if it loses state
+17. Stream decks Json importing and exporting. Maybe an issue with editing inside of the app if it loses state
 ---
-15. I need to come up with a better food system
+16. I need to come up with a better food system
 ---
-14. tell me more about the issue of my RAM not being properly configured
+15. tell me more about the issue of my RAM not being properly configured
 ---
-13. I would really like to get moving on improving my Obsidian Vault to set up. Currently just kind of exists but I don't have like voice commands to interact with it or like add new markdown files in specific areas or effectively open specific files/locations/folders or navigate.
+14. I would really like to get moving on improving my Obsidian Vault to set up. Currently just kind of exists but I don't have like voice commands to interact with it or like add new markdown files in specific areas or effectively open specific files/locations/folders or navigate.
 
 I would like voice commands/auto hotkey stuff for all of these things but I had a few specific ones in mind, I would like to create like main files, or even folders maybe will have to discuss the exact architecture/layout but for example I want to have like a Cedar file which is the primary file and other files related to Cedar would be linked within that larger file as like permit links or embedded or whatever, and so I would like a voice command to like create a new Cedar file which would probably go in the Cedar directory and then an auto hotkey GUI to like automatically embed it into a section within the main file. And then I would want a separate voice command to manually embed something or link something. Stuff like that so that I kind of control the shape of the Obsidian Vault effectively and the linking of things effectively. And the tagging of things. I know this is a lot, this is a lot of like design decisions that we need to discuss and work through, I am open to many ideas of how to implement this effectively and I would like to lay it all out with the functionality that we need before we begin implementing. I want the system to be modular and programmatic and easy to add more functionality to.
 ---
-12. I have a virtual stream deck which is meant for profile switching. It's called profile switcher. There is a hotkey to open it and it will open on the screen and we can resize it and update it to contain all of my profiles on both decks. So with this we can pop it open and then click where we know a deck is possibly with UI automation or possibly just hardcoded positioning. I'm interested in setting this up so that we have built-in auto hotkey functions for switching to any profile on either deck and those can just be called from anywhere and work with like a one line function call. I will need you to build out the profile switcher page, I currently only have one item on.
+13. I have a virtual stream deck which is meant for profile switching. It's called profile switcher. There is a hotkey to open it and it will open on the screen and we can resize it and update it to contain all of my profiles on both decks. So with this we can pop it open and then click where we know a deck is possibly with UI automation or possibly just hardcoded positioning. I'm interested in setting this up so that we have built-in auto hotkey functions for switching to any profile on either deck and those can just be called from anywhere and work with like a one line function call. I will need you to build out the profile switcher page, I currently only have one item on.
 
 We might have some documentation somewhere, we built out like a little profile switcher but it uses like opening executables, find that and look around and see what our options are. I'm open to other options but I'm interested in switching to this virtual stream decks though that opening executables thing never worked very well and is very limited
 ---
-11. Make my open Sesame command and other Claude code commands automatically open it on the second desktop. Or just like switch to second and then open. Make my chrome commands that are not directly work-related like open teams and open Outlook automatically switch to my main chrome window. Maybe it's possible to detect where the main chrome window is based on a few factors?
+12. Make my open Sesame command and other Claude code commands automatically open it on the second desktop. Or just like switch to second and then open. Make my chrome commands that are not directly work-related like open teams and open Outlook automatically switch to my main chrome window. Maybe it's possible to detect where the main chrome window is based on a few factors?
 ---
-10. Make my reboot caster automatically wake up caster and hide natlink
+11. Make my reboot caster automatically wake up caster and hide natlink
 ---
-9. Okay one big issue with my show voice command. The search is really not intelligent, when I say show voice toggle monitor it does not pick up on the toggle debug monitor command, what is the best way to fix this ? I would like to implement the best possible but still very fast search algorithm so that I can be as imprecise as possible with my searches but get the best results, can you look at how it currently searches and discuss design philosophies? Maybe even with QmD? 
+10. Okay one big issue with my show voice command. The search is really not intelligent, when I say show voice toggle monitor it does not pick up on the toggle debug monitor command, what is the best way to fix this ? I would like to implement the best possible but still very fast search algorithm so that I can be as imprecise as possible with my searches but get the best results, can you look at how it currently searches and discuss design philosophies? Maybe even with QmD? 
 
 Also it takes like a couple seconds to open no it didn't used to do that, what exactly is delaying it ?
 ---
-8. I have my spot check command which checks for spotify and youtube sites, I would like to make it more generic so it can check any website
+9. I have my spot check command which checks for spotify and youtube sites, I would like to make it more generic so it can check any website
 ---
-7. I am interested in developing agents, can we have conversations about that and maybe take a look at some of my skills like auto hockey and my voice skill and maybe even look at a couple of my chats and stuff like that and discuss the possibilities of developing an agent framework
+8. I am interested in developing agents, can we have conversations about that and maybe take a look at some of my skills like auto hockey and my voice skill and maybe even look at a couple of my chats and stuff like that and discuss the possibilities of developing an agent framework
 
 Tell me what you think about making a history of changes in features as well as like a feature list in Json format, specifically for my AHK/voice project or I guess the whole macro system as a whole, do you think this is overkill or do you think this would be useful? I find sometimes when discussing a previously implemented feature it can be difficult for you to find it or to remember that we have already implemented parts of the future or like scripts or tests or something that would be useful for the current task. 
 
 I would potentially also be interested in creating like search functions with Q MD currently we search all of our functions but we could also search the history and feature list all at once to simplify the way that you understand the current system and can iterate on it instead of writing bad parallel code. I don't want to like overengineered this or waste our time writing pointless harness stuff but anything that would be useful I am very interested in developing we spent a lot of tim working in this CodeBase so I'm definitely interested in improving the efficiency especially if we can retrieve the data with free tools like Q MD and it would be cheaper in the long run in terms of tokens
 ---
-6. Add commands like add that to my Dragon dictation box commands
+7. Add commands like add that to my Dragon dictation box commands
 ---
-5. I want to add a filter to my Claude code searching through chat. Like searching through my chats with Claude in VS code. I have buttons to click on the new conversation and to look at old conversations. But they are hardcoded coordinate clickers, I want those to use UI automation or hotkeys. Or at least negative coordinates so it picks them up on different screen sizes better
+6. I want to add a filter to my Claude code searching through chat. Like searching through my chats with Claude in VS code. I have buttons to click on the new conversation and to look at old conversations. But they are hardcoded coordinate clickers, I want those to use UI automation or hotkeys. Or at least negative coordinates so it picks them up on different screen sizes better
 
 And then if I say filter <text> it will open up the chats and then type that in so I can see the results
 
@@ -84,17 +84,17 @@ When I say name chat I wanted to traverse the UI to modify the name of the curre
 
 In general I want to improve the way that I am able to switch chats and do stuff like that and interact with Claude code inside of VS code, let me know if you have any other ideas
 ---
-4. I really enjoy looking at art but because of my physical disability I often have trouble finding a website or something where it is highly accessible to me. What I ultimately want is really high quality images of art that I can look through with my left and right arrow keys. This could be like artists or genres or completely random. I would wanted to be like completely full screen with no distractions. What are some good websites for that or maybe I should download some art books or possibly even just like download large dumps of images and then scroll to myself on my computer?
+5. I really enjoy looking at art but because of my physical disability I often have trouble finding a website or something where it is highly accessible to me. What I ultimately want is really high quality images of art that I can look through with my left and right arrow keys. This could be like artists or genres or completely random. I would wanted to be like completely full screen with no distractions. What are some good websites for that or maybe I should download some art books or possibly even just like download large dumps of images and then scroll to myself on my computer?
 
 What you think are my best options? I found some good options but never great options
 ---
-3. I would like to completely revamp my Kindle macros, I have some coded in caster but will probably basically scrapped them all and just start from scratch with UI automation probably. I would like to be able to save my books so for example right now I'm reading the wayfarer series. And I could say read swallow wayfarer while I'm in my Kindle app and it will save it. And then I can say read swallow wayfarer while I'm on a YouTube video or spotify playlist and it will save it as the relevant ambient music for it. And then when I say read wayfarer it will open both at once and open and focus my Kindle. 
+4. I would like to completely revamp my Kindle macros, I have some coded in caster but will probably basically scrapped them all and just start from scratch with UI automation probably. I would like to be able to save my books so for example right now I'm reading the wayfarer series. And I could say read swallow wayfarer while I'm in my Kindle app and it will save it. And then I can say read swallow wayfarer while I'm on a YouTube video or spotify playlist and it will save it as the relevant ambient music for it. And then when I say read wayfarer it will open both at once and open and focus my Kindle. 
 
 I will also end up revamping my Kindle stream deck page so that I have buttons that do more powerful things integrated better with auto hotkey.
 
 And then when I finish a book I can say read finish wayfarer and it will mark the book is read and save it to a completion log. If possible I can just say read finish well on the book and it will auto detect the relevant book
 ---
-2. Okay I have a huge idea. I want to create like a unified user interface for my entire macro system. I have all of these random scripts floating around and I would like them to be accessible from a unified location. Stuff like setting my modes, checking on my reading log, basically all of these things I have random voice commands to like open user interfaces or do specific things I would like to create a unified hierarchical interface for interacting with all of it and finding all of it. So basically like commands like toggle ducking would go under sounds. And so would like open sound scraper. 
+3. Okay I have a huge idea. I want to create like a unified user interface for my entire macro system. I have all of these random scripts floating around and I would like them to be accessible from a unified location. Stuff like setting my modes, checking on my reading log, basically all of these things I have random voice commands to like open user interfaces or do specific things I would like to create a unified hierarchical interface for interacting with all of it and finding all of it. So basically like commands like toggle ducking would go under sounds. And so would like open sound scraper. 
 
 And then under like debugging would be stuff like toggling my tooltips and stuff or opening that user interface we built to check the system health of my macro set up, I feel like I have like dozens of disparate systems floating all over my system and sometimes I can't remember the voice commands to open them or just like it feels like everything is random
 
@@ -108,7 +108,31 @@ I want to design it so that it is as easy as possible to add new things to this,
 
 I really want this to be a really solid design so let's work through the design as much as possible to get it right instead of just building some trash.
 ---
-1. make dump output — active-window snapshot for Claude. JSON below carries window/mouse/focus inline; artifact paths point to UIA tree and screenshot on disk. Open those only if needed.
+2. make dump output — active-window snapshot for Claude. JSON below carries window/mouse/focus inline; artifact paths point to UIA tree and screenshot on disk. Open those only if needed.
 {"_meta":"make dump: active-window snapshot. mouse.abs is screen coords; mouse.rel is client-area coords (relative to active window's client origin). focus is the UIA-focused element (null when UIA was skipped). Open the uia/shot artifact files only if visually/structurally needed.","ts":"2026-06-08T20:32:04","window":{"title":"Jade Rose: The Valley (Album Video, Environmental Music) - YouTube - Google Chrome","class":"Chrome_WidgetWin_1","exe":"chrome.exe","rect":[-8,0,1296,1400]},"mouse":{"abs":[978,675],"rel":[978,675]},"focus":{"name":"Jade Rose: The Valley (Album Video, Environmental Music) - YouTube","type":"document","aid":"RootWebArea"},"artifacts":{"uia":"C:\\Users\\jamie\\AppData\\Local\\Temp\\UIA_Dump.txt","shot":"C:\\Users\\jamie\\AppData\\Local\\Temp\\dump_screenshot.png"}}
 
 Okay I have a big idea. When I say add music when I'm on YouTube I wanted to either add the current playlist to my library with the option to add it as a music pack. Please check my music pack codebase to understand what I mean. If I'm on a specific video I want to add it to my library possibly under a specific genre and possibly I want to scrape it with my scraper that already exists for my PACs. And possibly I want to add it to a pack. So I would like to be prompted in the most intuitive user interface possible using my templates and stuff to be able to do all of that. And I wanted to be gentle on failure and warned me and stuff like that.
+---
+1. Okay I historically have had issues with tracking events like local Gainesville events and I want to create a system where it will be much easier. I am thinking I will conglomerate all of the websites where I find event calendars and stuff locally that I like, like the CMC website the Lynx website, maybe first magnitude, the Atlantic, the ox, and other community spaces where I hang out. And then I will build a system where I can automatically scrape all of their calendars that they post publicly, and then compile the events into my own database/calendar and then have it detect the ones that are up my alley so like queer events or leftist events and maybe some of the websites would have tags or like people that put them on in specific which would help to identify but also you can use keywords like for queerness it would be:
+
+Queer, fetish, gay, sapphic, pride, etc.
+
+For leftist it would be like worker, radical, Palestine, rights, etc.
+
+Obviously we would need to workshop those in build multiple categories.
+
+What would you recommend for a bill like this? I get a lot of make events off of Instagram unfortunately but I hate using Instagram and so I end up not seeing them, I would like to ideally go straight to the source, possibly scrape certain Instagram pages but I know that will be more difficult. 
+
+I would like to build a system where it's very easy to add different categories and keywords and also different event sources, and then not have to look through like a million events that I don't care about. 
+
+Also for shows it would be really nice if it automatically checked the names against names of bands that I like, we could theoretically plug-in my spotify library for that or I could just mark the local bands that I like manually, maybe both. I'm referring to my like local spotify database
+
+I'm also a big fan of stuff like Springs in stargazing. I'm thinking maybe we could scrape one of the darkened sky checkers to check for good stargazing nights and have it populate with those as well and stuff like new moon weekend and stuff.
+
+And then for Springs it would just like check the weather for the next few days and if like Saturday or Sunday look good it would propose that is an option and show me the weather for that day.
+
+I know this is a lot of moving parts I'm interested in like the Springs in stargazing kind of on the backend and the like event scraping more as primary but I'm interested in building a system that we can easily add things onto.
+
+One of our first steps will be to figure out all of the places that we want to scrape and what those might look like and what systems we can build that will scrape the most it once. I will definitely need your help for that there are so many random events all over the place.
+
+Curia on the drag, dads bar,

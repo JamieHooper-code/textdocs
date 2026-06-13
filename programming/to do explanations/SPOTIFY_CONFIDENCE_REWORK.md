@@ -9,6 +9,42 @@ confidence **gates** with a single **unified scoring model** where signals work 
 concert. Plus the data-completeness and UX threads that feed it. Builds on
 [[SPOTIFY_SCRAPING_INTERNALS]], [[TRIAGE_AUTO_RESOLVE]], [[MILLER_TREE_ANALYZER]].
 
+## Status (2026-06-12) — evaluator + pagination DONE
+
+- ✅ **A. Pagination scroll-and-accumulate** — built last session as a UIA
+  `ScrollPattern` engine (`_SpotifyDiscographyScrollDumps`): scrolls the
+  virtualized list directly, uses the real scrollbar position
+  (`VerticalScrollPercent` ≥ 99.5) as the done-signal, single-dump fast path
+  when there's no vertical scroll (<~21 albums), Esc-cancellable,
+  Spotify-page-guarded, per-step vPct logged. Dumps union by album AID
+  Python-side (`_albums_union_from_dumps` + `--extra-dumps`). Wired into both
+  the batch path (`_PrefetchOneQueued`) and on-demand
+  (`RescrapeArtistFullDiscography`). Proven: Grateful Dead 0→100% / 15 windows /
+  174 albums; Chopin 24→648.
+- ✅ **Unified evaluator** — `prefetch.evaluate_artist(evidence)` is live and
+  replaces `compute_confidence` (now a thin shim), the separate
+  `confirmed_ogtitle` marking, and the wrong-page name-Jaccard HARD reject.
+  Signals **combine** additively into one 0..1 confidence (`CONF_BASE=0.70`),
+  thresholded `T_SAVE=0.62` / `T_REVIEW=0.38` → `save` / `review` / `reject`.
+  Returns `{level, decision, confidence, signals, reason, reasons, ...}` — a
+  superset of the old dict, so the AHK review UI keeps working. Signal weights:
+  overlap `confirmed +0.30` / `wrong_artist −0.45` (×0.35 if deep, ×0.30 if
+  classical, ×1.5 if sparse); album_count `sparse −0.25` (suppressed for
+  classical) / `deep +0.15`; `ogtitle match +0.35 / mismatch −0.20`;
+  `page_name_mismatch −0.40`; soft nudges for lastfm/mb/wiki/related; voice-
+  phrase collision −0.20 (also forces ≥ review). The ONLY hard short-circuit
+  left is blank-discography (a genuine scrape failure), upstream in
+  `prefetch_artist`.
+- ✅ **D. Jay-Z name restyle** — `_name_jaccard` now folds diacritics (NFKD +
+  drop combining marks), so "Jaÿ-Z" vs "Jay-Z" = 1.00 and never trips the
+  wrong-page guard. For folds it can't catch (e.g. "P!nk" vs "Pink"), the
+  evaluator's og:title-match signal rescues the name mismatch.
+- ✅ **Calibration** — `Scripts/MediaCatalog/confidence_calib.py` is a runnable
+  self-check; the corpus below all passes (run after changing any weight).
+- ⏳ **Still pending:** **C** post-batch triage view, **B** classical album
+  *parsing* (the evaluator already down-weights classical; parsing would fix the
+  under-count at the source so a real Rachmaninoff reads deep, not sparse).
+
 ## Why this is needed (the problem Jamie named)
 
 Right now "is this the right artist, and how good is the data?" is decided in **3+
@@ -105,12 +141,12 @@ a **soft** signal that og:title-match **overrides**. Add name normalization
 (case/punct/diacritic/hyphen folding) so restyled names compare cleanly too.
 
 ## Recommended order
-1. **A — pagination scroll-and-accumulate** (better data first; everything depends on it).
-2. **Confidence rework** (the unified evaluator; folds in album-count, classical
+1. ✅ **A — pagination scroll-and-accumulate** (better data first; everything depends on it).
+2. ✅ **Confidence rework** (the unified evaluator; folds in album-count, classical
    down-weight, and Jay-Z name handling as signals).
-3. **C — post-batch triage view**.
-4. **B — classical album parsing** (improves the classical case further).
-5. Spot-check **Jay-Z** (`music:jay_z` shows 0 albums — confirm where they landed).
+3. ⏳ **C — post-batch triage view**.
+4. ⏳ **B — classical album parsing** (improves the classical case further).
+5. ⏳ Spot-check **Jay-Z** (`music:jay_z` shows 0 albums — confirm where they landed).
 
 ## Open questions for the rework
 - Weights: hand-tuned from the calibration corpus, or a tiny scored ruleset we can

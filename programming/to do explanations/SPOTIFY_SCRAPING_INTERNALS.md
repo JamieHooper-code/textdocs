@@ -278,8 +278,13 @@ the albums you've actually scrobbled under that name?** Implemented in
 - Verdicts: `confirmed` (overlap ≥ 0.30) · `wrong_artist` (real album
   scrobbles but overlap < 0.30) · `unknown` (< 10 album-scrobble plays — can't
   judge; track-only listening or classical-via-performer → never blocks).
-- `wrong_artist` → `compute_confidence(identity_mismatch=True)` → a hard
-  blocker → forces LOW → never auto-saves.
+- The verdict is now ONE weighted signal in the unified evaluator
+  (`prefetch.evaluate_artist`, see [[SPOTIFY_CONFIDENCE_REWORK]]), not a hard
+  block. `wrong_artist` is a strong negative that **combines** with dampeners:
+  a deep discography (≥20) or a classical genre shrinks it (overlap undercounts
+  for those), a sparse one (≤3) amplifies it, and an og:title match can offset
+  it. So the wrong "Cream" (sparse, no dampener) still rejects, while a real
+  deep/classical artist that merely fails title-overlap survives to review.
 
 **Gated on trust — this is the critical part.** It runs ONLY when the queue
 resolved the URL via `mb_url_rel` / `mb_search` (MusicBrainz *guessed* it).
