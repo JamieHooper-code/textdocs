@@ -247,6 +247,82 @@ as the Elliott Smith bug, latent on albums. Both now go through
 it writes an EMPTY related dump (0 related) rather than feeding a stale page to
 the parser.
 
+## Decoupled scrape pipeline — producer / consumer spool
+
+`SmartScrapeAuto` / `BatchPrefetchAndSaveAuto` used to do, per artist, all on
+the FOREGROUND (holding Chrome the whole time):
+
+```
+Chrome nav /discography -> scroll-dump -> Chrome nav /related -> dump
+THEN ~4s prefetch-artist (parse + enrich) + add-from-uia + save-placeholders
+```
+
+Only the Chrome half needs Chrome. The Python half is ~half the per-artist
+wall-clock (more for deep catalogs — it scales with album count; the Chrome
+scrape doesn't) and held Chrome hostage for no reason. Measured 2026-06-13:
+coupled flow was 18–23s/artist with Chrome locked the entire time.
+
+**The split.** It's now a producer/consumer pipeline:
+
+- **PRODUCER** — `BatchPrefetchAndSaveAuto` (foreground, `Helpers/SpotifyAutoBatch.ahk`).
+  Per artist: `_ScrapeOneToSpool` does ONLY the Chrome work (nav /discography +
+  scroll-accumulate + nav /related + dump), drops the raw dumps + a `meta.json`
+  into the scrape spool, marks the queue entry **`scraped`**, and moves on. The
+  WRONG_PAGE guard (detected from the page title DURING the dump) stays here —
+  no spool entry exists yet, so recovery (`recover-url` + `queue-fix-url`) is a
+  foreground step.
+- **CONSUMER** — `media_ingest.py process-spool --watch` (detached background
+  process, `Scripts/MediaCatalog/spool_consumer.py`). Drains the spool: runs
+  `prefetch.prefetch_artist()` directly, then the SAME save/skip/recover
+  decision the old AHK auto-review loop made (HIGH/MED → `add-from-uia` +
+  `save-placeholder-artists`; LOW → skip; `wrong_artist` album-overlap → swap to
+  `recovery_url` + re-queue, or fail). Marks the queue **`done`/`skipped`/
+  `prefetch_failed`**. Launched once at batch start; its single-consumer lock
+  makes a double-launch a no-op; it idle-exits ~30s after the spool drains.
+
+Net (measured 2026-06-13, batch of 3): Chrome held **12s/artist** vs 18–23s
+before (~40–45% less); the final save completed 10s after Chrome was freed. The
+two halves are comparable in size, so the pipeline is well balanced and
+foreground throughput roughly doubles. The end-of-batch modal is async ("Chrome
+is free — saving in the background"); the batch manifest / "Review this batch"
+triage fill in live as the consumer saves (it appends A/F lines to the same
+`%TEMP%/spotify_last_batch.tsv` the triage reader parses).
+
+**Spool layout** (`E:/Media/Music/DataBackend/scrape_spool/`):
+
+```
+building/<entry>/   producer STAGES a complete entry here (consumer ignores it)
+pending/<entry>/    producer atomically DirMove's the finished entry in;
+                    contains artist.txt, extra_NN.txt, related.txt, meta.json
+working/<entry>/    consumer atomically renames pending/<e> -> here to CLAIM it
+error/<entry>/      an unreadable/threw entry, kept for diagnosis
+results.jsonl       one line per processed entry (producer's end-modal snapshot)
+```
+
+**Two non-obvious bugs the first live run exposed** (both fixed, both worth
+remembering for any AHK→Python file handoff):
+
+1. **BOM.** AHK's `FileAppend(text, path, "UTF-8")` writes a UTF-8 **BOM**.
+   Python's `json.load` chokes on a leading BOM, so the consumer skipped every
+   `meta.json`. Fix: producer writes `"UTF-8-RAW"` (no BOM); consumer reads
+   `utf-8-sig` defensively. **Any meta/handoff file AHK writes for Python to
+   parse must be UTF-8-RAW.**
+2. **TOCTOU claim race.** When the producer built the entry directly in
+   `pending/` and wrote `meta.json` last, the consumer (polling) claimed it —
+   `os.rename` of the dir into `working/` — the instant `meta.json` appeared,
+   i.e. BEFORE the producer's final `FileExist(meta)` success-check ran. The
+   check then race-failed and the producer wrongly marked a perfectly-good
+   entry `prefetch_failed`. Fix: producer builds in `building/` (unwatched) and
+   atomically `DirMove`s into `pending/`; success = the move succeeded, never a
+   post-hoc existence check the consumer can invalidate.
+
+**Queue safety.** Two processes now write `scrape_queue.json` (producer marks
+`scraped`, consumer marks `done`/`failed`). `write_scrape_queue` is atomic (no
+torn files) but NOT lost-update-safe, so every queue mutation now holds
+`media_catalog.scrape_queue_lock()` (a lockfile sibling of `catalog_lock`).
+Catalog saves stay single-writer (only the consumer) and go through
+`add-from-uia` as a subprocess so they inherit the central `catalog_lock`.
+
 ## Wrong-URL guard at the SOURCE — `lastfm-import`
 
 The og:title check is no longer only a scrape-time pre-flight. The shared
