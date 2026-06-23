@@ -111,4 +111,8 @@ Source inventory (from the 2026-06 vault survey):
 
 - **Music = nested.** `type: music` entries carry `subtype` (artist / album / song) and a **`parent`** id. Artist is top-level (`parent: null`); albums post **under** their artist (`parent: <artist id>`); songs under their album (or artist). The hub renders them nested. So a bare "get into Nujabes" rec is one artist entry; specific albums/songs hang off it.
 - **Websites / theory-sources:** `queued`/`done` status only (no middle "active" state — you don't "finish-reading" a site the same way).
-- **Series/reading-order** (Cosmere, Tolkien, Mistborn): kept in `notes` for now; no modeled link relationship yet. The `parent` field added for music could later carry series relationships if it's worth it.
+- **Series/reading-order** (Cosmere, Tolkien, Mistborn): kept in `notes` for now; no modeled link relationship yet. **Superseded for books by [[MEDIA_ENRICHMENT_SYSTEM]] — books now carry a structured `series {name, position}`, hub grouped + sorted by position.**
+
+## Media enrichment — "keep the best data possible"
+
+**Full design: [[MEDIA_ENRICHMENT_SYSTEM]]** (locked 2026-06-19; build deferred). One-line: for every book (and later every media type), auto-collect the richest data possible — description, genre tags, cover, series, bibliographic — behind a Spotify-style confirmation step, on a generic provider seam so TV/movies reuse the core. Recommendations are out of scope for now; we bank genres/series/subjects as the future engine's fuel. See that doc for the API research, source strategy, data-model, genre-conforming, series handling, confirmation UX, and the deferred Anna's-Archive-download + StoryGraph-scraper seams.
