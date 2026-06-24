@@ -1533,7 +1533,8 @@ current state so work can resume without re-deriving it.
    wiring; `OpenDirectoryConfigGui`'s "adddir" case rerouted through `MAINFUN.bat AddDirectorySmart` (it lives in
    the GUI subsystem, outside RemoteControl's curated closure — the closure checker caught this runtime-only break).
 5. **Original five queued steps — TRIAGED 2026-06-23:**
-   - **Per-context materializer — NOT BUILT (genuinely the next real subsystem; §15.7 phase 5).** CORRECTION
+   - **Per-context materializer — NOT BUILT. FULL BUILD SPEC: [[PER_CONTEXT_MATERIALIZER]] (build from THAT, not
+     this monolith).** CORRECTION
      2026-06-23: an earlier triage here wrongly called this "done" by conflating it with the GLOBAL materializer
      (`generic_materializer_commands.py`, done 2026-06-22 — that one materializes GLOBAL store rows live, no
      reboot). The PER-CONTEXT one was explicitly deferred (§15 "Context-kind rows skipped = later build"; §15.7
