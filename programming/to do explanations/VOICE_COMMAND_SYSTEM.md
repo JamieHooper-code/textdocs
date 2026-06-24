@@ -1,7 +1,7 @@
 ---
 tags: [design, caster, voice-commands, autohotkey, search, macro-wizard, planned]
 created: 2026-06-22
-updated: 2026-06-22
+updated: 2026-06-23
 status: design
 ---
 
@@ -971,3 +971,634 @@ but the extension point exists.
   search box. Verified: search `doc journal` resolves to Registries → Google Docs → Journal; the Registries
   branch previews all 42 registries. (Drill-to-actions reuses the builders "open registry" already proves —
   Jamie's confirmed real-edit round-trip.)
+
+---
+
+## 17. Unified Destinations / Openers (design — Jamie 2026-06-23)
+
+**The problem.** The "things I open" registries grew one at a time and diverged. `sites.json` and
+`google_docs.json` carry **byte-for-byte the same fields** (`url, title, default_pos`); `directories.json`
+is `path, program, snap` — the same "open a target at a position" shape with a different target kind. Each
+has a **bespoke add-flow** (`AddGoogleDoc` InputBox chain, `AddDirectoryByVoice`/`AddProgramByVoice` forms,
+`AddHardcodedSite`), so editing in the registry browser vs. "add doc" are different code paths, and "every
+one of those interfaces is a little different." Position is a real shared concept but is named two ways
+(`default_pos` vs `snap`), unpopulated, and rendered as free text. Jamie wants ONE schema-driven editor +
+ONE opener, with position picked from a defined list, and the **same backend** whether reached from the
+registry browser or an add command (edit one → edits both).
+
+### 17.1 The model — a `type`-discriminated **Destination**
+
+sites / google_docs / directories are the **same supertype**: *a named destination that opens to a target,
+at a position.* They differ only by target kind + a couple variant fields + the open verb.
+
+```
+{ phrase,                       // the spoken key ("Journal")
+  type,                         // url-doc | url-site | directory | program-ref
+  target,                       // the URL, the path, or the program token
+  position,                     // shared enum (snap_position): main|left|right|top|bot|full|twin
+  open_mode,                    // shared enum: new_tab | focus | navigate  (URL types)
+  open_fn,                      // OPTIONAL escape hatch — a specific AHK fn (enum from the function index)
+  // variant, by type:
+  program,                      // directory / program-ref: launcher token (resolves via Contexts)
+  title }                       // url types: tab-match title
+```
+
+One dispatcher: **`OpenDestination(phrase, spokenPos)`** resolves and opens:
+1. `open_fn` set → call **that function** `(target, resolvedPosition)`. Full control for special needs.
+2. else → the **type-default mechanic** (Chrome tab / Explorer+program / launch), modulated by `open_mode`.
+
+**Position precedence** (mirrors directories today): spoken `<snap_dest>` > `entry.position` >
+`program.default_snap` > native. So `doc journal main` (one-off) and a saved `position: main` (persistent)
+both work.
+
+### 17.2 DECISIONS (Jamie: "your call" 2026-06-23 — locked)
+
+- **Logical unification YES, physical mega-file NO.** sites/docs/directories share ONE typed schema, ONE
+  editor, ONE opener — but stay in **separate JSON files**. A single `openers.json` is overkill: it buys
+  phrase-collision-across-types, a grammar question (loses the "doc X"/"site X" namespacing), and migration
+  risk, for ~no benefit once schema+editor+opener are already shared. (Optionally merge *only* sites+docs
+  later if the grammar split stops earning its keep — not now.)
+- **Keep the doc/site grammar split** (`doc <google_doc>` vs `site <site>`) — scoped namespaces are a
+  feature (a doc and a site can both be "music").
+- **Programs/Contexts stay their own system, referenced not absorbed.** A `directory`/`program-ref`
+  destination *borrows* its launcher from the Contexts program registry (`program` token → `open_fn`/
+  `launch_fn`/`default_snap`). url destinations touch Contexts not at all. The program registry is the
+  "launcher library"; Destinations are "saved places." One reference direction only.
+- **`open_fn` is the escape hatch** (NOT `open_mode`): optional per-entry AHK fn, signature
+  `(target, resolvedPosition)`, matching the existing program-registry `open_fn` convention. Rendered in the
+  editor as an **enum picked from the function index** (the list show fun already knows) — "pick from a
+  defined list, don't type it." Blank = type default.
+- **`open_mode`** stays the generic new/focus/navigate enum for the type-default path; ignored when
+  `open_fn` is set.
+- **`default_pos` + `snap` normalize to one field: `position`** (enum `snap_position`, sourced from
+  `SnapByAlias` — single source of truth).
+- **Typed field schema lives in `CHOICE_SETS`** (`value_fields` upgraded from bare names to specs
+  `{name, type, values?, default?}`; a bare string stays a string field — backward-compatible).
+- **Enum fields render as a drill-to-pick sub-level** in the Miller editor (no typing).
+- **Add-flows route through the shared schema-driven editor** — `add doc`/`add site`/etc. become "open the
+  schema-driven add for set X," same editor + data + backend as browsing. The directory/program flows keep
+  their **foreground auto-detection** step, then hand off to the shared field editor for the rest.
+- **Open→register-context bridge** (today's `add site → add context`) extends to docs/directories — opt-in,
+  no-op when a context already covers it. No context-*scoping* of destinations now (leave a future
+  `context` field as a hook; don't build it).
+
+### 17.3 Shared value vocabularies
+
+Defined once, referenced by `values` name on an enum field. Some static, some registry-derived:
+
+| Vocab | Source | Used by |
+|---|---|---|
+| `snap_position` | `SnapByAlias` aliases (main/left/right/top/bot/full/twin) | every destination's `position` |
+| `open_mode` | static (new_tab/focus/navigate) | url destinations |
+| `function` | the function index (`fn_to_file_index.json`) | `open_fn` |
+| `program` | program registry (Contexts with a `program` block) | directory/program-ref `program` |
+| `monitor` | static (1/2/3…) — future | future `monitor` field |
+
+### 17.4 The vertical-slice build plan (prove the pattern, then widen)
+
+1. **Slice — google_docs `position`, end to end** (the proof): typed `value_fields` for `google_doc`
+   (`url`, `title`, `position:enum=snap_position`); the registry editor renders `position` as an enum
+   drill-pick; `OpenDestination`/the doc opener honors persistent `position` + spoken `doc journal main`;
+   migrate `default_pos`→`position`. Validates schema → enum-pick → opener-honors before mass conversion.
+2. **Widen the schema** to sites/notepad/etc.; add `open_mode` + `open_fn` rendering.
+3. **One opener dispatcher** `OpenDestination(phrase, spokenPos)`; repoint `doc`/`site`/`open` grammars.
+4. **Route the add-flows** through the shared editor; directory/program keep their detection step.
+5. **Fold directories/programs** into the registry-editor surface (this is §16.7 Phase 5) — directories
+   become a `type`, programs stay context-backed but edit through the shared field editor.
+
+### 17.5b As-built increments (2026-06-23)
+
+- **Typed field schema (Python).** `registries.py` gained `FIELD_TYPES` (field-name → widget/enum) +
+  `_STATIC_VOCAB` + `_resolve_vocab` + `field_schema()`, carried per-registry in the cached dump. `position`/
+  `snap`/`default_pos` → enum snap_position; `program` → enum auto-resolved from the program registry;
+  `open_mode`/`open_fn` → enum; `url`/`path` typed text. No cross-language rename — the schema abstracts the
+  stored field name. Verified in the cache for docs/sites/directories.
+- **Field-level pick editor (Miller).** `RegistryEditorMenu.ahk`: an object entry now decomposes into one
+  row PER FIELD (`name = value`); an enum field drills to a PICK LIST of allowed values (current marked,
+  `(clear)` to unset), text fields edit inline. `_RegSetField` merges one field into the full entry +
+  writes + reloads; `OpenRegistryEditor(arg, internalPath)` reopens DEEP at the entry so you stay put.
+  Verified by deterministic screenshot (field rows + `default_pos` typed as a pick) + dry-run write.
+- **Unified schema-driven add (Miller "+ Add entry").** `_RegAddEntry` rebuilt: key prompt → duplicate
+  guard → `_RegAddSeed` (url fields pre-filled from the current Chrome tab) → per-field collection where
+  ENUM fields are PICKED (`_RegPickEnum`, single-select) and others are text. Same `field_schema` + same
+  write backend as editing — add and edit are one system. Verified: real add+remove round-trip on live
+  google_docs (wrote `default_pos:"left"` via add_voice_choice with the reload touch, then cleaned up).
+- **`open_fn` escape hatch — built for google_docs (2026-06-23).** An optional per-entry AHK function that
+  opens the doc instead of the default Chrome-tab mechanic (sec 17.2). `google_doc` value_fields gained
+  `open_fn` (optional); `add_voice_choice` now PADS missing optional trailing fields so the older 3-arg
+  callers (AddGoogleDoc) keep working alongside the editor's 4-arg writes. `web_opener_commands.py` packs
+  `url|||title|||default_pos|||open_fn`, and `_doc_open_action` dispatches `open_fn(url, default_pos)` when
+  set (verified in isolation). The editor renders `open_fn` as an enum picked from the function index
+  (resolved AHK-side via `_RegFunctionVocab`, not embedded in the cache — `field_schema` caps embedded enum
+  values at 250). Verified: schema in cache, both-arg-count writes, dispatch logic, editor screenshot (the
+  open_fn row).
+- **`open_fn` extended to sites + directories (2026-06-23) — escape hatch now COMPLETE across all openers.**
+  Sites: `_iter_context_links` + `load_sites` pack a 4th `open_fn` field (from both sites.json AND context
+  links), `_unpack_site_value` returns it, `_site_open_or_go_to_action` dispatches `open_fn(url, default_pos)`
+  before the wait/snap/focus logic. Directories: `DirRegLookup` reads `open_fn`, `OpenDirectoryByName`
+  dispatches `open_fn(path, snap)` (try/catch tooltip on a bad fn) before `ProgRegOpenDir`. `site` +
+  `directory` choice sets gained the optional field; the editor shows the `open_fn` pick on all three.
+  Verified: 4-arg + back-compat 3-arg writes for both, site dispatch logic in isolation, AHK validate +
+  closure. Signature is uniformly `open_fn(target, position)` (target = url or path).
+- **NOT yet:** routing voice `add doc`/`add site`/`add directory` through this shared add (their bespoke
+  flows carry dup-detection / alias-on-duplicate / context-bridge / fuzzy-title that must be PORTED into the
+  shared core first, per 16.8 #7 — don't regress them).
+
+### 17.5c Smart "add site" — CONTEXT-DRIVEN type detection + routing (2026-06-23)
+
+`add site` is a universal, type-detecting entry point — and the type is the page's **CONTEXT**. Contexts are
+the SINGLE URL classifier for BOTH foreground detection AND add-routing (no parallel matcher — Jamie caught
+that a standalone classifier duplicated the context matchers). A new destination type = a **context** (created
+via "add context") with a `destination` block; no code.
+
+- **The `destination` block on a context** — exactly parallel to ProgramRegistry's `program` block. A context
+  with one is ADD-ROUTABLE:
+  ```json
+  "destination": { "store": "links" | "registry:<id>", "open_fn": "" }
+  ```
+  `store: "links"` = the new destination becomes a **link on that context** (the sites-in-contexts model);
+  `store: "registry:<id>"` = stored in a VoiceChoices registry. `open_fn` = the optional per-type opener.
+- **`Helpers/ContextDestinations.ahk`** — the "destination" ROLE, mirroring ProgramRegistry:
+  `ContextDestinationLookup(token)` (the block), `ContextDestinationDetectForeground()` (walk the foreground
+  chain deepest→root for the first context with a block — like `ProgRegDetectForeground`),
+  `ContextDestinationAllTokens()` (for the override picker).
+- **`AddSmartDestination`** (voice `add site` / `add site <textnv>`): `ChromeCurrentUrl` →
+  `ContextDestinationDetectForeground` → `_DestConfirmContext` (detected context is row 1 = Enter-accepts;
+  pick another, or "Plain site"; nothing matched → plain site is row 1) → route by `store`: `registry:<id>`
+  goes through the shared `_AddIntoRegistry` (seeded url + open_fn), `links` goes through `_AddLinkToContext`
+  (phrase + url + title + position, written via `site_contexts.py add` — the Site Browser's writer).
+- **Wired so far:** `youtube.json` gained `destination: {store: "links"}` (YouTube already stores its sites as
+  links on that context); a new `google_docs.json` context (`match: docs.google.com/document`,
+  `destination: {store: "registry:google_docs"}`) routes docs to their existing registry. Adding Instagram /
+  Reddit / etc. = a `destination` block on those contexts (Instagram currently matches its Messages page by
+  title, so it'd need a url match for generic pages).
+- **`destinations.py` + the sites `type` field were RETIRED** — the context replaces both the classifier and
+  the stored type marker. Verified: AHK validate + closure (ContextDestinations + the `site_contexts.py`
+  writer resolve), context JSON valid, sites schema back to 4 fields. Mirrors the proven program-role
+  machinery; the live detect→route→write rides Chrome + modals (not headless-testable here).
+- **Regression note (acceptable per "breakage fine"):** `add site` no longer runs the old `AddHardcodedSite`,
+  so its URL-dup-detection / alias-on-duplicate / `add site → add context` bridge are temporarily gone — those
+  become generic capabilities folded into the shared add next.
+
+### 17.5d Capability reroute — the dropped smarts, restored GENERICALLY (2026-06-23)
+
+The smarts §17.5c temporarily dropped from `add site` are back — but as **DERIVED, schema-driven capabilities**
+on the shared add, so EVERY url/path-identity registry (sites, docs, any future opener) gets them for free with
+zero per-registry config. This is §18.3 step 1, done for the url-identity registries.
+
+- **Derived capabilities (`registries.py` `registry_capabilities`)** — read straight off the typed field
+  schema, carried per-registry in the cached dump as `capabilities`:
+  - `identity_field` = the `url`/`path`-typed field (the thing that makes two entries "the same destination").
+  - `title_field` = a `title` field, seeded from the live Chrome tab title.
+  - `context_bridge` = `true` iff the identity is a url (so the macro-context offer only fires where it makes
+    sense). Derived, not a hand-set flag.
+  Verified: sites/docs → `{identity: url, title: title, bridge: true}`; directories → `{identity: path, bridge:
+  false}`.
+- **Generic duplicate detection (`registries.py identity-matches <id> <value> [exclude]`)** — replaces the
+  site-only `_VoiceConfigReverseLookupSiteAll`. Two-tier match (exact, else url-normalized: drop
+  query/fragment/trailing slash via `_normalize_url`), excludes the entry being written. Verified live: exact,
+  `?usp=sharing`-stripped normalized, exclude-self, and miss all correct.
+- **Shared add wiring (`RegistryEditorMenu.ahk`)** — both the voice path (`_AddIntoRegistry`) and the editor
+  "+ Add entry" (`_RegAddEntry`) now, after collecting fields: read the FINAL identity value → `_RegDupCheck`
+  (calls `identity-matches`; on a hit shows the existing `_VoiceConfigAliasPrompt` alias/replace modal) →
+  thread `--replace-key` per dropped alias into the write → `_RegMaybeContextBridge` (calls the existing
+  `_AddSiteContextBridge`) post-write. Title is seeded as a PREFILL (prompts, editable) vs the url `seed` which
+  is AUTHORITATIVE (no prompt) — `_AddIntoRegistry(regId, seed, phrase, prefill)`. New helpers: `_RegCaps`,
+  `_RegChromeTabTitle` (cross-desktop via `WinExistAcrossDesktops`), `_RegIdentityMatches`, `_RegDupCheck`,
+  `_RegFieldValueInArgs`, `_RegMaybeContextBridge`. `_RegWriteAndReopen` now accepts an Array of replace keys.
+- **`add doc` rerouted** → new `AddDocSmart` (forces the `google_docs` registry, seeds url+title, rides the
+  shared capabilities) — generic replacement for the bespoke `AddGoogleDoc`. The old flow stays reachable under
+  **`add doc legacy`** as a safety net until `AddDocSmart` is keyboard-verified, then both it and the other
+  bespoke add flows can be deleted.
+- **`add directory` is DEFERRED on the bespoke `AddDirectoryByVoice`** — deliberately. Its smarts are
+  genuinely specialized (Explorer/terminal/selection PATH auto-detect, path validation, dup-check against BOTH
+  the directory AND program key spaces, and a folder-CAPABLE program picker), none of which the generic
+  url-identity path covers. Rerouting it is a separate task (would need path-seed + path dup-detection — the
+  `path` identity already derives — plus a folder-capable program-vocab filter). Low reuse, higher risk; not
+  worth bundling here.
+- Verified: `registries.py` capabilities + `identity-matches` (isolated + live round-trip add→detect→alias-
+  collapse→remove on `google_docs`), AHK validate (exit 0) + closure (clean) + the cross-file refs resolve
+  (`WinExistAcrossDesktops`, `_VoiceConfigAliasPrompt`, `_AddSiteContextBridge`, `_LN_JsonParse`), root editor
+  screenshot renders all 42 registries. ✗ live voice add→dup-prompt→bridge (Chrome + modals, not
+  headless-testable) — the writer chain underneath it IS proven.
+
+### 17.5e Quiet add by default + two editor bugfixes (2026-06-23)
+
+Jamie: "for most of the time when adding a site it will just add it and then open the registry editor at
+its location instead of asking me… it should just default to blank and then I can edit them manually… for
+95% no prompts besides the voice command… but it will always open the registry right there so I can easily
+edit them right in place."
+
+**Quiet add (the new default for `add site` / `add doc`).** `AddSmartDestination` no longer runs the picker +
+4-prompt wizard. It now: read URL → detect context → **write immediately** with blank/default fields → **open
+the Registry Editor RIGHT ON the new entry** (lands on its field rows). ~95% of adds = one voice command, zero
+modals; the imperfect bits (phrase, position) are edited in place.
+- **Phrase:** the spoken word (`add site <name>`), else derived from the tab title (`_DestDerivePhrase`:
+  leading page-name segment, punctuation-stripped, ≤5 words; domain fallback). `_DestUniqueKey` appends " 2"
+  so a derived phrase never silently overwrites a different entry.
+- **Fields:** url (identity) + title (tab title) + the context's `defaults`; everything else blank. Edit in
+  the editor.
+- **Duplicate URL → just opens the EXISTING entry** (no dupe, no modal) — `identity-matches` from 17.5d.
+- **Per-context policy on the `destination` block:** `add_mode: "ask"` opts a context back into the full
+  interactive wizard (`_DestAddInteractive`, the old flow); `defaults: {default_pos:"left", …}` pre-seeds
+  fields on a quick add. (A global "always ask" toggle is a trivial follow-up — per-context covers the asked-for
+  "specific contexts" case.)
+- **Routing:** destination context with `registry:<id>` store → `_DestAddQuiet` into that registry (editable in
+  the Miller, opens on the entry); `links` store → `_DestAddLinkQuiet` (link on the context, opens on the
+  context entry); no destination context → the plain `sites` registry (the common case).
+- **Deep-open mechanic:** `OpenRegistryEditor(regId, entryKey)` now lands deep on an entry from a FRESH MAINFUN
+  process (routes through the GuiHost with both args; `_Mcp_NavigateToPath` resolves the 2-level path
+  `[regId, "entry:"key]`). ✓ screenshot: `add`→lands on the entry's url/title/default_pos/open_fn rows.
+
+**Bugfix 1 — sites vanished from the editor (THE reported bug).** Building the Sites entry list threw
+`Map has no method "ToString"` (`RegistryEditorMenu.ahk:220`) on the FIRST site carrying a nested `open` block
+(`[open] voice` = `{deck_profile, mode}`): `String(aMap)` throws in AHK v2, and the exception aborted the whole
+entry-list build, so **no** sites rendered. Fixed with `_RegStr` (recursive safe stringify → compact JSON-ish
+text for nested Map/Array), routed through every value-stringify spot in the editor. ✓ screenshot: all 32 sites
+render, including `[open] voice`.
+
+**Bugfix 2 — "Search capped (budget)".** The registry editor's search universe was built by a live tree-walk
+capped at 3000 nodes (42 registries × entries × field-action rows), truncating before the later registries
+(Sites is #37) — yet the opts-level `_RegSearchIndex` ALREADY dumps every entry into the universe, so the walk
+was pure redundancy. Marked each registry branch `search_skip` (emit the node, don't descend). ✓ screenshot:
+search for "Discover" is clean, no cap message.
+
+### 17.5f Per-registry ADD POLICY — editable in the editor (2026-06-23)
+
+Jamie: "edit the defaults for each registry type right there inside the registry… a row at the bottom… each
+unique field shows up as a row and I can toggle them or set new defaults… defaults with ask or without ask."
+Plus: "for adding site I do want to ASK about the phrase, I do not want that to be a default, but everything
+else I want to default."
+
+Every object registry now carries an **add policy** — per-field, how the quiet add fills it — editable in
+the Registry Editor with **zero code per registry**.
+
+- **Per-field policy `{source, value, ask}`** (`registries.py`, stored in `INIDATA/registry_add_policy.json`,
+  carried per-registry in the dump as `add_policy`):
+  - `source`: `auto` (url/path → the page, title → the tab title, `_phrase` → derived from the title) ·
+    `fixed` (use `value`) · `none` (blank).
+  - `ask`: prompt for the field on add (pre-filled with the resolved value) vs fill silently.
+  - `_phrase` = the pseudo-field for the entry KEY / spoken phrase.
+- **Built-in defaults** (`default_field_policy`): `_phrase` → **ask** (Jamie's request — the phrase is always
+  confirmed, never silently guessed; the spoken word from `add site <name>` is the prefill); `url`/`path`/`title`
+  → auto + silent; everything else → none + silent. So a typical `add site` is **one phrase confirm + nothing
+  else**, and the new entry opens in the editor for any tweak.
+- **The editor UI** — a **`⚙ Add defaults`** row under each registry's entries. Drill → one row per field (+
+  `(phrase)` first), each showing `source=… · ASK/silent · value=…` and drilling to a small action list:
+  **Ask when adding** (toggle), **Source** (auto/fixed/none pick), **Fixed value** (enum → pick list, else text;
+  setting it implies `source=fixed`). Writes shell `registries.py set-add-policy` + reopen DEEP at the field.
+  Code: `_RegAddPolicyNodes`/`_RegPolicyFieldNode`/`_RegPolicyActions`/`_RegPolicySourceNodes`/
+  `_RegPolicySetValue`/`_RegPolicySet` in `RegistryEditorMenu.ahk`; CLI `add-policy` / `set-add-policy`.
+- **Quiet add honors the policy** (`_DestAddQuiet`): phrase resolved+asked per `_phrase`'s policy (spoken word
+  wins as the prefill); each field resolved by its `source`, then asked iff `ask` (enum → pick, else text). A
+  context's `destination.defaults` still override a field's resolved value.
+- **Deep-open** now also reaches special `__`-prefixed rows (`OpenRegistryEditor(regId, "__addpolicy")` →
+  `[regId, "__addpolicy"]`), not just `entry:` keys.
+- Verified: policy defaults + override + dump round-trip (isolated), AHK validate + closure, screenshots of the
+  Add-defaults list (per-field rows, phrase=ASK) and a field's action list. ✗ live voice quiet-add honoring a
+  custom policy (Chrome) — the resolution logic + writer are proven.
+- Open follow-up (noted, not built): a GLOBAL "always ask" toggle (today it's per-field per-registry, which
+  covers the asked-for cases); and the phrase interpretation chosen here is "spoken word prefills, ask=true
+  still prompts" — flip `_phrase` ask off to make a named add fully silent.
+
+### 17.5g Multi-instance TYPES get their own flat registry (2026-06-23)
+
+Jamie added a YouTube video and it landed as a nested LINK on the youtube context — so "edit links" showed
+EVERY video as one giant blob, and the add opened the general youtube context page, not the new video. Root
+cause: the youtube context used `destination.store:"links"`, which appends to the context's `links` array
+instead of creating a first-class entry.
+
+**Decision:** a **multi-instance destination TYPE** (YouTube videos, and later Instagram pages, Reddit posts,
+…) becomes its **OWN flat registry**, not a nested `links` blob. The `links`-on-context model is fine for a
+**single-site** context (amazon = one site) but wrong for a type with many instances — each instance must be a
+separately editable row with the type's own add-defaults.
+
+- **`youtube_videos` registry** = a new `youtube_video` CHOICE_SET (`add_voice_choice.py`, site-shaped fields
+  url/title/default_pos/open_fn) → auto-discovered as a writable registry with its OWN `⚙ Add defaults`.
+- **Migrated** the youtube context's 7 links → `youtube_videos.json` entries (one-off; `.bak` kept), removed the
+  `links` array, set `destination: {store:"registry:youtube_videos"}`.
+- **`load_sites` now unions `SITE_REGISTRY_PATHS`** (sites.json + youtube_videos.json + …) via the shared
+  `_load_site_registry`, so the videos stay sayable through the `<site>` grammar (`open mythical` etc.). Adding a
+  new TYPE that feeds `<site>` = one path in that list.
+- **Result:** on a YouTube page, `add site` → detects youtube → routes to `youtube_videos` → opens the editor ON
+  the new video (its own row, own fields), exactly like docs. ✓ screenshot: 7 separate video rows + `+ Add
+  entry` + `⚙ Add defaults`; per-video field rows in the preview.
+- The `links` store + `_DestAddLinkQuiet`/`_AddLinkToContext` are now DORMANT (no context uses `store:links`
+  after this) — kept for possible future grouping, not on any live path.
+- **Still context-links (deliberately, for now):** the ~23 single-site contexts (amazon, gmail, …). They feed
+  `<site>` and aren't blob-painful (one/few links each). Convert any of them to a flat registry the same way if
+  it grows into a multi-instance type. **Open question for Jamie:** convert those too, or leave them?
+
+### 17.5h Context links FLATTENED into the Sites registry (2026-06-23)
+
+Decision (Jamie): "I want them to all be flat registries." The sites-in-contexts model (sites stored as nested
+`links` arrays on 23 contexts) conflicted with first-class editing. All 28 links (1–3 per context, none a
+multi-instance type) were **migrated into sites.json** as flat entries (`.bak` per file); the `links` arrays were
+removed from the contexts (their `match`/`display`/`parent` stay for foreground detection). `load_sites` now
+unions only `SITE_REGISTRY_PATHS` (sites.json + youtube_videos.json) via `_load_site_registry` — the
+`_iter_context_links` union is dropped (the links were already duplicated in sites.json, so the grammar is
+unchanged). 3 youtube phrases that were in BOTH were removed from sites.json (they live in youtube_videos now).
+Result: sites.json = 29 entries, youtube_videos = 7, `<site>` grammar = 36, no dupes.
+- **Downsides (raised + accepted):** loss of per-context grouping (compensated by favorites + search); the
+  `_iter_context_links` / site_contexts.py / SiteBrowserMenu / `_DestAddLinkQuiet` link machinery is now DORMANT
+  (no live path), kept not deleted. No grammar/behavior change.
+
+### 17.5i Favorites / hidden ordering — registry + entry level (2026-06-23)
+
+Jamie: "set favorites and hidden that … pop to the top or the bottom … with the built-in Miller breakpoint
+things. … make sites and YouTube and documents pop to the top, and specific documents like journal and lyrical
+pop to the top of that list locally."
+
+A two-scope ordering layer in the Registry Editor:
+- **Data (`registries.py`):** `INIDATA/registry_prefs.json`, in the dump as `prefs`. Scope `"_registries"`
+  orders the root registry list; scope `"<regId>"` orders that registry's entries. Each maps key → `"fav"` |
+  `"hidden"`. CLI `prefs` / `set-pref <scope> <key> <fav|hidden|normal>`.
+- **Rendering (`RegistryEditorMenu.ahk`):** `_RegPartitionByPref` splits a level's nodes into
+  **★ fav (top) ─divider─ normal ─divider─ · hidden (bottom)** (markers via `_RegMarkNode`, unique-key dividers
+  via `_RegDivider`). Applied at root (`_RegistryEditorRootNodes`) and per registry (`_RegEntryNodes`, entries
+  only — the Add / Add-defaults rows stay below). Unmarked levels render unchanged.
+- **Setting it (`_RegPrefRowActions`):** N.2 = ★ Favorite→top, N.3 = ·Hide→bottom, N.4 = Normal, as the
+  Miller's built-in **N.M row actions** on ANY registry or entry row. Writes via `set-pref` + reopen at the level.
+- Seeded to Jamie's named config: Sites / Youtube Videos / Google Docs favorited; Journal + Lyrical favorited in
+  Docs. ✓ screenshots: registry list (★ Sites/Youtube at top + divider) and Google Docs (★ Journal/Lyrical at top).
+- **Bug found + fixed:** `_RegLoadData`'s `global` line omitted `RegPrefs`, so the assignment made a discarded
+  LOCAL and prefs never loaded (AHK v2 assume-local). Added it to the declaration. (Gotcha logged in §18.4.)
+
+### 17.5j Favorite / hide as VISIBLE ROWS (2026-06-23)
+
+Jamie wanted to set favorites/hidden via rows, not only the discoverable N.M actions. Added:
+- **Entry level:** a **`⭐ Favorite / hide`** branch in each entry's action list (`_RegEntryActions`) → drills to
+  Favorite / Hide / Normal rows (current marked).
+- **Registry level:** a **`⭐ Favorite / hide registry`** row at the bottom of each registry's entry list
+  (`_RegEntryNodes`) → same three options for the whole registry (scope `_registries`).
+- Both built on `_RegFavHideNodes`/`_RegFavHideRow` → `_RegPrefSet` (the same writer the N.M actions use, kept
+  too). ✓ screenshots: the rows render in Journal's actions and youtube_videos' entry list.
+
+**Note (resolved — NOT a bug):** youtube_videos.json appeared to "lose" 2 of 7 entries mid-session; Jamie
+confirmed she had **deleted those videos herself**. No data-loss bug. (The recovery from `Contexts/youtube.json.bak`
+re-added them; they can be removed again if unwanted.) The `.bak` files (per-context + sites.json) remain the
+safety net for the flatten/migration.
+
+### 17.5k URL/path AUTO-GROUPING within a registry (2026-06-23)
+
+Jamie's design (discussed + locked): a destination's GROUP is derived from a **tunable prefix of its identity**
+— url by domain/host/path, path (directories) by drive+ancestor folders ("E:\Media") — with a **manual override**
+and easy **promotion** to a dedicated registry. Computed live (not stored) so tuning re-groups instantly.
+
+- **Engine (`registries.py`, sec-17.5k block):** `group_key(value, type, level)` — url level 0 = registrable
+  domain (small built-in multi-TLD list for `co.uk` etc.), 1 = host, 2+ = host+N path segs; path level N = first
+  N folders. `resolve_entry_group` = manual `group` field **>** longest custom rule (a pinned prefix→name;
+  domains match by SUFFIX, paths by PREFIX) **>** default-level key. Config `INIDATA/registry_groups.json`
+  (`{regId: {level, rules}}`); absent = type default (url 0, path 2). Each entry carries its resolved `group` in
+  the dump. CLI: `groups` / `set-group-level` / `add-group-rule` / `remove-group-rule` / `move`.
+- **Manual override field:** `group` added (optional) to the site / youtube_video / google_doc / directory
+  CHOICE_SETs. Blank = auto-resolve; set = pin. Quiet-add leaves it blank (add-policy default `none`) so
+  auto-grouping applies; editable as a normal field row.
+- **Display (`RegistryEditorMenu.ahk` `_RegOrganizeEntries`):** NORMAL entries cluster under group headers
+  (shown when 2+ groups); ★ favorites still float to the very top, · hidden sink to the bottom.
+- **Tuning UI:** a **`⚙ Grouping`** row per auto-grouping registry → pick the granularity (Domain / Host /
+  +path… or Depth 1/2/3…) — re-groups every entry at once.
+- **Transport:** a **`Move to registry…`** row in each entry's actions → pick a writable target → maps fields by
+  name, writes (typed + reload), removes from source, lands on the moved entry (`move_entry`).
+- ✓ Verified: engine unit tests (domain/host/path keys, suffix vs prefix matching, multi-TLD, override
+  precedence), live `groups sites` (clustered by domain: google.com×8, amazon.com×2…), screenshots of the grouped
+  Sites list + the ⚙ Grouping picker, move dry-run field-mapping, level-change re-grouping.
+- **Guided-segment rule creator — BUILT (2026-06-23).** Each url/path entry's actions now has a **`✦ Group rule
+  from this…`** branch → `registries.py group-candidates <reg> <value>` returns the granularity ladder for THAT
+  entry (Domain → Host → Host+1/2 segments, or path depths), each row annotated with **how many existing entries
+  the rule would capture** ("Domain → amazon.com  (groups 2)"). Picking writes `add-group-rule` and re-groups. The
+  `⚙ Grouping` node also lists existing **custom rules** with a one-tap **✕ remove** (`remove-group-rule`).
+  Closures capture the prefix by value (IIFE), per the AHK-v2 loop-capture trap. ✓ Verified: CLI counts on
+  url+path registries, full add→group→remove round-trip, dump carries `group_config.rules`, screenshot of the
+  per-entry action row.
+- **One-click promote group → registry — BUILT (2026-06-23).** Each auto-grouping registry now has a **`⬆ Promote
+  group → its own registry`** node listing every current group + its size; picking one runs `registries.py
+  promote-group <src> <group>`. The promote is **fully data-driven** — it writes `INIDATA/promoted_registries.json`
+  (`{id:{json,template:"site",source,name}}`), creates an empty `VoiceChoices/<id>.json`, then moves every group
+  member in. Two readers pick the config up with **zero source edits**: `add_voice_choice._register_promoted_
+  registries()` clones the `site` choice set (so the new registry gets typed writes + the web_opener reload touch),
+  and `web_opener_commands._promoted_site_registry_paths()` unions it into `load_sites()` (so promoted sites stay
+  openable in the `<site>` grammar — that union IS the "inherit the rule" Jamie asked for). In-process the promote
+  busts the cached `add_voice_choice` module (`sys.modules.pop`) so the just-written choice set is live for the
+  moves. CLI: `promote-group <src> <group> [new_id] [--dry-run]`. ✓ Verified end-to-end on a throwaway `plex.tv`
+  group: new registry discovered (object/site fields/choice_set/writable), entries moved with intact field dicts,
+  left the source, `load_sites` union included both phrases — then fully torn down (moved back, config+json
+  deleted, 43/492 baseline restored, U+00B7 title byte-verified uncorrupted). Screenshot of the promote list.
+- **Edge:** localhost/IP urls (`127.0.0.1:7459`) group oddly at level 0 (registrable-domain on an IP); harmless,
+  manual-overridable, or use level 1 (host). github.io-style public-suffix hosts cut to the suffix (rare).
+
+### 17.5 Interaction map (so the seams stay honest)
+
+```
+Contexts (program block)  =  LAUNCHER library   ("how to start/open app X" + foreground detection + bind scope)
+Destinations              =  saved PLACES        ("go to this thing, at this position")
+        directory/program-ref ──► names a launcher from Contexts (one ref direction)
+        url-doc/url-site ───────► self-contained (Chrome), ignores Contexts
+        open_fn ────────────────► names any AHK fn, no Context needed
+        on add (opt-in) ────────► offer to register a Context for the opened window (site→context bridge)
+```
+
+Destinations never absorb Contexts and vice-versa; the only hard edge is `program-ref → program registry`
+for launching, plus the optional add-time bridge.
+
+---
+
+## 18. HANDOFF SNAPSHOT (2026-06-23 — read this first after a compaction)
+
+The unified opener / Destination work (sec 17) was built across one long session. This is the complete
+current state so work can resume without re-deriving it.
+
+### 18.1 What's BUILT + verified
+
+1. **Typed field schema (Python).** `registries.py`: `FIELD_TYPES` (field-name → widget/enum), `_STATIC_VOCAB`
+   (snap_position, open_mode), `_resolve_vocab` (also `program` from the program registry, `function` from the
+   fn index), `field_schema()` (caps embedded enum values at `_EMBED_VALUES_MAX = 250`; the 2253-entry
+   `function` vocab ships name-only, resolved GUI-side). Carried per-registry in the cached dump. ✓ cache.
+2. **Field-level pick editor (Miller).** `RegistryEditorMenu.ahk`: an object entry → one row PER FIELD
+   (`name = value`); enum fields drill to a PICK LIST; text fields edit inline. `_RegSetField` merges one field
+   + writes + reloads; `OpenRegistryEditor(arg, internalPath)` reopens DEEP at the entry. ✓ screenshot + dry-run.
+3. **Unified schema-driven add (`_RegAddEntry`).** Key prompt → duplicate guard → `_RegAddSeed` (url fields
+   pre-filled from Chrome) → per-field collect (enum = `_RegPickEnum` single-select, else text). ✓ live
+   add+remove round-trip.
+4. **`open_fn` escape hatch — ALL three openers.** Per-entry AHK function that opens an entry instead of the
+   default mechanic, signature `open_fn(target, position)`. Docs+sites: `web_opener_commands.py` packs
+   `url|||title|||default_pos|||open_fn`, `_doc_open_action`/`_site_open_or_go_to_action` dispatch it.
+   Directories: `DirRegLookup`+`OpenDirectoryByName` dispatch `open_fn(path, snap)`. `add_voice_choice` gained
+   the optional field on all three + **optional-trailing-field PADDING** (adding an optional field never breaks
+   shorter callers). Editor picks open_fn from the fn index (`_RegFunctionVocab`). ✓ writes (4-arg + 3-arg
+   back-compat), dispatch logic isolated, editor screenshot.
+5. **Smart `add site` — CONTEXT-DRIVEN (sec 17.5c).** The page's CONTEXT is the type. `ContextDestinations.ahk`
+   (the `destination` role, mirrors `ProgramRegistry`). `AddSmartDestination` walks the foreground context
+   chain → routes by the context's `destination` block: `store: "links"` → `_AddLinkToContext` (via
+   `site_contexts.py add`), `store: "registry:<id>"` → `_AddIntoRegistry`. Wired: `youtube.json` (links),
+   new `google_docs.json` context (registry:google_docs). `destinations.py` + the sites `type` field were
+   RETIRED. ✓ validate+closure, JSON. ✗ live detect→route→write (needs Chrome+modals, not headless-testable).
+6. **Capability reroute — generic dup-detect / alias / context-bridge / title-prefill (sec 17.5d).** Derived
+   `capabilities` on every registry (`registries.py registry_capabilities`: identity_field, title_field,
+   context_bridge — all read off the typed schema). `registries.py identity-matches` = the generic url-normalized
+   duplicate finder. The shared add (`_AddIntoRegistry` + the editor's `_RegAddEntry`) now does dup-detect →
+   alias/replace modal → `--replace-key` collapse → post-write context bridge → title prefill from the live tab.
+   `add doc` rerouted to `AddDocSmart` (bespoke `AddGoogleDoc` kept as `add doc legacy` safety net). `add
+   directory` deliberately LEFT bespoke (specialized path-detect + folder-capable program picker). ✓ caps +
+   identity-matches isolated + live round-trip, AHK validate+closure, root-editor screenshot. ✗ live voice
+   add→prompt→bridge (Chrome+modals) — but the writer chain under it is proven.
+7. **Quiet add by default + 2 editor bugfixes (sec 17.5e).** `add site`/`add doc` now write immediately (blank
+   defaults) and open the editor RIGHT ON the new entry — ~95% zero-prompt. Per-context `add_mode:"ask"` /
+   `defaults` on the `destination` block. New deep-open `OpenRegistryEditor(regId, entryKey)` (via GuiHost, 2-level
+   nav). FIXED: sites vanished from the editor (`String(nestedMap)` crash on the `open` block → `_RegStr`); and
+   "Search capped" (redundant live-walk → `search_skip` on registry branches). ✓ screenshots: deep-open lands on
+   field rows, all 32 sites render, clean search. ✗ live voice quick-add (Chrome) — components all verified.
+8. **Per-registry ADD POLICY, editable in the editor (sec 17.5f).** Each object registry has a per-field
+   `{source, value, ask}` policy (`registries.py` + `INIDATA/registry_add_policy.json`, in the dump as
+   `add_policy`). Built-in defaults: `_phrase` ASKS, url/title auto+silent, rest none+silent — so `add site` is
+   one phrase confirm. Editor: a `⚙ Add defaults` row → per-field rows → toggle Ask / set Source / set Fixed
+   value. `_DestAddQuiet` honors it. Deep-open extended to `__`-prefixed special rows. ✓ policy round-trip +
+   screenshots (per-field list, field action list).
+9. **YouTube videos = own registry; ALL context links flattened into Sites (sec 17.5g–h).** Multi-instance TYPES
+   get their own flat registry (`youtube_videos`, feeds `<site>` via `SITE_REGISTRY_PATHS`); the 23 single-site
+   contexts' 28 links were flattened into sites.json (de-duplicated; `.bak` per file). `_iter_context_links`
+   dropped from `load_sites`; the link machinery is DORMANT. ✓ screenshots, grammar count.
+10. **Favorites / hidden — registry + entry level (sec 17.5i–j).** `INIDATA/registry_prefs.json` (dump `prefs`),
+    scopes `_registries` + `<regId>`. `_RegOrganizeEntries`/`_RegPartitionByPref` float ★ fav to top, sink ·
+    hidden to bottom with dividers. Set via N.M row actions OR visible `⭐ Favorite / hide` rows (entry + registry).
+    ✓ screenshots both levels. (Fixed: `RegPrefs` missing from `_RegLoadData`'s `global` — assume-local gotcha.)
+11. **URL/path AUTO-GROUPING (sec 17.5k) — COMPLETE incl. both UI pieces.** Entries cluster by a tunable identity
+    prefix (url domain/host/path; path drive+folders), computed live. `registry_groups.json` (dump `group_config` +
+    per-entry `group`). Manual `group` override field. `⚙ Grouping` row tunes granularity + lists/removes custom
+    rules; `Move to registry…` transports entries. **Guided-segment rule creator** (per-entry `✦ Group rule from
+    this…` → `group-candidates` ladder with match counts → `add-group-rule`) and **one-click promote** (registry
+    `⬆ Promote group → its own registry` → `promote-group`, data-driven via `promoted_registries.json`,
+    auto-registered in both `add_voice_choice` and `web_opener`) are now BUILT (2026-06-23). CLI `groups`/
+    `set-group-level`/`add-group-rule`/`remove-group-rule`/`group-candidates`/`move`/`promote-group`. ✓ unit tests,
+    full add→group→remove + throwaway-promote-then-teardown round-trips, screenshots of both new UI surfaces.
+
+### 18.2 FILE MAP (everything touched)
+
+| File | Role |
+|---|---|
+| `Scripts/codebase_tools/registries.py` | data layer: discover/schema/`FIELD_TYPES`/`field_schema`/vocab/`set_entry`/`build_dump`/`write_cache`. **+ capabilities + `identity_matches` (17.5d); add-policy (17.5f); `_load_prefs`/`set_pref` (17.5i); grouping engine `group_key`/`resolve_entry_group`/`set_group_config` + `move_entry` + `group_candidates` (guided rule ladder + match counts) + `promote_group` (data-driven group→registry) + CLI `prefs`/`set-pref`/`groups`/`set-group-level`/`add-group-rule`/`remove-group-rule`/`group-candidates`/`move`/`promote-group` (17.5i+k). Dump carries `prefs`, per-reg `group_config`, per-entry `group`.** |
+| `INIDATA/registry_add_policy.json` (NEW, created on first edit) | per-registry per-field add policy overrides. Absent = built-in defaults. |
+| `INIDATA/registry_prefs.json` (NEW) | favorites/hidden ordering — scope `_registries` + per-registry entry scopes (sec 17.5i). |
+| `INIDATA/registry_groups.json` (NEW, created on first tune) | per-registry grouping config `{level, rules}` (sec 17.5k). Absent = type default. |
+| `INIDATA/promoted_registries.json` (NEW, created on first promote) | data-driven promoted registries `{id:{json,template:"site",source,name}}` (sec 17.5k). Read by BOTH `add_voice_choice._register_promoted_registries()` (typed writes + reload) AND `web_opener._promoted_site_registry_paths()` (`<site>` grammar union). Absent = none. |
+| `INIDATA/VoiceChoices/<promoted_id>.json` (NEW per promote) | a promoted group's standalone registry, site-shaped. Created empty by `promote_group`, then entries moved in. |
+| `INIDATA/VoiceChoices/youtube_videos.json` (NEW) | the YouTube-videos TYPE registry (sec 17.5g); feeds `<site>` via `SITE_REGISTRY_PATHS`. |
+| `Scripts/VoiceConfigManager/add_voice_choice.py` | the writer. `CHOICE_SETS` value_fields; google_doc/site/directory have optional `open_fn`; optional-trailing PADDING in `_handle_add`. **+ `youtube_video` set; `_register_promoted_registries()` clones `site` for each entry in `promoted_registries.json` so promoted registries get typed writes + the web_opener reload touch (sec 17.5k).** |
+| `Helpers/RegistryEditorMenu.ahk` | the editor + smart add. Field-pick editor, `_RegAddEntry`, `AddSmartDestination`+`_DestConfirmContext`+`_AddLinkToContext`+`_AddIntoRegistry`, `_RegPickEnum`/`_RegResolveFieldValues`/`_RegFunctionVocab`. **+ capability layer (sec 17.5d): `_RegCaps`/`_RegChromeTabTitle`/`_RegIdentityMatches`/`_RegDupCheck`/`_RegFieldValueInArgs`/`_RegMaybeContextBridge`, `AddDocSmart`, prefill-vs-seed split, array `--replace-key` in `_RegWriteAndReopen`.** |
+| `Helpers/ContextDestinations.ahk` (NEW) | the `destination` role: `ContextDestinationLookup`/`...DetectForeground`/`...AllTokens`. Included in MAINFUNCTIONS after ProgramRegistry. **+ `add_mode`/`defaults` on the block (sec 17.5e).** |
+| `Helpers/DirectoryRegistry.ahk` | `DirRegLookup` reads `open_fn`; `OpenDirectoryByName` dispatches it. |
+| `caster/rules/web_opener_commands.py` | doc/site pack+unpack+dispatch `open_fn` (4-field `|||`); `add site` → `AddSmartDestination`, `add doc` → `AddDocSmart` (`add doc legacy` REMOVED 2026-06-23, live-verified); **`SITE_REGISTRY_PATHS` (sites+youtube) + `_promoted_site_registry_paths()` unioned into `load_sites()` so promoted registries stay openable (sec 17.5g+k).** |
+| `caster/rules/windows_commands.py` | `add directory` → `AddDirectorySmart` (quiet path-seed add, sec 17.5e); `add directory legacy` → `AddDirectoryByVoice` (safety net until keyboard-verified). |
+| `INIDATA/Contexts/youtube.json` | `destination: {store:"registry:youtube_videos"}` (links migrated out, sec 17.5g). |
+| `Helpers/RegistryEditorMenu.ahk` (grouping/prefs UI) | `_RegOrganizeEntries`/`_RegGroupHeader`/`_RegSortGroups`, `_RegPrefOf`/`_RegPartitionByPref`/`_RegMarkNode`/`_RegDivider`/`_RegPrefRowActions`/`_RegPrefSet`/`_RegFavHideNodes`, `_RegGroupingNodes` (now lists+removes custom rules)/`_RegSetGroupLevel`, `_RegMoveEntry`/`_RegPickTargetRegistry`. **+ guided rule creator `_RegGroupRuleCandidates`/`_RegSetGroupRule`/`_RegRemoveGroupRule` (per-entry `✦ Group rule from this…`); promote `_RegPromoteGroupNodes`/`_RegPromoteGroup` (registry `⬆ Promote group…`).** `RegPrefs` global (in `_RegLoadData`'s `global`!). `_RegStr` (safe Map stringify). |
+| `INIDATA/Contexts/google_docs.json` (NEW) | `match: docs.google.com/document`, `destination: {store:"registry:google_docs"}`. |
+| DELETED: `Scripts/codebase_tools/destinations.py` | superseded by context-driven detection. |
+
+### 18.3 NEXT STEPS (priority order)
+
+1. **Capability reroute — DONE for all three add types (sec 17.5d–e).** Dup-detection, alias/replace,
+   context-bridge, and title-prefill are generic, schema-derived capabilities on the shared quiet add. `add site`
+   → `AddSmartDestination`, `add doc` → `AddDocSmart`, and (2026-06-23) **`add directory` → `AddDirectorySmart`**:
+   the directory analogue — path-seed via Explorer COM → terminal title → selected text (reuses the old
+   `_VoiceConfigGet*Path` detectors), then `_DestAddQuiet("directories", path, …)`. Identity is `path` so the
+   shared flow's path dup-detection + phrase prompt + typed write + edit-in-place all apply for free; program/snap
+   stay BLANK on add and are edited in place (Jamie's quiet model). A soft program-key collision note covers the
+   directory↔program `open <X>` ambiguity. **Decision:** the old "folder-CAPABLE program filter" was dropped — in
+   the quiet model the program is edited in the editor, not picked at add time (filtering it is a future editor-enum
+   nicety, not blocking). REMAINING under this head:
+   - Jamie **live-verified `add site` + `add doc` (2026-06-23)**, so `AddGoogleDoc`'s voice wiring (`add doc legacy`)
+     was REMOVED; `AddHardcodedSite` was already unwired. The AHK BODIES await a careful shared-helper trace before
+     excision (the context-bridge helper is shared with the live add) → [[AHK_LEGACY_ADD_FLOW_REMOVAL]].
+   - **Keyboard-verify `add directory`** (now `AddDirectorySmart`); `AddDirectoryByVoice` stays wired as
+     `add directory legacy` until then, then its body joins the [[AHK_LEGACY_ADD_FLOW_REMOVAL]] pass.
+2. **Grouping — all pieces DONE incl. auto-route (2026-06-23, sec 17.5k).** Guided-segment rule creator (`✦ Group
+   rule from this…`), one-click promote (`⬆ Promote group → its own registry`), AND **promote auto-route** are
+   built + verified. Auto-route: `promote_group` now records a membership `match` prefix in
+   `promoted_registries.json`; `promoted_route(src, value)` returns the promoted child whose prefix the value falls
+   under (longest wins); `_DestAddQuiet` calls `_RegPromotedRoute` at the top, so after "promote Amazon" a NEW
+   amazon.com add files straight into the Amazon registry instead of Sites. CLI `promoted-route`. ✓ verified:
+   promote plex.tv → a new plex URL routes to `plex_tv`, an amazon URL routes nowhere; throwaway torn down clean.
+   REMAINING — keyboard-verify the three flows live (fire `✦ Group rule from this…`; promote a real group; confirm
+   a subsequent matching add lands in the promoted registry).
+3. **More destination contexts** — Instagram (needs a url match; today matches Messages by title), Reddit,
+   etc. Each = a `destination` block on the context (`registry:<id>` or `links`).
+4. **Sites-as-flat-registries — context-LINKS flow FULLY REMOVED (2026-06-23, Jamie approved).** Deleted:
+   `_iter_context_links` (web_opener); the `_VoiceConfigAddLinkHere`/`AddSubContext`/`SiteCtxWrite`/`SiteCtxScript`
+   cluster (VCM); `_AddLinkToContext` + `_DestAddLinkQuiet` (RegistryEditorMenu) with their `AddSmartDestination`
+   / `_DestAddInteractive` branches rerouted to the Sites registry; the whole `SiteBrowserMenu.ahk` +
+   `Scripts/VoiceConfigManager/site_contexts.py` + the `test_site_browser_menu.ahk` GUI test + its fixture; the
+   "site browser / show sites / sites menu" voice command; and the `#Include`s (MAINFUNCTIONS + gui-test runner).
+   Browse sites via "open registry" now. ✓ validate + 6-entry-point closure clean.
+   **Also removed `AddDirectoryByVoice`** (live-verified `AddDirectorySmart`): the body + `add directory legacy`
+   wiring; `OpenDirectoryConfigGui`'s "adddir" case rerouted through `MAINFUN.bat AddDirectorySmart` (it lives in
+   the GUI subsystem, outside RemoteControl's curated closure — the closure checker caught this runtime-only break).
+5. **Original five queued steps — TRIAGED 2026-06-23:**
+   - **Per-context materializer — NOT BUILT (genuinely the next real subsystem; §15.7 phase 5).** CORRECTION
+     2026-06-23: an earlier triage here wrongly called this "done" by conflating it with the GLOBAL materializer
+     (`generic_materializer_commands.py`, done 2026-06-22 — that one materializes GLOBAL store rows live, no
+     reboot). The PER-CONTEXT one was explicitly deferred (§15 "Context-kind rows skipped = later build"; §15.7
+     "scope step blocked on per-context materializer"). It's why the Voice Command Editor has NO live global/context
+     scope choice — a context-kind store row can't go live without it. Caster scopes per RULE, so this needs a
+     materializer rule per distinct context (each reading its store slice with the right exe/title binding),
+     pre-created so new contexts don't force a reboot. This is the most valuable unbuilt item, not obsolete.
+   - **Dedup `ShowRecentFunctionsViewer` — a REFACTOR, not a deletion.** CORRECTION 2026-06-23: an earlier triage
+     here wrongly called the Scripts file "un-wired / delete it." It is LIVE — `Helpers/ShowRecentFunctions.ahk`
+     ("show fun" entry) spawns `Scripts/ShowRecentFunctionsViewer.ahk` as its own process via `Run(…scriptPath…)`
+     (a VARIABLE, so a literal-string grep misses it). The actual task (§15 "Dedup debt"): the viewer still carries
+     its OWN copies of the dispatch-read / paste-block logic that now lives in `Helpers/RecentFunctionsData.ahk` —
+     refactor it to use that shared layer. Modest internal cleanup; the file stays.
+   - **`OpenDirectoryConfigGui` → registry Miller — OPTIONAL consolidation.** Works today; would fold the
+     directory/program config GUI into the Registry Editor. NOTE it already has a folder-capable program picker
+     (`_DirCfg_PickFolderCapableProgram`) — the "folder-filter" deferred from `AddDirectorySmart` lives here.
+   - **Retire `EXPLICIT_CHOICE_MAP` — LOW-VALUE maintenance reduction.** Still hand-maintained in
+     `voice_commands_by_tag.py`; `derive_linkage` (registries.py) is the auto replacement but the two coexist fine.
+   - **Cache mtime-check — SMALL resilience nicety.** No mtime guard today (cache regenerates on Stop hook + after
+     writes); an mtime-vs-source check would auto-heal a stale cache. Low priority.
+
+**NOT YET KEYBOARD-VERIFIED (built + headless-checked this session; need a live run):** quiet `add site`/`add doc`
+with a real Chrome page (phrase prompt → write → open-on-entry); the add-policy/favorites/grouping row actions
+firing live; `Move to registry…`. All components are unit/validate/screenshot-verified; only the live voice/modal
+paths await Jamie at the keyboard.
+
+### 18.4 GOTCHAS / verification notes (learned this session — don't relearn)
+
+- **Headless AHK testing is BLOCKED for anything needing the full closure.** `#Include MAINFUNCTIONS.ahk`
+  hangs (persistent always-on includes; the arg-gated dispatcher at MAINFUNCTIONS.ahk:384 doesn't help).
+  Minimal-include also fails — cross-deps (e.g. `DetectContextChain`→`ChromeActiveAddress`) raise load-time
+  "nonexistent function". So GUI/context AHK is verified via: `ahk.py validate` + `ahk_include_closure.py` +
+  isolated Python logic tests + the mirror-of-proven-pattern argument + deterministic screenshots.
+- **Synthetic-keystroke GUI driving is UNRELIABLE here** (Miller filter-vs-digit input handling; no-focus
+  test-tagged windows resist `WinActivate`). For screenshots use the DETERMINISTIC right-pane preview:
+  `py ~/.claude/helpers/ahk.py show OpenRegistryEditor --arg <regId> --title "Registry Editor" [--select N]`
+  (an entry's preview shows its field rows). Don't burn time driving multi-step modal flows by keystroke.
+- **The `|||` site/doc Choice value is now 4 fields** (`url|||title|||default_pos|||open_fn`). EVERY
+  `_unpack_*_value` caller must unpack 4 — watch indentation in `replace_all` (a 4-space caller was missed
+  once; `_doc_key_from_packed`).
+- **`ChromeCurrentUrl()`** is the canonical URL reader (per the ahk skill). `_SiteBrowserWrite` (SiteBrowserMenu)
+  shells `site_contexts.py add <tok> <phrase> <url> <title> <default_pos>` — the link writer.
+- **The cache** (`~/.claude/context/registries_dump.json`) is regenerated on the Stop hook + after GUI writes;
+  `registries.py cache` regenerates manually. The editor reads it at boot. **`capabilities` now rides in the
+  dump — after changing `registry_capabilities`/`FIELD_TYPES`, run `registries.py cache` or the editor reads
+  stale caps.**
+- **`seed` vs `prefill` in `_AddIntoRegistry`** (sec 17.5d): `seed` values are AUTHORITATIVE (skip the field
+  prompt — url/open_fn from detection); `prefill` values are DEFAULTS (still prompt — title from the tab). Don't
+  conflate them or the title becomes uneditable / the url gets re-prompted.
+- **Capability dup-detection runs on the FINAL field value**, read post-collection via `_RegFieldValueInArgs`
+  (schema-position lookup) — so an edited url is what's checked, matching the bespoke "based on final URL".
+- **AHK v2 is assume-LOCAL**: a function that ASSIGNS a global must name it in the `global` line, or the
+  assignment silently makes a discarded local (the symptom: a feature reads an always-empty global). Bit the
+  favorites work (`RegPrefs` missing from `_RegLoadData`'s `global`). When a new global won't "take", check the
+  declaration first.
+- **Registry-editor prefs/policy keys are CASE-SENSITIVE and must match the entry key exactly** (the row action
+  passes the real node key, so live use is fine; hand-set `set-pref google_docs journal` ≠ entry `Journal`).
+- **`String(aMap)` THROWS in AHK v2** ("Map has no method ToString") — and a throw inside a Miller node
+  builder aborts the WHOLE level's build (caught as `Mcp/build_err`, the level renders empty). An object entry
+  with a nested field (sites' `open` block) detonated the entire Sites list this way. Always stringify entry
+  values through `_RegStr` (recursive), never raw `String()`. The log (`ahk_event.log` → `Mcp/build_err` with
+  file:line) pinpoints these instantly — tail it FIRST.
+- **Screenshot harness leaves windows open** without `--close`, and the next `show` re-captures the STALE
+  window (looks like your change did nothing / landed at root). `ahk.py check` lists them; pass `--close`, or
+  clear a stray window with **`ahk.py close "<title>"`** (graceful WM_CLOSE on that hwnd). **NEVER
+  `Get-Process AutoHotkey64 | Stop-Process` — it kills Jamie's ~5 always-on scripts (her whole macro system)
+  and she has to restart everything.** `ahk.py sweep` is only for #32770 error popups. (Full rule:
+  `~/.claude/skills/ahk-functions/references/gui-testing.md`; deeper tooling: [[AHK_SCREENSHOT_CLOSE_TOOLING]].)
