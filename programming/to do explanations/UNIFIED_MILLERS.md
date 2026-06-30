@@ -31,8 +31,8 @@ not redundancy. The boundary is the data shape (flat value-lists vs rich profile
 ## What "unified" buys (and the conventions that make it work)
 
 - **Shared machinery** — `MlLeaf/MlBranch` nodes, `_MillerColumnPickGui`, recursive search, and the
-  ONE fav/hide **cycle** (`_RegPrefCycleRow`) + prefs (`set_pref` scope per domain). Build a new editor
-  by composing these, not reinventing.
+  unified **placement control** (`MillerPlacementNode` + a per-system `MillerPrefBackend` adapter; prefs
+  `set-pref` scope per domain). Build a new editor by composing these, not reinventing.
 - **Deep-links are the unifier** — every node is addressable by `initial_path`, so a thin voice phrase
   opens the right Miller landed on the right node ("open nav" → Context Editor at the ListNav node).
   This is what lets us delete standalone tools: they become *entry points*, not separate apps.
@@ -55,8 +55,9 @@ A reusable cluster is `_XActionNodes(data…, reopenFn) -> [nodes]` that:
 3. **mutates via the owning subsystem's CLI** (host-agnostic logic, single source of truth).
 
 **Reference implementations (copy either shape):**
-- `_RegPrefCycleRow(scope, key, reopenFn)` — the fav/hide cycle; used by both the Registry Editor and
-  the Context Manager, each passing its own reopen.
+- Placement/fav-hide is now the engine's `MillerPlacementNode` + a per-system BACKEND ADAPTER
+  (`_RegEnsurePlacementBackend` in RegistryEditorMenu.ahk registers get/set/clear via `MillerPrefBackend`).
+  This SUPERSEDED the old hand-rolled `_RegPrefCycleRow`/`_RegFavHideNodes` rows (deleted 2026-06-29).
 - `_CmdActionNodes(phrase, fn, reopenFn, opts)` (`Helpers/CommandActionNodes.ahk`) — the per-voice-command
   Remove / Rephrase / Rescope rows. Built 2026-06-26 as the first DELIBERATELY-shared cluster. The Voice
   Command Editor's `_VceCommandActions` delegates to it (`reopenFn = reopen show fun at this fn`); the
@@ -393,19 +394,118 @@ same-builder composition uses #2's refresh hook. **#1 and #2 are DONE + tested (
     update `RegPrefs` too). `#Include`s MillerPlacement directly + added to MAINFUNCTIONS. Verified: root
     screenshot shows ★ Google Docs/Sites/Youtube floated to top + ★ Journal/Lyrical entries floated; the
     Journal entry's actions show "Placement: ★ Favorite" (row 6); `set-pref`+`cache` round-trips reversibly;
-    validate + closure clean. DEAD CODE (harmless, cleanup later): `_RegFavHideNodes`, `_RegFavHideRow` (now
-    unused), and `_RegPrefCycleRow`/`_RegPrefCycle` (already dead since Context migrated off them). Jamie's
-    interactive drill-toggle test-drive still owed.
+    validate + closure clean. DEAD CODE removed (2026-06-29): `_RegFavHideNodes`, `_RegFavHideRow`,
+    `_RegPrefCycleRow`, `_RegPrefCycle`, and `_RegPrefNext` deleted (all unused after the placement-control
+    unification); `_RegPrefStateLabel` KEPT (still used by `_RegPlacementControl`'s state line). Stale comment
+    refs updated in CommandActionNodes.ahk + ContextEditorMenu.ahk. GUI suite 86/86. (The `.ahk.meta.json`
+    function-index sidecars still list the removed names until the Stop hook regenerates them — auto-corrects.)
 
   **ALL 5 CONVERSIONS DONE (2026-06-29).** Voice Command Editor, Context Manager, Projects, Spotify (as the
   multi-tag system), Registry Editor — every Miller's favorite/placement now flows through the unified engine
   control (`MillerPlacementNode` / `MillerTagsNode`) + pluggable backend. The unification arc (TASK 3) is
   complete. Transitional adapters (Projects bands, Spotify personal_tags→catalog, Registry RegPrefs) can
-  migrate onto the canonical `miller_prefs.json` later, but the model is proven. **Next: Miller PERFORMANCE**
-  (data-heavy Millers are slow — each level shells a fresh `py` that cold-imports + reparses the whole
-  catalog, and previews eagerly = a subprocess per arrow-key). Options ranked: persistent in-memory daemon
-  queried over a socket/pipe (the systemic cure, reusable across all Python-backed Millers, like the qmd warm
-  daemon) + debounced preview + lazy imports + AHK level-cache. Measure first to confirm spawn-vs-parse split.
+  migrate onto the canonical `miller_prefs.json` later, but the model is proven.
+
+  **PERFORMANCE — root cause found + fixed (2026-06-29).** "Show fun" took ~10s to open. We MEASURED instead of
+  guessing, and the suspected culprits were wrong: the Python regen is only 268ms (cold-start floor 42ms); the
+  ~1000-node build is cheap. The real cost was the **pure-AHK JSON parser** (`JsonFunctions.ahk` `JsonParse`)
+  chewing char-by-char through big files: `voice_by_function.json` (306 KB) = **8,953ms**, `fn_to_file_index.json`
+  (142 KB) = 1,484ms → 10.4s, paid on EVERY open (each "show fun" is a fresh AHK process; no cache survives).
+  FIX = rewrote the parser hot path (kept the same name/API/output, so all ~13 callers + the serializer are
+  untouched): (1) index a pre-split char array instead of `SubStr(bigstring,i,1)` per char; (2) the string
+  reader bulk-copies runs via `InStr` instead of appending char-by-char. Result: 10,437ms → **438ms (24×)**,
+  deep-compare byte-identical on the real files, 28-case edge test added (`Helpers/Tests/test_json_functions.ahk`,
+  in `_run_unit_tests.ahk`). This is MACHINE-WIDE: every big-JSON reader benefits — Registry (`registries_dump.json`
+  240 KB), Projects (`projects.json` 110 KB + `history.json` 101 KB), Context, Spotify. Full GUI suite 86/86,
+  unit suite 45/45 (incl. the new JSON tests). Also added `_VceIndexStale()` (mtime skip-if-fresh): the 268ms
+  Python regen now only runs when the grammar dump or command store changed, so a repeat open skips it entirely
+  (the add-then-reopen flow still regenerates because `_VceAdd` writes the store + reloads grammar).
+
+  **Debounce (#6) — evaluated, NOT changed.** The engine's `SetTimer(_doRefreshRightOnly, -50)` on ItemFocus is a
+  one-shot that RESTARTS on each keystroke, so fast arrowing already coalesces — the preview builds only for the
+  row you land on. Bumping 50→120ms would add latency with no benefit. Left as-is.
+
+  **SPOTIFY LIBRARY drill — fixed (2026-06-29).** Every drill (artist → albums) took ~1–2s. MEASURED: each level
+  shells a fresh `py media_ingest.py` that called `mc.load_media_type("music")` — parsing the **54 MB / 9,931-item**
+  `music.json` (~900ms) — and a data-section drill fires TWO commands (`catalog-list-spec` + `catalog-list`), with
+  the eager preview rebuilding it on every arrow. THREE fixes, all shipped:
+    1. **SQLite read-cache** (`Scripts/MediaCatalog/catalog_db.py`, NEW). Derived index next to `music.json`,
+       rebuilt only when the JSON is newer (mtime) or the schema version bumps; reads (`get` / `by_subtype` /
+       `children`) are indexed lookups. NO primary key on id (the catalog has duplicate ids — a PK collapsed 41
+       artists/42 albums; verified by deep-compare). Every query FALLS BACK to a full parse on any error, so it
+       can't regress. Routed `cmd_get`, `cmd_list_albums_for`, `_albums_loader`, `_artists_loader`,
+       `cmd_list_items(--subtype)` through it. Equivalence: artists 3171=3171, albums 6755=6755, 30 artists'
+       children + 15 `get`s all byte-identical.
+    2. **Latent-bug fix:** `_personal_tag_vocab_path()` called `load_media_type` (full 54 MB parse, ~381ms) JUST to
+       get the catalog's *directory*, on EVERY tag-emitting row command. Swapped to `mc.media_catalog_path()` (no
+       read). cProfile found it hiding behind the tag-badge emit.
+    3. **AHK side:** session read-cache in `_RunIngestCapture` (SpotifyAddFunctions.ahk) — caches the heavy READ
+       commands (catalog-list / spec / get / list-albums-for / list-items) keyed by full args, flushes on ANY
+       non-whitelisted command so a mutation never serves stale rows; and a per-Miller `preview_debounce` opt
+       (MillerColumnPickGui.ahk, default 50) set to 240ms for the Spotify hub so a brisk scroll doesn't fire a
+       build per row.
+  RESULT: drill commands 942/951/539ms → **~140ms** (the bare py-spawn+import floor); album drill ~1.1s → ~280ms;
+  re-visits hit the AHK cache (no spawn). TRADEOFF: a catalog write (tag toggle rewrites `music.json`) makes the
+  next read rebuild the DB (~2.3s, build pragmas on). Pure browsing never rebuilds. Duplicate ids block a safe
+  incremental update, so it's a full rebuild. OPTIONAL follow-up: `pip install orjson` (catalog_db could use it
+  with a stdlib fallback) would cut the rebuild ~4×; or the persistent daemon to erase the ~140ms spawn floor —
+  neither needed unless the rebuild hitch or the floor starts to bite.
+
+  **POST-ACTION REFRESH — "every action takes 3-4s" (2026-06-29).** Jamie: any action that changes data makes
+  the Miller sit for 3-4s, across all of them. MEASURED each menu's load/regen+mutation Python cost (not guessed):
+  Context `contexts --json` 77ms, Projects `list` 82ms, Spotify drill ~140ms (post-SQLite), registry `set-pref`
+  76ms — all fine. The outlier: **`registries.py dump`/`cache` = ~2,500ms**, and EVERY registry write calls
+  `_RegPy("cache")` to regenerate `registries_dump.json`. So a registry placement toggle = set-pref (76ms) +
+  cache regen (2.5s) ≈ the felt 3s. cProfile: `_load_json` was called **28,199×** (`read_text` alone 2.07s) —
+  `discover_registries` re-reads the same source files (the function index + per-registry sources) thousands of
+  times with no memoization. FIX: a per-process TEXT cache in `_load_json` (cache the file bytes, parse fresh each
+  call so no shared-mutable-object risk; invalidated in `_atomic_write` so a write-then-read is never stale; safe
+  because each registries.py CLI call is a fresh process). Result: dump/cache **2,579ms → 568ms (4.5×)**; a
+  registry action ~2.6s → ~0.6s. Output verified deterministic + unchanged. Combined with the Spotify SQLite work,
+  the two big post-action offenders (Registry 2.5s, Spotify mutation-rebuild 2.3s) are both addressed; Context /
+  Projects / VCE post-action paths already measured sub-300ms. (If a menu still feels slow post-action, profile
+  THAT command — don't assume; the wins here all came from measuring, and each "obvious" culprit was wrong.)
+
+  **CLOSE+REOPEN "FLASH" on edits — fixing (2026-06-29).** Jamie: after an edit the Miller window quits out for a
+  beat and pops back — wants it to reload IN PLACE. Root cause: the in-place refresh mechanism (`MillerActiveRefresh`
+  / `MillerRefreshOrReopen`, TASK 2) exists and Spotify's tag-toggle uses it flash-free, but the other menus' edit
+  actions still did `close.Call(); OpenX(...)` (full close + reopen = the flash). The in-place path re-renders only
+  the CURRENT level; its builders re-read fresh data (Context via `GetContext`→`LoadContexts`, cache-invalidated by
+  `WriteContextProfile`; Spotify via the SQLite read), so values update WITHOUT a reopen, cursor kept. CONTEXT done:
+  `_CtxReopen` now tries `MillerActiveRefresh()` first and only closes+reopens as a fallback; the 10 edit/toggle sites
+  drop their premature `close.Call()` and pass `close` for the fallback (add→drill-into-new and remove→go-to-root
+  keep the reopen since they deliberately change location). Verified: validate clean, GUI suite 86/86.
+
+  **Then made it the ENGINE DEFAULT (Jamie: "make this the default that Millers are automatically usable on
+  creation").** The engine already had an OPT-IN "leaf that mutates + stays open re-renders in place"
+  (`refresh_leaf_on_fire`) — flipped to DEFAULT-ON (opt out with `refresh_leaf_on_fire:=false`). Now ANY Miller,
+  existing or newly scaffolded, auto-refreshes the current level in place after a leaf action that doesn't `close()`
+  — zero per-menu wiring. Added `opts["reload"]` (called before re-render) for menus whose builders read in-memory
+  globals, and a shared `_refreshInPlaceNow()` that both the post-action auto-refresh and `MillerActiveRefresh`
+  route through; it shows a brief "⟳ refreshing…" breadcrumb (the "reload animation if it hangs" idea — static text,
+  since a synchronous reload freezes the UI thread; a true spinner would need async). Documented as the default in
+  `miller-authoring.md`. GUI suite 86/86 across runs. orjson installed + wired into catalog_db (stdlib fallback) but
+  only ~200ms — the Spotify rebuild is I/O-bound (54MB write), not serialize-bound.
+
+  **BUG found on test-drive + fixed: Remove/Rescope "flashed refreshing then did nothing" (2026-06-29).** In the
+  Voice editor, removing/rescoping a command deleted it but the UI didn't update (had to reopen). Two causes: (1)
+  the in-place refresh re-rendered the CURRENT level — the deleted command's OWN action submenu (Remove/Rephrase/
+  Rescope) — whose effect actually shows one level UP (the command list); (2) the Voice builders read the in-memory
+  `VceIndex`, never reloaded, so even the right level would redraw stale. FIX: new engine primitive
+  `MillerDrillOutRefresh()` (process-global like `MillerActiveRefresh`) — pops ONE level then reload+re-render, so
+  the change lands on the parent list in place, no flash. `_CmdRemove`/`_CmdRescope` (shared cluster, used by Voice
+  AND Context — command-actions is exactly one level below the command list in both) now call it (fallback: close +
+  the host reopen). Voice sets `opts["reload"] = _VceLoadData` (mtime-gated) so the parent re-render is fresh. A
+  `_refreshHandled` flag stops the engine's post-leaf auto-refresh from double-firing when an action self-refreshes.
+  GUI suite 86/86. Lesson: in-place "re-render current level" is right for stay-here edits but WRONG for actions
+  whose effect shows on a parent (delete/rescope) — those need drill-out-refresh.
+
+  REMAINING (existing menus): most of Registry/VCE/Projects' explicit close+reopens are NAVIGATIONAL (land on a moved
+  entry, enter a new registry, the add-wizard needs the screen) — CORRECT as reopens, and the engine default leaves
+  them alone (they call close). Only the gratuitous "edit-then-reopen-same-place" ones are worth converting (Context
+  done; Registry rename + a few entry-field edits are candidates): drop their close+reopen so the engine default
+  takes over, plus `opts["reload"]` for Registry/VCE (in-memory globals). Best done with Jamie spot-checking each,
+  since in-place re-renders the CURRENT level and only a human confirms the landing matches per action.
 
 JSON layer last, only if wanted. Authoring conventions documented in the ahk-functions skill
 (`references/miller-authoring.md`).
