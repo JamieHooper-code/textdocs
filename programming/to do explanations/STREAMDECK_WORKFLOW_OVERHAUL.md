@@ -51,7 +51,10 @@ This is what makes §2 powerful — a template is mostly "base layout + a few gr
 
 ---
 
-## 4. JSON-defined key-combo actions — **[SOON, the big one]**
+## 4. JSON-defined key-combo actions — **[V1 BUILT 2026-06-30]**
+
+> **Full design + as-built: [[KEY_ACTION_FUNCTIONS]]** — the dedicated doc (schema, Caster-syntax DSL, generator, runtime, future-proofing). V1 shipped: store `INIDATA/key_actions.json` + `py Scripts/gen_key_actions.py` (add/list/remove) → real functions in `Helpers/Generated/KeyActions_*.ahk`, runtime `Helpers/KeyActionFunctions.ahk`. Still [SOON]: bindings reconcile (the SD-button "bind to key-action" default + `send:` migration that closes out the broken capture flow). Summary below.
+
 
 **Problem:** the current "add a keyboard-shortcut button" flow (set-macro-wizard *capture hotkey* → saves `send:<captured>` at scope=global) is **broken in practice** — key capture is unreliable, hand-typing the combo + Enter often does nothing, and dispatch is flaky. Jamie has never gotten it to work.
 
