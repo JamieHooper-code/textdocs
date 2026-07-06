@@ -12,6 +12,8 @@ related: [STREAMDECK_WORKFLOW_OVERHAUL, ALWAYS_ON_CONTEXT_DETECTOR]
 
 Legend: **[V1]** first build · **[FUTURE]** captured, designed-for, not yet built.
 
+> **Post-compact build queue: [[KEY_ACTION_BINDING_FEATURE_QUEUE]]** (2026-07-04) — disable-a-key, hold-repeat rate, not-in-textbox guard, the SD create-then-bind bug, and unifying the wizard's function-finder with show fun's backend. Start there next session.
+
 ---
 
 ## The core decision: GENERATE real AHK functions (not a runtime interpreter)
@@ -137,8 +139,30 @@ ChromeNewTabThenClose() {
 2. ~~**[V1] Store** `key_actions.json` + **generator** `gen_key_actions.py` (grouping, collision guard, include wiring).~~ **DONE.**
 3. ~~**[V1] Verify end-to-end.**~~ **DONE** — dispatched a sleep-only `SmokeKeyAction` via `MAINFUN.bat` → `OK`; parser verified for c-t/cas-t/w-e/enter/f5/c-minus/as-right/s-tab/bare-letter.
 4. ~~**[V1] `key-action add/list` CLI**~~ **DONE** — `add` / `list` / `remove` on `gen_key_actions.py`.
-5. **[SOON] Bindings reconcile** — SD-button "bind to new key-action" as the default path; migrate/adapt `send:`.
-6. ~~**[FUTURE] function-call + text steps**~~ **DONE 2026-06-30.** Remaining [FUTURE]: param steps, repeat (`t:3`), key down/up, GUI authoring, editor picker-insert.
+5. ~~**[SOON] Bindings reconcile**~~ **DONE 2026-07-04.** Set-macro-wizard picker actions **08 = bind key-action (global)** / **09 = bind key-action (context)** open the grouped Key-Action bind-picker in GuiHost, pick/create → binds it. This **replaced** the old flaky raw-send `send:<keys>` capture outright (`_Smw_BindHotkeyFromInput` retired/dead). Non-SD → `WriteBinding fn:<name>`; **SD slots** → `streamdeck.py replace-at` (keeps the current icon), threaded through as `sdTarget` in `_KaBindInfo`.
+
+**First-class-function integration (the key architectural piece, 2026-07-04):** `gen_key_actions.py` now writes each generated function into `INIDATA/fn_to_file_index.json` **and** emits `Helpers/Generated/KeyActions_<Group>.ahk.meta.json` sidecars on every add/edit/remove. That index is what **show fun** (`OpenVoiceCommandEditor`) and every function picker read — so a key-action created at runtime is instantly a first-class function everywhere (searchable, assignable to voice, bindable), WITHOUT waiting for the Claude Stop-hook rebuild. The editor also has an **"Assign voice command"** facet (spawns `VoiceWizardRunner`). Net: key-actions behave exactly like hand-written functions in all authoring UIs — which is the whole point.
+6. ~~**[FUTURE] function-call + text steps**~~ **DONE 2026-06-30.** Remaining [FUTURE]: param steps, repeat (`t:3`), key down/up, editor picker-insert, sort-by-other-dims in the editor.
+
+---
+
+## Unification onto show fun — **[BUILT 2026-07-04]** (UNIFIED_MILLERS principle)
+
+The standalone Key-Action editor + bespoke bind-picker were the anti-pattern `UNIFIED_MILLERS.md` forbids ("never a new standalone tool; which existing Miller is it a branch of?"). Key-actions are **functions**, so their home is the **Voice Command Editor ("show fun")**. Corrected:
+
+- **Portable cluster `_KeyActionNodes(fn, reopenFn)`** (in `KeyActionEditorMenu.ahk`, sibling of `_CmdActionNodes`) — returns *Key-action steps (multiline) / group (context picker) / Delete* for any fn that's a key-action. Closes over `fn`, refreshes via `MillerActiveRefresh`/`MillerDrillOutRefresh`, mutates via `gen_key_actions.py`.
+- **Mounted in show fun** — `_VceOptionNodes` splices it in for key-action functions, right after `print`, next to `+ add voice command` / `Placement`. So a key-action shows ONE unified option set in show fun. `_KaIsKeyAction(fn)` gates it.
+- **The standalone editor now mounts the SAME cluster** (`_KaFacets` → `_KeyActionNodes` + Run + "Manage in show fun") — options are identical in both, one source of truth. (Full retirement of the standalone + a "+ New key-action" in show fun's root are the remaining steps.)
+- **Binding scope reuses `_VWPickScope`** — wizard `08` pick/create → the ranked global/current/parent scope picker (pre-ranked to the press-time context), same UI as voice commands. Collapsed the old blind 08/09.
+
+## Miller editor — **[BUILT 2026-07-01]**  `Helpers/KeyActionEditorMenu.ahk`
+
+`OpenKeyActionEditor()` (voice "key actions" / MAINFUN / GuiHost) — a Miller browser/editor mirroring the Context Manager. **Root groups actions into a BRANCH PER CONTEXT** (their `group` is a context token: chrome / youtube / … / General); drill a context → its actions + "＋ New in <ctx>"; drill an action → **Steps / Group / Description**, Run, Delete.
+- **Steps** edit = a multiline box, **one step per line, Ctrl+Enter saves** (`_KaMultilineInput`).
+- **Group** = a **context-backed picker** (contexts registry + General + custom), never free text. Group == the context an action belongs to.
+- Creating inside a context branch pre-assigns that group; the top-level "＋ New" defaults to General.
+- Edits shell `gen_key_actions.py set <name> steps|desc|group` (the ONE writer + auto-regen); the tree refreshes in place via `MillerActiveRefresh`.
+- **Bind mode** (`KeyActionPickForBindHost` / `_KaBindNow`) is the same grouped tree with action LEAVES that `WriteBinding` `fn:<name>` — mounted by the wizard's 14/15.
 
 ---
 
