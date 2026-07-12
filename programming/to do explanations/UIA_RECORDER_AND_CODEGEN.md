@@ -77,6 +77,64 @@ minimal summary → clipboard + Claude paste slot (`INIDATA/CopyPasteSlots/claud
 Verified working: mouse, remote mouse, **touch** (13-event touchscreen run matched the
 16-event macro run), keyboard, and ahk_fn merge (MakeDump dispatches interleaved).
 
+### 1b. State snapshots — the diff spine  [BUILT 2026-07-12]
+
+The event timeline records *what was touched* but not *what each touch revealed* — and
+a UIA click-through is a state machine (click X, **wait for Y to appear**; Y is the
+`UiaClickThenWaitFor` expected-result). Recovering that from focus-order alone failed
+badly (the Add-Contact build guessed a wrong linear flow from a scrambled focus order,
+then needed 3 manual dumps to find the real ⋮→People→Add-to-contacts path). So the
+recorder now also captures **state snapshots** and the normalizer diffs them.
+
+- A snapshot = flat list of the foreground window's **actionable, named** elements
+  (`_Rec_IsSnapType`: button/menu item/edit/combo/tab/checkbox/… — excludes text/group/
+  image AND list item, which churns on every GV scroll). Reads Name FIRST, bails on
+  anonymous nodes (one prop read each), so it's cheap despite walking `FindElements({})`.
+- **One baseline** snapshot at record start (starting context) + one **after each
+  interaction** — captured by a **settle loop**, NOT a fixed delay: re-snap every
+  `REC_SETTLE_INTERVAL` (500ms) until two consecutive snapshots are identical (UI stopped
+  changing), capped at `REC_SETTLE_MAX` (6s). Adapts to change size automatically — a menu
+  settles in ~1s, a full page navigation waits until it loads. Non-blocking (chained
+  one-shot timers) so hooks stay live while a page renders. This replaced an initial
+  fixed 450ms delay (Jamie: "400ms will bite us; I'll record slowly — is there a way to
+  tell how big the change was?" → yes: watch until the tree stabilizes).
+- Why delayed-per-interaction beats blind interval polling (the design call): same
+  async-render coverage, a fraction of the tree walks, and precise click attribution.
+  Interval polling only wins for changes with *no* input — menus don't do that.
+- Stored in the recording JSON as `snapshots: [{t_ms, tag, elements[]}]`. Guarded by the
+  same `REC_BUSY` reentrancy lock as click/focus capture.
+
+The normalizer (`uia_recording_report.py` → `render_state_transitions`) diffs consecutive
+settled snapshots into transitions and emits two sections: **STATE TRANSITIONS**
+(`click "More options" → appeared: menu item "People", …`) and a **DRAFT CLICK-THROUGH**
+(the `UiaClickThenWaitFor` sequence).
+
+**Click targets come from snapshot MEMBERSHIP + the click-through CHAIN, not event
+order** — the crucial fix (2026-07-12, verified on Jamie's live Add-Contact AND YouTube
+account-menu recordings). A focus-only recording (touch / voice / synthetic) lands focus
+on the element AFTER each click — clicking the ⋮ "More options" button focuses the first
+menu item "People" — so the raw event *order* is offset by one and lies (the first naive
+draft emitted a backwards `People → More options` step). Two rules fix it:
+- **Membership:** the thing that caused a transition must have been on screen *before* it
+  (present in the pre-snapshot). Elements that just appeared are excluded automatically.
+- **Chain:** in a sequential flow each click lands on something the *previous* step
+  revealed, so `pick_target` prefers a candidate from the prior transition's appeared-set.
+
+An earlier version preferred the candidate that *disappeared* after the click (menu items
+vanish when clicked) — but that was **AddContact-specific overtuning**: YouTube's profile
+button opens a dropdown *beneath* it and stays put, so "prefer disappeared" is wrong there.
+The chain rule is robust to both (disappearing menu item *and* staying-put dropdown
+trigger) with no disappearance guessing. Each step's expected-result is the next step's
+target if it appeared here (perfect chain) else the most salient new element (form field /
+menu item over a generic button). On the Add-Contact flow this emits the **exact**
+`UiaClickThenWaitFor` sequence that previously took 3 manual dumps to derive, from ONE
+recording. Old snapshot-less recordings degrade gracefully (section omitted).
+
+`compute_transitions(recording)` is the shared spine: `render_state_transitions` formats it
+for the report, and **`uia_codegen.py` now consumes it** (Stage 4) — emitting a real
+`UiaClickThenWaitFor` click-through Key Action (with `winMatch` + trailing key/type/ahk_fn
+steps) instead of the old per-event `UiaClickByName` guess. One implementation, no drift.
+
 ---
 
 ## Stage 2 — Normalizer / Enricher  [BUILT 2026-07-09]

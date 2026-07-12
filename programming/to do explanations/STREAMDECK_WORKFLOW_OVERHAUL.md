@@ -88,6 +88,29 @@ Recommendation: **skip the refactor**; revisit only if a feature is genuinely ha
 
 ---
 
+## 7. Propagate an edit to a button's clones/relatives — **[DONE 2026-07-12]**
+
+**Ask (Jamie):** "recognize identical buttons + identical key-logic buttons; when I replace one, offer to replace them all with what I just did — but not always, so it's just an option." E.g. the lockout Key-Logic button lives on many profiles across both decks; usually an edit should mirror to all of them.
+
+**Reality check (from her real decks):** the 8 lockout buttons are **NOT identical — they've drifted.** By content they form 5 groups: minutes differ (1 vs 5), long-press differs (15 vs ResumeLockout), and the icon has 2 content-variants (with 3 different *filenames* — UI-set icons get hashed names, so **filename ≠ identity; content hash is**). Strict "identical" matching finds ~nothing. So the feature gathers by a **drift-tolerant** notion of "the same button."
+
+**Design decided:**
+- **Trigger = opt-in, not automatic.** Most edits should NOT propagate, so nothing pops up after an edit. It's one extra row in the macro-wizard's SD-button drill ("Propagate this button to matching buttons…"). The edit UI is otherwise unchanged.
+- **Two tiers** (Jamie: tiered gather): **exact** = content-identical clones (pre-checked; re-push is a no-op) + **related** = same *primary function* (short-press fn name, args-agnostic) — the family key that survives drift (unchecked, opt-in). Toggle-list shows each candidate's current action summary so the drift is visible while choosing.
+- **Whole-button converge** (Jamie: converge; the drift was accidental): propagate overwrites each checked button with the *entire* source button (icon/label/all KL slots). Intentional exceptions are protected by simply not checking them.
+- **Content-based icon identity** (hash of the icon bytes) so the same picture counts as equal across its hashed/pack-named copies.
+
+**Where it lives:**
+- **Engine — `~/.claude/helpers/streamdeck.py`.** Per Jamie's "don't tack onto crappy code": the three ad-hoc button walkers (`_iter_hotkey_buttons`, `_walk_open_buttons`, and a new one) were **unified into one `ButtonView` value object + `iter_buttons`/`find_buttons`** — every finder (`find-hotkey`, `find-fn-icons`, and the new ones) now runs through it. New commands: `button-signature` (whole-button identity), `find-matching` (exact by signature), **`find-siblings`** (exact + related tiers in one call — what the wizard uses), `propagate` (deep-copy the source button onto target positions, fresh ActionIDs, `safe_write` re-stamps `--src`, one page-write per touched page, one restart; `--targets-file` for AHK handoff, `--dry-run` to preview the plan).
+- **Wizard — `Helpers/MacroWizardMiller.ahk`** (`_MwPropagateNode` / `_MwPropagateChildren` / `_MwPropDoPropagate`): SD-only row → toggle-list (exact pre-checked, related opt-in, in-place ☑/☐ refresh) → `propagate --targets-file --restart`.
+- **Verified:** engine dry-run end-to-end on the real lockout button (source → check all 7 related → plan overwrites exactly those 7 across 7 profiles, no writes); AHK validate + include-closure clean; toggle-list screenshotted (all 7 relatives with drift summaries).
+
+**This partially delivers §3 (button groups)** — "primary-function family" is a *derived* group with zero bookkeeping. A future explicit/persistent group tag (survives even a fn rename) is still the heavier option if derived grouping proves too loose.
+
+**Notes / possible follow-ups:** (a) propagate always `--restart`s (one per confirm) — fine for an occasional action; batch-on-close only if it grates. (b) Deck B is rebuilt by the A→B copy anyway, so propagating to B is a "do it now" convenience; the durable value is across Deck A's own profiles. (c) A standalone "sync this button" command outside the wizard was **declined for v1** (parked). (d) The `ButtonView` unification is exactly the "opportunistic extraction" §5 endorses — done in-file, no package split.
+
+---
+
 ## 6. End-to-end target workflow ("new profile in 10–15 min")
 
 1. **Create** — template picker (§2): pick "Chrome-tab template", name it "Instagram" → profile exists, base layout + declared groups (§3) placed.

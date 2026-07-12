@@ -83,15 +83,110 @@ taxonomy validator accepts `applies_to: ["quote"]` without warnings.
 ### Effective tags (derive, don't materialize)
 
 A quote's **effective leaf tags = its own tags + its folder's cascade tags (all
-ancestor group prefixes) + its linked library book's tags**, then expanded
-through the umbrella DAG. Nothing is copied onto the quote — editing a folder's
-tags or a book's library tags instantly reflows every member. This mirrors the
-media system's "leaf tags only stored, umbrellas derived" rule.
+ancestor group prefixes) + its linked library book's tags + its author's tags +
+its facet bundles** (minus any per-book suppressed tags), then expanded through
+the umbrella DAG. Nothing is copied onto the quote —
+editing a folder's tags, a book's library tags, or an author's tags instantly
+reflows every member. This mirrors the media system's "leaf tags only stored,
+umbrellas derived" rule.
 
 - **Folder/cascade tags**: `quote-group-tags`. e.g. `gathas → mindfulness, health,
   calming`; `books/circe → fantasy, myth, mortality`. Tag the folder once.
 - **Book cascade**: a book quote inherits its linked library book's genre tags
   automatically (Sand Talk quotes get `indigenous, nonfiction, storytelling` free).
+- **Author cascade**: a quote inherits its author's tags too. These live in the
+  SAME media library the books do — `E:\Media\Books\<Author>\library.json`
+  top-level `author_tags` — NOT a quotes-only store. Edit with clog:
+  `book-author-tags <author>` (read), `book-author-set-tags <author> --tags a,b`
+  (replace), `book-author-add-tags <author> --tags c` (append). `quotes.py
+  author_library_tags(creator)` reads it; one edit reflows every quote by that
+  author. Author = identity/theme tags that apply to ALL their work (feminism,
+  Black liberation); book tags = collection/medium-specific (poetry vs prose).
+- **Per-book suppress**: a book can DROP a tag it would otherwise inherit from
+  its author (e.g. a prose collection suppressing an author-level `poetry`).
+  Stored on the book entry as `suppress_tags`; `book_suppress_tags(book_id)` is
+  subtracted in `item_effective_leaf_tags` (never suppresses a tag put directly
+  on the quote). Set via clog `book-set-suppress-tags <id> --tags a,b`.
+- **Compound tags, not intersections**: `black feminism` is its own vocab tag
+  with **parents `[black, feminism]`**, so tagging it once rolls up to black +
+  feminism + identity via `expand_tags` — you keep the specific concept AND
+  satisfy every broader query, with no redundant triple-tagging. Same for
+  `queer theory` (parents queer, theory). Add compounds with `quotes.py vocab-add
+  <tag> --parents a,b --display "..."` (writes the shared `media_tags.json`).
+  Apply broad identity tags at the AUTHOR level (true of all their work) and the
+  specific compounds at the sub-group/quote level where they actually fit.
+
+### Per-book / per-author auto-save
+
+A book (or a whole author) can be set to **auto-save** new grabs: `quote_autosave`
+on the library.json book entry (book wins) or top-level (author-wide fallback).
+When on, a Kindle grab from that book **skips the add form entirely** — saves
+instantly with book+author tags (derived) and fires the background LLM tagger.
+`quotes.py book-autosave --book-id X` (read, used by the grab flow), clog
+`book-set-quote-autosave <id> --value on|off` / `book-author-set-autosave
+<author> --value on|off` (write). The grab flow's `_KGAutoSaveQuote` shells
+`quotes.py add` (no `--no-tag`, so it auto-tags) and honors make-preview
+`--replace`.
+
+### Settings + AI sub-grouping in the viewer
+
+Drilling a book or author in `open quotes` shows a **⚙ Settings** row on top
+(`_QBookPage` / `_QAuthorPage`): toggle auto-save, edit book tags, edit author
+tags, and (book) suppress inherited author tags — all via toggle-pickers that
+persist to the media library through clog (`_QClog`). One-call reader:
+`quotes.py book-settings --book-id X` (TSV: autosave / author / book_tags /
+author_tags / suppress).
+
+### Author facets — reusable tag-bundles ("modes") new quotes plug into
+
+An author writes in a few recurring **modes** — Audre's political/liberation
+register vs. her intimate/love register. A **facet** is a named tag-bundle for
+one mode, stored per author in `library.json` top-level `tag_facets: {name:
+[tags]}`. e.g.
+`{"liberation": ["black","theory","liberation","power"], "love":
+["black","queer","sapphic","love"]}`.
+
+- A quote plugs into facet(s) via a top-level `facets: [names]` field; it inherits
+  the **whole bundle** — derived, so editing a facet reflows every quote in it
+  (`quote_facet_tags(it)` is folded into `item_effective_leaf_tags`). It's a
+  plug-in, not a cage: a quote can be in multiple facets AND still get individual
+  tags on top.
+- **Coarse-to-fine tagging:** the background tagger (`apply_auto_tags`) first
+  **routes** a new quote into the author's facet(s) — the LLM picks from ~3-5
+  curated facets (task `quote_facet`), far more reliable than 300 free tags — then
+  the fine individual tagger adds only what the facets don't cover (facet tags are
+  passed as `already`-applied so they're not repeated). `route_facets(it)` returns
+  `None` when the author has no facets (routing skipped).
+- **Manage** them in the viewer: author page → ⚙ Settings → 🧩 Facets — new facet,
+  edit a facet's bundle (vocab toggle-picker), **rename** (row action `2`, updates
+  member quotes' `facets` too), **delete** (row action `3`), **🔄 Re-route my
+  quotes** (re-files every quote by content — run after editing facets), or
+  **🤖 Propose facets** (`suggest-facets`, local, seeds a starter set to prune).
+  Writers: clog `book-author-facets` / `book-author-set-facet <author> <name>
+  --tags …` / `book-author-rename-facet <author> <old> <new>` (+ quotes.py
+  `rename-facet-refs`) / `book-author-remove-facet`; quotes.py `author-facets` /
+  `set-facets <id> --facets …` / `route-facets <id>` / `route-facets-all
+  --creator X`.
+- **Model backend — LOCAL only.** Facet proposal + routing use `Scripts\local_llm`
+  (free). The Claude gateway (`Scripts\llm_gateway.py`) is **DEPRECATED**: Anthropic
+  changed the plan so gateway `claude -p` calls now cost real money — never wire it
+  into an automated flow. For a sharper facet set, ask the **interactive** Claude
+  Code assistant to do it in-session (that's on the Max plan, $0): it reads the
+  quotes, reasons, and writes the facets/routing directly. (That's how the current
+  Audre / Miller / Yunkaporta facets were built — grounded in the actual quotes.)
+- **Back-fill existing quotes**: `quotes.py route-facets-all --creator X` routes
+  every quote by an author into its facets (local model, one at a time, warm) — so
+  defining or editing facets applies to the whole existing collection, not just new
+  grabs.
+- **Facets require the author in the library** (that's where `tag_facets` lives).
+  An author referenced only by quotes (no `library.json`) needs cataloging first —
+  e.g. Madeline Miller's Circe / Song of Achilles were added via clog `book-add`
+  then `quotes.py relink --commit`, which also gave her 117 quotes book-tag
+  inheritance they'd been missing.
+
+(This replaced an earlier per-book quote-clustering experiment — facets are the
+tagging-assist model Jamie actually wanted: define the modes once, route new
+quotes into them, instead of re-picking tags every time.)
 
 ## Length + display
 
