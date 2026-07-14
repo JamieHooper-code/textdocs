@@ -1,9 +1,9 @@
 ---
-tags: [autohotkey, streamdeck, caster, macro-system, context, design, workflow]
+tags: [autohotkey, streamdeck, caster, macro-system, context, design, workflow, inheritance, ledger]
 created: 2026-06-30
 status: design
 owner: Jamie
-related: [ALWAYS_ON_CONTEXT_DETECTOR]
+related: [ALWAYS_ON_CONTEXT_DETECTOR, KEY_ACTION_FUNCTIONS]
 ---
 
 # Stream Deck Workflow Overhaul — design
@@ -20,7 +20,9 @@ The VSD "PROFILE SWITCHER" is an **auto-managed set**, not a hand-curated palett
 
 ---
 
-## 2. Profile templates — **[SOON]**
+## 2. Profile templates — **[SOON]** · **reframed by §8**
+
+> **Superseded framing:** with the ledger model (§8), a "template" is just a **node in the profile tree** whose children inherit its layout. "Copy the Chrome template" becomes "instantiate a child of the Chrome node," which auto-inherits its groups and enrolls the new profile in the Chrome family. Read §8 first; the picker below is still the entry UX.
 
 Several **templates**, not one, so a new profile starts pre-populated for its *kind*:
 - **Chrome-tab template** — the recurring Chrome-page layout (pinned switchers + a standard action zone).
@@ -35,7 +37,9 @@ Open Qs: where does the template list live (naming prefix vs a manifest)? Deck A
 
 ---
 
-## 3. Button groups — **[SOON]**
+## 3. Button groups — **[SOON]** · **reframed by §8**
+
+> **Superseded framing:** groups become **first-class ledger objects** with many-to-many membership (a button can belong to several groups — §8 solves the multi-group case a per-button marker couldn't). A group attaches to a **tree node** (inherited by its subtree) or a **flat tag** (cross-tree cohort). The relative-anchor mechanics below still hold for *anchored* clusters; *shared* sets use absolute preferred positions. Read §8 first.
 
 Reusable **named groups of buttons** added/removed as a unit at an anchor position:
 - **list-nav-8** — the 8-button bottom-right block on the Chrome page (the recurring list-navigation cluster).
@@ -107,6 +111,8 @@ Recommendation: **skip the refactor**; revisit only if a feature is genuinely ha
 
 **This partially delivers §3 (button groups)** — "primary-function family" is a *derived* group with zero bookkeeping. A future explicit/persistent group tag (survives even a fn rename) is still the heavier option if derived grouping proves too loose.
 
+**GOTCHA burned in (2026-07-12): a whole-button copy MUST copy the icon FILE too.** A button's `States[0].Image` is a **relative** path (`Images/<name>.svg`) resolved inside *each profile's own* `Images/` folder. The first propagate copied only the button JSON, so all 7 targets pointed at a file that lived only in the source profile → **blank icons on 6 of them.** Fix: `propagate` now calls `_propagate_icon` (→ `embed_icon`) to copy the source icon into each target profile's `Images/` and rewrite the clone's `Image` to the new per-profile path (+ carries provenance). Same trap as the A→B copy's `shutil.copytree` (which copies Images/ wholesale — that's why it doesn't hit this). Any future "move/clone a button across profiles" path must copy the icon file, not just the manifest entry.
+
 **Notes / possible follow-ups:** (a) propagate always `--restart`s (one per confirm) — fine for an occasional action; batch-on-close only if it grates. (b) Deck B is rebuilt by the A→B copy anyway, so propagating to B is a "do it now" convenience; the durable value is across Deck A's own profiles. (c) A standalone "sync this button" command outside the wizard was **declined for v1** (parked). (d) The `ButtonView` unification is exactly the "opportunistic extraction" §5 endorses — done in-file, no package split.
 
 ---
@@ -129,3 +135,75 @@ Each piece removes a manual step; together they hit the 15-minute target.
 4. **Button groups** (§3) — encode the recurring clusters.
 5. **Template picker** (§2) — tie it together for one-step profile creation.
 6. Refactor: **deferred** (§5) — opportunistic only.
+
+> **Note:** the build order above predates §8. The **§8 ledger model is now the spine** — templates (§2), button groups (§3), and propagate (§7) all become facets of it. See §8's own build order at the end.
+
+---
+
+## 8. Ledger model — profile tree, groups, render — **[DESIGN 2026-07-14]**
+
+The big architectural decision, from a design conversation with Jamie (2026-07-14). Goal in her words: many near-identical Chrome sub-profiles that are ~75% shared + a few unique buttons, where she can **update the shared parts across a whole cohort at once**, unique buttons are protected, and **nothing she's already placed ever moves without her say-so**. Jamie chose to **refactor properly rather than bolt onto the existing copy/propagate paths.**
+
+### 8.1 Why a ledger (not per-button markers)
+
+Three requirements that emerged in discussion each break a per-button-marker scheme and each point at an external source of truth:
+
+- **Multi-group membership** — a button (e.g. `scroll-up`) can belong to several groups. A scalar `_grp` marker can't express many-to-many, and "which group's preferred slot wins?" has no home on a leaf node. That's relational data; it belongs in a ledger.
+- **Parent inheritance** — profiles form a tree (`chrome` → `chrome-nav` → `Instagram DMs`); content cascades down, child overrides win. That's a relation between profiles, not a property of a button.
+- **No drift** — Jamie wants a ledger "so deeply integrated/derived it's impossible to drift."
+
+**The anti-drift construction:** the ledger is the **single source of truth** for all *structure*; **manifests are a pure render of it.** You never read structure back out of a manifest, so there is nothing to drift *from*. The **only** thing read back from a manifest is "did Jamie manually override this slot," detected via an opaque **stable ID** (`_mid`) that render stamps into each managed button's `Settings`. The `_mid` is a *render artifact / breadcrumb*, **not** the source of truth — which is what keeps the §7 anti-drift lesson intact (identity comes from the authoritative ledger, not a fragile external filename map).
+
+### 8.2 Core objects (all in the ledger — `INIDATA/sd_ledger.json`)
+
+- **Profile tree** — **single parent** per node (v1). A node is a profile (or an abstract template node with no device of its own). Effective content of a node = its own groups/buttons **unioned up the parent chain**, child wins on conflict. Spans **both decks** (each node records which physical deck + device it renders to).
+- **Family = a subtree.** No separate family registry — addressing a node addresses its whole descendant set. Push a button to `chrome` → lands on chrome and everything under it; push to `chrome-nav` → just that subtree. This is the cohort-scoping Jamie wanted, for free.
+- **Flat tags** — orthogonal to the tree, for **cross-tree cohorts** (e.g. several `GECK2*` profiles under different parents that all want the chrome list-nav group). A group can attach to a **node** (inherited by subtree) *or* a **tag** (any tagged profile).
+- **Groups** — named button sets, **many-to-many** with buttons. Each group-button has a *preferred position*. Anchored clusters (relative to an anchor) and shared sets (absolute preferred pos) are the same structure with/without an anchor param.
+- **Per-profile resolved positions** — where each managed button actually landed on each profile, **frozen** (see 8.4).
+- **Per-profile deprecations** — group-slots Jamie removed on a specific profile (see 8.4).
+
+### 8.3 The three operations
+
+- **`render`** (ledger → manifests): the only writer of managed content. Pure projection. Stamps `_mid` per managed button. Handles per-node device targeting, `AppIdentifier` strip for Deck B mirrors, fresh page UUIDs at node creation. **Additive:** never moves a frozen button; new buttons drop into free slots by the deterministic fill order; a placement that would require displacing an existing group **asks** rather than reflowing silently. Internally calls the §7 `propagate` write primitive (deep-copy, fresh ActionIDs, **the icon-file copy** — the gotcha §7 already burned in).
+- **`reconcile`** (manifests → ledger): the drift-closer. Scans for manual overrides — a managed slot whose `_mid` is missing or whose content diverged → records a **deprecation**; a new hand-placed real button (no `_mid`) → a protected **unique**. Run **before every apply** so raw-Stream-Deck-UI edits are safe.
+- **`apply`** = reconcile → render for a target node/tag (a cohort).
+
+### 8.4 Placement rules (Jamie's muscle-memory constraints)
+
+- **Deterministic first placement, then frozen.** First time a managed button lands, its slot is chosen by the fill order (existing zone priority: primary cols 4-7 rows 0-1 → nav-right → utility-left) into a free slot, then **written to the ledger and never recomputed.** Re-applying a group is purely additive — existing buttons do not move.
+- **Group-level relocation is an explicit, prompted choice.** If a new group can't fit without displacing an existing group, the system **asks**; it never silently shuffles muscle memory.
+- **Manual overwrite = deprecation, not eviction.** Jamie's list-nav case: she stamps 8 buttons, later overwrites positions 6/7/8 because she only wants 5. Result: those three group-slots are marked **deprecated on that profile** and **never re-placed**; the remaining 5 stay frozen where they are. The profile "accepts it has 5 of 8." **Re-adding the group intentionally clears that profile's deprecations** and re-places the missing ones (into gaps; asks if that needs to move anything).
+- **Unique = a real button with no `_mid`.** No separate "preserved slots" list. Untagged real buttons are protected by definition, so existing hand-built profiles need zero migration — untagged = safe default.
+
+### 8.5 Deck B, unified into the tree (retires the wholesale A→B copy)
+
+- **Mirror profiles** (most of B) = **children of their A counterpart.** They inherit A's content and **cascade automatically when A updates.** Because render is incremental per-node, B children can carry **their own overrides that survive** — this **fixes the current copy's known bug** ("individual Deck B customizations are lost every copy").
+- **`GECK2*` profiles** = **independent nodes**, no A parent (never overwritten), that opt into shared groups via **flat tags**.
+- **The 8-step wholesale A→B copytree is retired.** Its mechanical steps (fresh page UUIDs, `AppIdentifier` strip, device retarget, switch-button remap) become **render finalizers** run at node creation, not on every bulk copy.
+- **Migration:** one-time — enroll existing B mirrors as children of their A counterpart by name-match; tag existing managed buttons; capture groups from reference profiles.
+
+### 8.6 What's kept vs reworked (per "refactor, don't bolt on")
+
+- **Keep** `ButtonView` / `iter_buttons` / `find_buttons` (the good §7 foundation — render *and* reconcile sit on it).
+- **Keep** `propagate`'s write internals, but **demote** it to render's private write primitive (not a user verb).
+- **Rework** `copy-profile` → "instantiate a child node" (inherits parent chain + enrolls in tree/tags).
+- **New extracted module** (`streamdeck/families.py` or `ledger.py`) for the ledger/render/reconcile core — this is finally the "opportunistic extraction" §5 was waiting for, scoped to just this feature.
+
+### 8.7 Open risks / to verify before coding
+
+1. **`_mid` persistence** — confirm an unknown `Settings` key survives Stream Deck's graceful-exit manifest rewrite (the §7 `--src` stamp already lives there and survives, so likely fine — but verify one round-trip first; if it's stripped, fall back to a sidecar slot-ledger). **This is load-bearing.**
+2. **Reconcile correctness** for raw-UI edits (hashed icon names, content-compare thresholds).
+3. **Single vs multi parent** — chose **single** for v1; multi-inheritance (diamond conflicts) deferred.
+4. **Scope** — page 0 per profile for v1.
+
+### 8.8 Revised build order (supersedes §"Build order (proposed)")
+
+1. **Verify `_mid` survives an SD rewrite** (8.7 #1) — gates everything.
+2. **Ledger schema + `render`** for a single node (no inheritance yet) — prove ledger → manifest with frozen positions + `_mid` stamping.
+3. **`reconcile`** — override/deprecation detection; makes edits safe.
+4. **Parent inheritance + subtree cohorts** — union-up-the-chain, `apply` to a node's descendants.
+5. **Groups as ledger objects** (many-to-many) + **flat tags** — `group capture` from a reference profile doubles as the tag-migration.
+6. **Deck B as children of A** + retire the wholesale copy; migrate existing mirrors.
+7. **Template picker** (§2) as the create-a-child UX; wire to context (§1).
+8. Extract the module (8.6) as it grows — don't front-load the split.

@@ -137,3 +137,30 @@ Model it as a binding **guard flag** (e.g. `"guard": "not_in_textbox"`), checked
 - Verified: validate + include-closure clean, param-spec pipeline correct end-to-end on real files, serialize round-trips (incl. clearing), wizard loads cleanly on the SD slot. **Needs Jamie's live drill test:** open wizard on the button → This slot → the binding → **Arguments** → `minutes: 5` → edit.
 
 **⏸ v2 PARKED — list-pick for enum args ("picked out of a list").** The per-param structure above is the entry point; the remaining piece is: when a param's value comes from a **finite set**, make its leaf a BRANCH that drills to a pick-list (✓ current) instead of a free-text field — matches Jamie's "never free-text for finite sets" rule. Needs a convention for declaring "this param is an enum of {…}" in the meta (the arg doc today is prose, not machine-typed). Once that typing exists, `_MwArgChildren` chooses per-param: enum → pick-list branch, else → the current input field.
+
+---
+
+## 7. Key Logic buttons — see + edit all three faces at once — **[DONE 2026-07-12]**
+
+**Ask (Jamie):** "see all three buttons for a Key Logic button when I click on any of them… build a switch between them and see all of them from inside that one UI, because they're all related to the same button."
+
+**Before:** the wizard opened on the exact sub-action pressed (slot carries `#short`/`#mid`/`#long`) and "This slot" showed only that one face.
+
+**Now:** when the wizard's slot is an SD Key Logic button (detected by the `#sub` in the slot string — no Python call needed), **"This slot" lists all three faces**:
+```
+● Short (tap):        StartLockoutTimer 5      (● = the face you pressed)
+  Mid (double-tap):   StartLockoutTimer 10
+  Long (hold):        ResumeLockout
+  ── whole button ──
+  Propagate this button to matching buttons…
+  Remove this whole button
+```
+Drilling a face gives that face's edit options **scoped to its sub-action**: Arguments (per-face, in-Miller), Rebind (re-assign same fn + icon), Rebind-with-arguments, Assign-voice, and **Bind a different function to this face…** (reuses the shared show-fun catalog with bind options that target the face). Empty faces show `(empty)` and offer "Bind a function to this face…". So every face is visible + fully editable from one window, whichever one was pressed.
+
+**Where:**
+- **`streamdeck.py button-slots <deck> <page> <pos>`** — new read command (built on the `ButtonView` layer): returns a KL button's three faces (`{slot,fn}`) or a single face for other buttons.
+- **`Helpers/MacroWizardMiller.ahk`:** `_MwSlotChildren` branches to `_MwSdKlSlotChildren` for KL slots; `_MwSdFaceChildren` / `_MwSdFaceCatalog` / `_MwSdFaceBindOptions` build the per-face options; `_MwSdActionForSub` / `_MwSdSubSlot` read/target a specific face. The arg-edit chain (`_MwArgsBranchNode`/`_MwArgChildren`/`_MwEditOneArg`/`_MwSetSdArgs`) and the bind path (`_MwDoBind`/`_MwDoBindWithArgs`) gained an optional `sdSub` that scopes the write to one face (default "" = the pressed binding / non-SD unchanged).
+- **Per-face remove is deliberately NOT offered** — SD remove (`remove-at --blank`) blanks the whole button, so "Remove" lives once at button level. (Clearing a single face → future, needs a sub-clear op.)
+- Verified: validate + include-closure clean; `button-slots` correct on the real lockout button; three-face view screenshotted (all faces + per-face options render).
+
+**Follow-ups:** clear-one-face; per-face history/revert (history is currently whole-button); the pressed-face `●` marker.
