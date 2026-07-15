@@ -192,7 +192,7 @@ Three requirements that emerged in discussion each break a per-button-marker sch
 
 ### 8.7 Open risks / to verify before coding
 
-1. **`_mid` persistence** — confirm an unknown `Settings` key survives Stream Deck's graceful-exit manifest rewrite (the §7 `--src` stamp already lives there and survives, so likely fine — but verify one round-trip first; if it's stripped, fall back to a sidecar slot-ledger). **This is load-bearing.**
+1. **`_mid` persistence — VERIFIED 2026-07-14. ✅** An unknown key injected into a button's `Settings` **survives** Stream Deck's graceful-exit flush. Test: force-kill SD → inject `_mid_persist_test` into a real button on disk (VLC profile, `0,0`) → launch SD (loads into cache) → `StreamDeck.exe --quit` (graceful flush; manifest mtime confirmed changed, i.e. SD *did* rewrite the file) → read back: key present. So render can stamp `_mid` into `Settings` and reconcile can read it after SD's own rewrite — **no sidecar fallback needed.** (Test script parked in the session scratchpad; manifest was snapshotted + restored byte-for-byte.)
 2. **Reconcile correctness** for raw-UI edits (hashed icon names, content-compare thresholds).
 3. **Single vs multi parent** — chose **single** for v1; multi-inheritance (diamond conflicts) deferred.
 4. **Scope** — page 0 per profile for v1.
@@ -207,3 +207,110 @@ Three requirements that emerged in discussion each break a per-button-marker sch
 6. **Deck B as children of A** + retire the wholesale copy; migrate existing mirrors.
 7. **Template picker** (§2) as the create-a-child UX; wire to context (§1).
 8. Extract the module (8.6) as it grows — don't front-load the split.
+
+### 8.9 As-built scaffold — **[2026-07-14]**
+
+**Refactor sequencing decided: "during, incremental" (not before/after).** A big-bang
+refactor of the 3000-line `streamdeck.py` as its own project is the §5 trap (regression
+risk on a daily driver with two live incidents, zero user-facing payoff, reshapes code
+the ledger will re-seam anyway). "After" entrenches the monolith as a dependency and the
+refactor never happens. So: **build the ledger as a proper package now; extract from the
+monolith only the primitives render/reconcile need (manifest IO → buttons → process),
+one verified step at a time.** The monolith shrinks opportunistically afterward, no rush.
+
+Two contracts preserved permanently: the CLI stays `py -3 streamdeck.py <cmd>`, and
+`import streamdeck as sd` keeps working (the two `.claude/helpers` Python callers).
+
+Package now on disk at `AutoHotkey/Scripts/StreamDeck/`:
+- `sdlib/__init__.py` — package doc + extraction strategy.
+- `sdlib/paths.py` — first extracted foundation: `AHK_DIR`, `PROFILES_DIR`, `INIDATA_DIR`,
+  `LEDGER_PATH` (`INIDATA/sd_ledger.json`), and `FILL_ORDER` (deterministic first-placement order).
+- `sdlib/ledger.py` — the §8 data model (`Node`/`Group`/`GroupButton`/`Tag`/`Ledger` dataclasses),
+  `load_ledger`/`save_ledger`, and the **real** pure helpers (`parent_chain`, `children`,
+  `descendants` = cohort, `effective_group_names` = inherited+tag groups child-wins). `render`
+  and `reconcile` are **stubs** (raise until the manifest/buttons primitives are extracted).
+- `streamdeck.py main()` delegates `ledger <sub>` to `sdlib.ledger.main` (one hook; monolith
+  argparse untouched). Sub-CLI: `init｜list｜tree｜groups｜show｜effective｜render｜reconcile`.
+
+Verified: `ruff` + `pytest` + `caster_ahk_verify` all PASS; back-compat CLI (`list`) and
+`import streamdeck as sd` intact; `ledger tree/list/show/effective` work on an (empty) ledger.
+`sd_ledger.json` not created yet — awaiting §8 review before populating the first real tree.
+
+**Next (§8.8 step 2):** extract manifest IO (`_walk_profiles`/`_walk_pages`/`safe_write`) into
+`sdlib/manifest.py`, then `ButtonView`/`iter_buttons` into `sdlib/buttons.py`, then implement
+`render` for a single node on top of them.
+
+### 8.10 Authoring & UX — how you actually create/edit — **[decided 2026-07-14]**
+
+**Group source-of-truth = real (hidden) Stream Deck profiles.** Each group is an ordinary
+Deck A/B profile holding ONLY its own buttons — no defaults, no chrome, nothing else — marked
+as an authoring profile so it's excluded from context auto-switch. **The VSD is only the
+switch mechanism, not storage.** To edit a group, the Miller has a macro invoke that group's
+button on the VSD "PROFILE SWITCHER" — the same UIA-invoke that switches decks for everything
+else (`vsd-ensure` adds the switcher button) — the physical deck flips to the group profile,
+and Jamie edits it on the actual Stream Deck with the wizard: **the exact same backend as
+editing any profile today.** She never hunts for these on a physical switcher by hand; the VSD
+link is just how the Miller reaches them. Render reads buttons from the group profile like any
+other and stamps them onto members (`propagate`'s cross-deck path already handles device-UUID +
+icon-file copy).
+
+**Groups are granular** (Jamie's split): `profile-switching-defaults` (top-left 4 buttons),
+`other-defaults` (the 8 below/left), `navigate` (list-nav), `chrome`, … "Defaults" is not
+special — just group(s). New profiles start with a `default` set checked; you can uncheck
+even that.
+
+**Three edit actions, all reusing existing tools:**
+1. **A group's buttons** → Miller/wizard switches the VSD to that group profile; edit directly; re-render restamps members.
+2. **A node's composition** (which groups / parent / tags) → ledger edit via the checklist or Miller.
+3. **A node's unique buttons** → on the node's own profile; reconcile keeps them (no `_mid`).
+
+**Two authoring UIs onto the one ledger:**
+- **Wizard blank-slot menu (new).** Clicking a blank SD button offers, next to "add function",
+  rows for **add group** (pick a group → stamp from this anchor) and **add/adopt template**
+  (set parent → inherit its groups). Imperative "put this here", same muscle memory as adding
+  functions today. (Screenshot of the current set-macro Miller is the surface being extended.)
+- **Per-profile group checklist.** Reachable from "open context → add Stream Deck profile" AND
+  re-openable for any profile anytime. Checkboxes of groups (and bundles/families). New profiles
+  start with `default` pre-checked; auto-checks derive from the chosen parent/app (a chrome
+  profile pre-checks default+chrome); unchecking an inherited group records a per-node
+  **exclusion** (`Node.excluded`) so you can even drop the defaults. Toggle = attach/detach →
+  re-render (explicit apply, so render can prompt on displacement).
+
+**Target new-profile flow:** open context → "add Stream Deck profile" → checklist (default +
+context auto-checked) → tick ~3 groups → render → hand-add 3–4 unique buttons → done. Ties into
+the context auto-switch (§1).
+
+**Model addition:** `Node.excluded` (inherited groups removed on this node). `effective_group_names`
+now computes `(own + inherited + tag groups) − exclusions`, **nearest-node-wins** (a direct attach
+nearer than an ancestor's exclusion wins, and vice-versa). Live in the scaffold.
+
+**Initial groups to build once the engine works** (Jamie's list): `profile-switching-defaults`,
+`other-defaults`, `navigate`, `chrome`, … — then most new profiles are "check 3 + add a few buttons."
+
+**No new editing backend needed.** Editing a group happens on the real physical deck after the
+VSD switches to it — identical to editing any profile now. (Corrected 2026-07-14 from an earlier
+misread that wrongly put group *content* on the VSD device; the VSD only holds switch links.)
+
+### 8.11 Build progress — **[2026-07-14, cont.]**
+
+The "during" extraction (§8.8 steps 2–3) plus a first `render` are BUILT. Each extraction was
+AST-sliced out of the monolith and re-imported (usage-filtered) so `streamdeck.py`'s namespace and
+both public contracts (CLI + `import streamdeck as sd`) are unchanged; `ruff` + `pytest` +
+`caster_ahk_verify` green after every step.
+
+`streamdeck.py`: **3925 → 3210 lines.** New `sdlib/` package (~1100 lines):
+- `paths.py` — locations + `FILL_ORDER`.  `constants.py` — plugin UUIDs.  `process.py` — kill/restart/exe.
+- `manifest.py` — profile/page discovery, active/pinned readers, `--src` stamping, force-kill-guarded `safe_write`.
+- `buttons.py` — `ButtonView` + `iter_buttons`/`find_buttons`/`read_button`, signatures, clone helpers (`_regen_action_ids`, `_propagate_icon` icon-file copy, `_set_button_image`).
+- `ledger.py` — data model + pure tree/cohort/effective-groups (real, tested).  `Group` now carries `source_profile` (§8.10).
+- **`render.py` — single-node render (§8.3/8.4):** reads each effective group's buttons from its source profile and places them honoring pinned / unique-anchor / FROZEN `resolved` / `deprecated` / `FILL_ORDER`; stamps `_mid`; copies icon files. `streamdeck.py ledger render <node> [--write]` is wired to it.
+
+**Verified:** freeze path (a resolved `_mid` returns FROZEN at its slot) against real profiles; the
+placement decision `_first_free` (preferred → flow → skip-claimed → full-grid=None); "no free slot"
+warning (all Deck A profiles are currently full — 0 free slots anywhere). **The write path
+(safe_write + clone + icon copy + `_mid`) is implemented but NOT yet live-tested** — reuses the
+proven §7 propagate primitives, but needs a supervised run against a scratch profile.
+
+**Next:** `reconcile` (manifest → ledger override/deprecation detection, §8.3), then a supervised
+live write-test (create a scratch profile with free slots → `render --write` → inspect → delete),
+then the authoring UIs (§8.10). Not committed yet.
