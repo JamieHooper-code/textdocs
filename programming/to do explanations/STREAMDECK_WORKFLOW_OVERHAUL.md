@@ -1310,7 +1310,13 @@ was tracked, the menu was not; collateral from the over-staging cleanup. A machi
 the entire ledger Miller. Its header also still advertised the dropped "stream deck ledger" phrase, which
 is where the stale spoken aliases in the auto-generated `.meta.json` came from.
 
-### 8.35 The A→B mirror, measured — recoverable, and it costs exactly 2 buttons — **[2026-07-15]**
+### 8.35 The A→B mirror, measured — ⚠️ SUPERSEDED BY §8.36, see below — **[2026-07-15]**
+
+> **This section's conclusions are WRONG.** It measured only Deck B's *Default* pages, so it missed
+> that Deck B's CURRENT pages hold 96 buttons of Jamie's own content. Its "2 buttons lost" figure is
+> debunked in §8.36 (they're duplicates of Deck A's), and its recommended "narrow current-page-only
+> mirror" would have destroyed exactly the content it was meant to protect. Kept as a record of the
+> reasoning error: a measurement of half the system read as a measurement of the system.
 
 The STOP block claimed "~300 `_mid`s, silently destroyed". Counted properly:
 
@@ -1340,3 +1346,423 @@ construction** instead of by recovery, and the 16 unmanaged Default-page buttons
 being casualties at all. **Not built** — it deletes and rewrites 27 real profiles, and deserves its own
 session with a dry-run and a real test rather than the tail of a long one. The measurements are the hard
 part, and they are done.
+
+### 8.36 Deck B is not a mirror — the copy process was a loaded gun — **[2026-07-15]**
+
+**§8.35 was wrong, and wrong in the dangerous direction.** It measured only Deck B's *Default* pages,
+concluded "2 buttons permanently lost", and recommended building a narrow current-page-only mirror.
+Both halves collapse under one more measurement.
+
+**First: the 2 casualties were never casualties.** VS Code B's `7,2`/`7,3` are labelled `F13` but their
+`QTKeyCode`s decode to **F17/F18** (`NativeCode` 128/129 = `VK_F17`/`VK_F18`). `bindings.json` maps
+`F17 -> fn:ClaudeBackChat` and `F18 -> fn:ClaudeNextChat` — and Deck A's VS Code calls **ClaudeBackChat at
+7,2 and ClaudeNextChat at 7,3**, the same two functions at the same two slots, just directly instead of
+through a hotkey round-trip. Zero loss. (Their `F13` labels are simply stale; `ShowTitle` is false, so
+nothing ever displayed the lie.)
+
+**Second, and this is the finding: DECK B IS NOT A MIRROR OF DECK A.** Comparing the twins' CURRENT pages:
+
+| | |
+|---|---|
+| identical | **281** — B genuinely was copied from A, once |
+| **DIFFERENT** | **82** — *not* drift |
+| **only on Deck B** | **14** — a full replace deletes these outright |
+| only on Deck A | 28 |
+
+The 82 are not stale copies of A's buttons. They are **different buttons**:
+
+- **`links`** — A: `GAMES1/GAMES2/GAMES3/DREAM2/DREAM3`. B: **`TV1/TV2/TV3/ROT1/ROT2`**.
+- **`navigation`** — A: TobiiToggle, SwitchTopDesktop, Chrome, StartScreenSaver, SwitchDragonMic.
+  B: **a DisplayFusion resolution panel** — `1440p`, `1080p`, `720p`, `480p`, `Land` — plus **9 buttons
+  that exist nowhere on Deck A** (SnapMoveMonitorMax, MoveCurrentWindowToNextDesktop, Win+Up, Win+Left…).
+
+`navigation-b` is a purpose-built window-management deck. `links-b` is a different link set. Running the
+documented copy would **delete Jamie's TV links and her entire resolution panel** and paste Deck A's
+content over them. **96 real buttons** (82 + 14) are hers, not A's.
+
+So the §8.35 recommendation — "narrow it to sync each B profile's current page from its A twin" — was
+exactly the wrong tool: the current page is *precisely* where her divergent content lives. A "narrow"
+mirror would have destroyed all 96 while feeling safer than the full replace.
+
+**The ledger half was over-feared, symmetrically.** All 265 `_mid`s are on Default pages; zero managed
+buttons sit on a Deck B current page. Nothing there depends on frozen placement and `ledger apply`
+rebuilds all 265 exactly (nodes resolve by profile NAME, so fresh UUIDs are irrelevant). The danger was
+never the ledger — it was always her own content, on the half nobody had measured.
+
+**Built: `sdlib/mirror.py` — a reporter with NO WRITER** *(superseded within the hour: Jamie answered the
+question, and §8.37 below builds the writer on her terms — every non-GECK2 profile IS a mirror.)* `ledger mirror [NODE]` compares
+each twin pair's current page and leads with the 14 buttons a copy would destroy. There is no `--write`
+because there is no correct sync until someone decides what the two decks are *for*, and a wrong one
+costs 96 buttons. If the goal ever becomes "B should get A's new buttons", the rule must be **add/overwrite
+only where A has a button, never delete a slot only B has** — and even that overwrites the 82 deliberate
+differences, so it needs a per-profile opt-in, never a blanket run. That is a decision for Jamie, not a
+default for a tool.
+
+**One classifier rule earns its keep:** a switch-profile button on B *should* differ from A's — each
+targets its own deck by construction (`profile-switching-b`). Sabotaging that tolerance turns 82 real
+diffs into 110, burying the signal under 28 fakes. Tested, and proven able to fail.
+
+**The skill's Deck B section is retired**, not softened: the copy steps are kept only as a record of what
+the old process did, under a 🛑 header, and the two lines that called B "a mirror of A" and warned that
+"edits on B will be overwritten next time a full copy runs" are corrected — that warning was backwards and
+would have discouraged her from editing the deck that holds 96 of her own buttons.
+
+### 8.37 The mirror, built on Jamie's terms — and the three bugs it took to get right — **[2026-07-15]**
+
+§8.36 ended with "there is deliberately no writer — someone has to decide what the two decks are FOR".
+Jamie decided, immediately and unambiguously:
+
+> *Besides the actual decks labeled GECK2, every other profile should just be mirrored, all of those
+> differences are nonsense. Mark every profile as opt in except for those pages that I mentioned.*
+
+So the writer exists now. The measurement wasn't wasted — it's what made the question askable, and it's why
+the answer could be acted on in one pass instead of discovered mid-destruction.
+
+**Shape.** `Node.mirror` (opt-in per node, never a blanket sweep over whatever is named `-b`);
+`ledger mirror-set all|<node> on|off`; `ledger mirror-sync [NODE] [--write]`, dry-run by default, naming
+every copy and every DELETE. All 27 twins opted in; the 8 GECK2 nodes were never candidates — they have no
+Deck A twin, so `twins()` excludes them by construction as well as by rule. One history entry per run.
+
+**What sync refuses to touch, each for a reason that would otherwise be a bug:**
+- **Default pages** — all 265 of Deck B's `_mid`s live there and `apply` owns them (§8.35).
+- **Managed buttons on A's current page** (14) — copying a `_mid` forges a breadcrumb the target's
+  `resolved` map never issued → instant `duplicate-mid`/`orphan-mid`.
+- **Slots B pins** (4) — a page button *overrides* a pinned one; that is the Chrome-blanking bug (§8.21).
+- **Switchers with no B twin** (2: "Claude", "Spotify Nav" — Deck-A-only).
+
+**THE THREE BUGS.** Worth recording because two of them were re-inventions of hazards this codebase had
+already documented, and the third was invisible without the health check.
+
+1. **The switch remap didn't recurse.** A's 32 switchers point at Deck A profiles; copied verbatim they turn
+   Deck B into a remote control for Deck A. Handling only *bare* switches silently skipped **11** buttons —
+   because "switch profile, then open the app" is one of Jamie's commonest shapes, so the switch hides
+   inside a multi-action's `Actions[0].Actions[]` or a Key Logic's press slots. Recursing fixed it; the
+   skip count went 26 → 16.
+
+2. **Icons didn't travel — 50 blank buttons on Deck B.** `Image` is a path relative to each page's OWN
+   `Images/`, so a whole-button JSON copy leaves the target referencing a file that isn't there.
+   `buttons._propagate_icon` exists for exactly this and its docstring literally says *"This is the piece a
+   naive whole-button copy misses"*. I wrote the naive copy anyway — the same failure mode as the Chrome
+   bug (§8.21), where the hazard was documented and re-implemented regardless. **`ledger health` caught it
+   on the first run**, which is the entire argument for the `sd_health` check existing.
+
+3. **A blank button compared EQUAL to its healthy source, so it never healed.** A signature includes the
+   icon *ref*, not the file's existence — so after the icon fix, 48 of the 50 blanks were repaired (they
+   differed for other reasons) and **2 survived**, classified `same` forever. `_icon_broken` now makes a
+   dangling icon fail the comparison, which makes the sync self-healing. Health: 50 → 2 → **0**.
+
+**Comparison is remap-aware** (`_same_button`, shared by the report AND the sync). B is compared against
+A-*as-it-would-be-copied*, not raw. Compare raw and every correctly-mirrored switcher reads as drift
+forever: the report nags about 24 buttons that are already right, and the sync rewrites all 32 on every
+run instead of being idempotent. The same principle as §8.4's "a reported plan and the write that follows
+can never disagree" — which is also why the **pinned guard moved into `plan_sync`**: it lived only in the
+write path at first, so the dry-run promised 4 copies the write would silently skip. A plan that lies is
+worse than no plan.
+
+**Result:** identical **281 → 372**, different **82 → 14**, only-on-B **14 → 0**. Second run: `copy 0,
+DELETE 0` — idempotent. `ledger health` clean, deck restarted.
+
+**The 14 remaining differences are correct and should stay.** They're Chrome's ListNav buttons: *managed* on
+Deck A, while `chrome-b` has its own tab panel (First / Last / M5 / NewT / PutL / KillT). I briefly
+attached the three `list-navigate-*` groups to `chrome-b` to "finish the mirror" — inferring past what she
+actually asked — and `apply` immediately refused: **13 of her buttons blocked, and exactly 1 free slot** to
+displace them into. That refusal was the tell that the inference was wrong, and it was reverted cleanly
+(no residue in `groups`/`excluded`/`resolved`). **Do not re-attempt it.** Group membership is a ledger
+decision Jamie makes; the mirror only syncs content.
+
+### 8.38 Mirroring MEMBERSHIP, the GECK2 switcher template, and health's silent abort — **[2026-07-15]**
+
+Jamie, unambiguously: *"EVERY PROFILE ON B SHOULD BE IDENTICAL TO A UNLESS IT IS ONE OF THOSE SPECIAL
+PROFILES. OVERWRITE THE CHROME PROFILE. THAT HAS DRIFTED."* — and, fairly, *"PLEASE STOP ASKING ME ABOUT
+THIS."* §8.37 left Chrome as an open question it should have just resolved.
+
+**The sync only mirrored CONTENT, so `chrome-b` could never receive ListNav — ever.** Not a tuning issue,
+a structural one: those buttons are MANAGED, so the content sync must not copy them (a copied `_mid` forges
+a breadcrumb the target's `resolved` map never issued), and only the ledger can place them — which it won't
+for a node that isn't a member. **Membership is half of what a profile IS**, and a mirror that skips it is
+quietly incomplete forever.
+
+**THREE AXES — and the first cut mirrored one and changed NOTHING.** `mirror_groups` aligned `groups`, ran,
+and reported no work: **both `chrome` and `chrome-b` have `groups: []`**. Chrome's ListNav arrives via the
+`list-navigate` **TAG**; the shared defaults arrive via the **PARENT**. So the real set is:
+
+| axis | mirrored? | why |
+|---|---|---|
+| `groups` | yes | direct attachments |
+| `tags` | **yes** | Chrome's only membership route — the one that broke this |
+| `excluded` | yes | drop it and a button she deliberately turned off comes back |
+| `parent` | **NO** | A roots at `defaults`, B at `defaults-b` — the deck split working as designed |
+
+with `profile-switching` → `profile-switching-b` substituted (same role, different deck).
+
+**Managed slots gained a rule.** A's managed button can't be copied, but B must still END UP with it, so
+anything of B's in the way is DELETED and `apply` — which owns managed placement — fills it. `sync` now runs
+reconcile+render per pair afterwards; without it the mirror leaves holes exactly where Deck A has its group
+buttons ("I synced and Chrome B still has no ListNav").
+
+**Result: identical 281 → 387, different 82 → 2, only-on-B 14 → 0, idempotent.** `chrome-b` gained the tag
+and lost 12 drifted hotkeys. The final 2 diffs + 2 A-only are *correct* skips: pinned-covered on B, or a
+switch to Claude / Spotify Nav, which have no Deck B twin.
+
+#### The GECK2 switcher template
+
+`geck2-switching` (PINNED, source `G GECK2 Switching` [B]), captured from GECK2 MACRO WORK's top-left four:
+`0,0→HOME  1,0→MACRO WORK  2,0→CLAUDE  3,0→ATLANTIC`. Each profile **excludes the switcher aimed at itself**
+and keeps her "blocked" green button there — the pattern she described on GECK2 HOME, now a clean diagonal:
+
+```
+GECK2 HOME         [BLOCKED]   MACRO WORK*  CLAUDE*     ATLANTIC*
+GECK2 MACRO WORK   HOME*       [BLOCKED]    CLAUDE*     ATLANTIC*
+GECK2 CLAUDE       HOME*       MACRO WORK*  [BLOCKED]   ATLANTIC*
+GECK2 ATLANTIC     HOME*       MACRO WORK*  CLAUDE*     [BLOCKED]
+```
+
+Exactly the `profile-switching` pattern (where `chrome` excludes the switcher aimed at Chrome). The blocked
+button is a hotkey whose `QTKeyCode` is **33554431** — the "no key" padding value `_hotkey_actions` already
+strips — so it fires nothing by design. Cloned to the three slots that lacked it, **icon included**
+(`_propagate_icon`), because MACRO WORK's self-slot held a pointless switch *to itself* and CLAUDE's/
+ATLANTIC's held blanks.
+
+**Gotcha worth its own line: a group is EVERY button on its source profile.** Building the source with
+`copy-profile "GECK2 TEMPLATE"` gave it 16 buttons, and the first apply cheerfully planned to place
+TEMPLATE's leftovers at `3,3/4,3/5,0/6,0/7,0` on every GECK2 profile. Caught in the dry-run; source stripped
+to exactly 4. **A group source must contain ONLY the group.**
+
+**NOT attached to GECK2 TEAMS / OUTLOOK / TEMPLATE.** Their `2,0 → Apps` is the **only escape out of the
+GECK2 world on any profile** — the other four have none — and the template would overwrite it. Left alone
+pending her call. Attaching it there is a one-liner once she says so.
+
+#### Health was ABORTING, and its silence read as a pass
+
+`geck2-nav-g` pointed at profile `"GECK2 NAV"`, which Jamie **renamed to `"GECK2 HOME"` in the SD UI at
+11:40** while this session ran (`capture_external` caught it as commit `d65c472` — exactly what that
+mechanism is for). `resolve_profile` raises on an unresolvable name, so `ledger health` **died partway
+through** with `No profile matching 'GECK2 NAV'` and printed nothing — and every earlier "health OK" had
+been a *pass over a shorter list*, not a clean bill. Repointing the node (all 8 frozen placements kept)
+made health see four GECK2 profiles it had never checked, carrying **90 real findings**.
+
+**The root cause, and it is a good one:** health ALREADY had a try/except meant for exactly this — and it
+had **never fired once**. `resolve_profile` reports a bad name with `sys.exit()`, which raises **SystemExit
+— a BaseException, NOT an Exception** — so `except Exception` sailed straight past it. (The rest of sdlib
+knows this: `mirror.drift`, `all_conflicts` and `displace` all catch `(SystemExit, OSError, ValueError)`.
+Health was the one that didn't.) **FIXED** — it now records an `unresolvable-node` finding, says how to
+repair it, and keeps scanning.
+
+**The lesson generalises: a checker that dies on the first bad node is blind to every node after it, and a
+checker whose failure looks like success is worse than no checker at all.** The sabotage test is the
+clearest one in the suite: restoring `except Exception` doesn't turn a test red — it kills the entire test
+run mid-suite with the same bare `No profile matching` line health printed on the real deck.
+
+The 90, all pre-existing and all repaired: 89 dangling `_passthrough_blank.svg` refs (`populate-empty` —
+the documented repair), 21 stale `--src` on the new group source (`refresh-srcs` — which *did* report work
+here, incidentally retiring the old "refresh-srcs says no changes" puzzle as it correctly reporting nothing
+to do), ATLANTIC's duplicate CLAUDE switch, and two page-passthroughs hiding pinned buttons — the
+Chrome-blanking shape (§8.21), deleted outright rather than replaced.
+
+### 8.39 "What's next?" — page-0 scope was the answer, and it hid two bugs — **[2026-07-15]**
+
+Asked what to work on next, the honest way to answer was to read the roadmap's own open list rather than
+invent something. Of what §8.16 left open: the BOM issue is fixed (§8.18), §8.4 displacement and §8.5 Deck B
+are done (§8.33–8.38). **`page-0 scope`** was still there, described as a theoretical scope note. It wasn't
+theoretical — **10 profiles have 2–4 pages** — and checking it turned up two real bugs in the mirror built
+one turn earlier.
+
+**BUG 1: the sync wrote to the WRONG PAGE.** It used `get_current_page_manifest` — `Pages.Current` — which
+is *whatever page the deck happened to be showing when SD last flushed*. A UI cursor, not an identity. For
+26 of 27 twins Current was page 0, so it looked right. On **`Links [B]` Current was page INDEX 1**, so Deck
+A's page 0 was compared against, and written onto, **Deck B's page 2**. Actual damage: one button (git shows
+a blank became `TALK1` on a page already 22/23 identical) — but the rule was wrong, and every "identical"
+figure was measured on whichever page each deck happened to be parked on. Pages are now keyed by **index in
+`Pages.Pages`** — the order they appear on the deck, and the only page property that is stable and visible.
+
+**BUG 2: only page 0 was ever synced.** "Every profile on B identical to A" was true for one page out of up
+to four; 29 buttons sat unmirrored on pages Jamie reaches with a Next-Page button. `drift` and `plan_sync`
+now walk every page by index, and each action carries its `page` — "copy 4,0" is ambiguous on a 4-page
+profile. Each page has its **own manifest and its own `Images/` dir**, so the write resolves both per page;
+getting that wrong drops the icon in the wrong folder and the button renders blank.
+
+Pages that exist on only one deck are **reported, never invented** — creating one means minting a UUID, a
+folder and an `Images/` dir and registering it in `Pages.Pages`: profile surgery, not a button copy.
+`reading-kindle` and `vs-code` each have a Deck A page with no Deck B counterpart, and `ledger mirror` now
+says so out loud instead of quietly comparing 2 pages against 1.
+
+**THE JUDGEMENT CALL, and it is the point of this entry.** The newly-visible pages wanted **14 deletions**.
+Checked before writing (the same "does Deck A still have it?" scan that vetted the first 14):
+- **12 were duplicates** — `links-b`'s page 1 was carrying a copy of `links`' page 0. Every one survives on
+  Deck A. Safe.
+- **2 were real and unique**: `apps-b`'s `DRAGON` multi-action, and **`caster` — which launches
+  `Run_Caster_DNS.bat`**. Her Caster launcher.
+
+*"All of those differences are nonsense"* was Jamie's call on **page-0 data she had been shown**. These are
+page-1 buttons no report had ever surfaced. Deleting her Caster launcher on that authority would have been
+wrong; asking her again, right after *"PLEASE STOP ASKING ME ABOUT THIS,"* would also have been wrong. So
+neither: both slots were **blank on Deck A**, so the two buttons were **promoted to Deck A** instead of
+deleted from B. The decks end up identical — which is exactly what she asked for — and the buttons survive.
+When an instruction and a hazard seem to collide, look for the move that satisfies the instruction without
+paying its price; it is often there.
+
+**Result:** identical **281 → 442 across ALL pages**, different → 2, only-on-B → **0**, idempotent, health
+clean. **135 tests** — the index rule is proven by sabotage: restoring "trust Current" turns three red with
+the precise wrong answer it produced on the real deck.
+
+**Still genuinely open on §8:** creating a missing page on Deck B (`reading-kindle`, `vs-code`); the wizard
+blank-slot "add group / adopt template" row (§8.10's third surface); and whether `mirror-sync` should run
+automatically after an `apply` on a Deck A node, so "edit A, B follows" needs no remembering.
+
+### 8.40 The mirror runs itself — and two bugs found by testing that it does — **[2026-07-15]**
+
+Jamie: *"yes I mean it should automatically sync always after changes."* Correct, and it's the whole game:
+having to remember `mirror-sync` is **exactly the discipline that let Deck B drift 96 buttons**. A mirror
+you have to maintain isn't a mirror, it's a chore with a good reputation.
+
+**`safe_write` is the one chokepoint every write passes through** — `add`, `batch-add`, `remove`, the
+wizard, `render`, `displace`, `capture`, all of it — so it now records the `.sdProfile` it touched, and
+`streamdeck.py` mirrors those profiles' twins once, at the end of the command, **inside the same history
+commit** as the change that triggered it. A change and its mirror therefore share one revert point. Matching
+is on the profile **directory**, never the name: "Apps" exists on both decks.
+
+Four properties keep it from becoming a menace:
+- **Scoped** — only twins of what *this process* wrote, not all 27. (Tested: nothing written → nothing synced.)
+- **No-op when clean** — sync is idempotent, so an unchanged twin writes nothing.
+- **Non-fatal** — an auto-mirror must never fail the command she actually ran; it reports and returns.
+- **Never recursive** — `mirror-sync`/`mirror-set`/`restart`/`history` don't trigger it. `history revert`
+  especially: re-mirroring would instantly undo the revert, which is the precise opposite of the point.
+
+Proven end-to-end: `add` on Deck A prints `auto-mirrored to Deck B: audacity (1 copied)` and Deck B has the
+button *with its icon*; `remove` mirrors the deletion. `--no-sync` opts out (read off `argv` rather than
+registered on all 30 subparsers — it's one cross-cutting concern, not a per-command option).
+
+**Missing pages created.** `reading-kindle` and `vs-code` each had a Deck A page with no Deck B counterpart,
+so those pages could never mirror. `create_page` does the surgery deliberately: a **fresh** UUID (a shared
+page UUID makes every page lookup ambiguous — breaks `replace-at`/`remove-at` and therefore the wizard, and
+across decks SD ignores the duplicate outright), the folder plus its `Images/` dir (icons resolve per PAGE),
+an empty manifest, and registration in `Pages.Pages` (a folder SD doesn't know about is invisible).
+`Pages.Current` is deliberately not moved — that's where her deck is parked, and yanking it to a blank page
+would be a visible jolt from a background fix. `ensure_pages` runs BEFORE planning, so a Deck-A-only page
+mirrors on the first run instead of needing a second.
+
+#### Two bugs, found only because the feature got exercised for real
+
+**1. `add` refused a genuinely free slot.** Its pinned check counted a Default-page **passthrough** as a
+pinned button — while `dump` listed that same slot under *"EMPTY / PASSTHROUGH (safe to add)"*. The two
+commands disagreed about the same slot, and since `restart` runs `populate-empty` (which seeds those
+placeholders), the wrongly-blocked set **grows over time**. `is_passthrough_button` exists for exactly this
+distinction and the rest of sdlib already uses it (`displace._free_slots`); `add` didn't. Two slots were
+affected today — both created by the add/remove test that found it.
+
+**2. The sync's pinned guard was too broad, and it cost real function.** Deck A *deliberately* overrides its
+own pinned buttons with page buttons — `page-previous` at `0,3`, `SoftRebootDragon` at `0,2` — and refusing
+to mirror those left **Deck B's new extra pages with no way back to page 0**. What the guard actually
+protects against is §8.21 (a blank placeholder hiding a pinned button, which blanked 11 buttons on Chrome),
+and that **cannot happen on the copy path**: `_views_of` skips passthroughs, so the source is always a real
+button. It *can* happen on the delete path, so the concern moved there. **If A overrides its pinned button
+at a slot, B must too — that is what "identical" means**, and `add --force` is the same override by hand.
+
+The lesson both share: a guard copied from a real incident can outlive the shape of that incident. §8.21 was
+about *blanks over pinned*; both of these generalised it to *anything over pinned* and started refusing
+legitimate work. Guards should encode the failure, not the neighbourhood of the failure.
+
+**Result: identical 442 → 455, different → 1, only-on-B → 0, only-on-A → 0**, idempotent, health clean. The
+single remaining difference is `apps` `4,0` — a switch to Claude, which has no Deck B twin. A correct
+refusal, and the only one left on either deck.
+
+**137 tests.** Still open on §8: the wizard blank-slot "add group / adopt template" row (§8.10's third
+surface, untouched); and multi-parent inheritance (§8.2, deferred at v1).
+
+---
+
+### 8.41 `parent` finally means what it reads like — a child IS its parent, plus its own stuff — **[2026-07-16]**
+
+Jamie's ask, and the shape she wants:
+
+> "we will likely have parent profiles and children profiles, but they will be slightly different than the
+> current like template system. basically I might want an Instagram profile, and also have an Instagram
+> messaging page profile and an Instagram landing page profile. and those two Instagram profiles would be
+> children of the main profile. **and so they would inherit everything from it but then also have some of
+> their own stuff.**"
+
+The ledger already had `Node.parent`. It inherited **group membership** and nothing else — so a button she
+drew by hand on Instagram stopped dead at Instagram. That is not what "parent" reads like to anyone, and the
+gap is invisible until you look for a button that should be there and isn't.
+
+**The model: an ancestor's own buttons are a synthetic group.** `"@node:instagram"` — source profile =
+the ancestor's profile, membership implied by the parent edge, never present in `lg.groups`. Everything
+downstream then worked with no new plumbing: `mid = "@node:instagram/4,0"`, freeze in `resolved`, the sweep,
+per-button `excluded`. That was the whole point of the disguise — content inheritance needed a new way to
+NAME a source, not a new mechanism.
+
+Four things it had to get right, each of which is a way it could have silently half-worked:
+
+* **`own_only`.** A node's "own" buttons are the ones with no `_mid`. Without that filter every inherited
+  button arrives twice — once as its real group, once laundered through `@node:` — and the two copies fight
+  for slots.
+* **The whole chain, not just the parent.** A grandparent's buttons land on the parent as *managed* buttons,
+  so reading the parent's uniques finds the parent's own work and none of the grandparent's. Each ancestor is
+  read directly or inheritance silently stops one level short.
+* **`effective` must contain the synthetic groups.** `_sweep` reads that set as "is this mid's group still
+  wanted". Leave them out and every inherited button is classified `group detached` and swept straight back
+  off the page it was just placed on.
+* **`health` must not read `@node:` mids as orphans.** The real orphan condition is the *ancestor* going
+  away, not the group's absence from `lg.groups`.
+
+**`inherit_content` defaults to True**, which is only safe because of a fact that had to be checked rather
+than assumed: **every parent in the live tree (`defaults`, `defaults-b`, `geck2`) is an ABSTRACT node with no
+profile** — nothing of its own to pass down. So the default changed the meaning of `parent` for all 65 nodes
+and the rendered output of exactly zero of them. A test pins that (`abstract ancestor contributes no content`),
+because the day someone gives `defaults` a profile is the day the default silently becomes a big change.
+
+It stays modular the same way groups do: `@node:instagram` in `excluded` drops the whole inheritance,
+`@node:instagram/4,0` drops one button of it, `inherit_content=False` is the blunt form. `group_buttons` /
+`set_button` / `attach` / `detach` / `checklist` all learned the synthetic form — without that, "inherit
+Instagram except this one button" had no surface at all, which is *precisely* the case she described.
+
+### 8.42 Creating a profile was five chores that didn't know about each other — **[2026-07-16]**
+
+> "we don't really have a good system for actually creating a new profile. so when I go into a context and I
+> say open context... from that and the open stream editor we need to be able to create a new profile and
+> simultaneously link into a context."
+
+Every piece existed. None of them knew about the others:
+
+| chore | tool | what it didn't know |
+|---|---|---|
+| make the profile | `copy-profile` | the ledger existed |
+| register it | `ledger new-node` | needed the profile to exist first |
+| link the context | hand-edit `streamdeck_profile` | the name was typed, and typos are silent |
+| the Deck B twin | nothing | so every new profile broke "B is identical to A" at birth |
+| the switcher button | `vsd-ensure` | this is what the detector actually *presses* |
+
+Miss any one and it fails **silently**: the profile is real, it just never appears. `new-profile` is all five,
+in the order that works, with the context token validated *before* anything is created (a bad token used to
+mean a half-built profile and a context pointing nowhere).
+
+`delete-profile` is the inverse, because creation being one action makes deletion one action too. Its
+leftovers would otherwise be exactly the failure shapes §8 exists to prevent — a node pointing at a profile
+that no longer resolves is what *aborted a whole `health` scan* before §8.39. It refuses to strand children
+unless `--force`, which re-parents them onto the grandparent rather than dangling.
+
+**Three things testing it changed:**
+
+* **`NEW_PROFILE_SOURCE` is `TEMPLATE` on both decks, not `GECK2 Home` on B.** The skill's rule predates B
+  mirroring A: the twin arrived carrying GECK2 Home's buttons and the auto-mirror immediately deleted 13 of
+  them to make it match A. Copying A's own twin lands it right and the mirror is a no-op.
+* **`vsd-map` now warns on a NAME COLLISION.** The map is keyed by profile name, but a name is only unique
+  *within* a deck — every mirrored profile is called the same thing on A and B, and §8.42 creates same-named
+  twins by design. If the switcher ever holds a button for both, the second silently overwrites the first and
+  every switch for that name targets one deck. **Latent, not live** (no context sets `streamdeck_profile_b`
+  today) — but it fails silently and by name, which is the shape that hides. Not fixed, surfaced.
+* **The Deck B twin is parented to the twin**, not across decks: a child of `instagram` on A becomes a child
+  of `instagram-b` on B.
+
+**The GUI, both surfaces.** The one question asked first is what the profile STARTS AS, because it is the only
+choice that isn't a tick you can untick. In the context Miller the **recommended** parent is computed, not
+guessed: if this context already inherits a Deck A profile from an ancestor (Instagram inheriting Chrome's),
+that profile's node is almost certainly the right parent — she is specialising the thing she was already
+getting. That is exactly the Instagram → Instagram Messages case.
+
+**§8.10's third surface is now complete**: the wizard's blank-slot row already mounted the group checklist;
+it gained the "adopt template" half (the parent picker), which §8.41 is what made meaningful — a parent now
+hands down its own buttons, so picking one there is "make this profile start as that one". All three
+authoring surfaces are the same `authoring.py` calls and the same composed Miller branches, not three copies.
+
+**152 tests.** Still open on §8: multi-parent inheritance (§8.2, deferred at v1).

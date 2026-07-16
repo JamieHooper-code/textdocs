@@ -525,8 +525,28 @@ Effects:
 - **Orphan check:** `book-tags-orphans` lists leaf tags with no umbrella (run after
   each import batch). Format/geographic facets (`nonfiction`, `spanish`, `korea`)
   are intentionally umbrella-less.
-- The **book tag picker** (`_PickBookTags`, reading `N.3`) lists the canonical leaf
-  vocabulary with counts; new tags normalized on save.
+- The **book tag picker** is now the generic `MillerTags` control (a NODE, not a
+  separate GUI): drill `Tags ▸` under any book → one ✓-toggle row per tag, ordered
+  **current → suggested → relevant → everything else**, with usage counts and
+  captioned section dividers. Backend registered in `ReadingMenu.ahk`
+  (`_ReadingTagsBackendInit`, system id `"book"`); ordering comes straight from
+  `clog tag-rank`, not from the menu. Row 1 is `↑ Push these tags up to the author`
+  (`clog book-promote-tags`, additive — skips tags the author already has).
+  Toggling writes via `book-set-all-tags` (NOT `book-set-tags`, which preserves
+  auto tags and would make toggling an auto tag OFF silently do nothing).
+  - **`suggested`** = tags Anna's Archive proposed that anna_metadata.py refused to
+    invent (the `unmapped_tags` field) — one keystroke away instead of buried.
+  - **`relevant`** = co-occurrence with the book's current tags, rarity-damped
+    (`score = co / sqrt(frequency)`), so a precise tag beats a merely-common one:
+    `noir` (used once) outranks `queer` (used 33×) for a crime/thriller/mystery book.
+    Engine is `media_catalog.rank_related_tags(current, items)` — generic across
+    every media type, takes an item iterable so clog can compose books + catalog.
+  - The old two-pane `_PickBookTags` still backs the **row-action** fast path
+    (`N.M` → Edit tags) from the book LISTS. Drill-ins all use the new control.
+- clog `tag-rank`: signal is CROSS-MEDIA (ranks over the whole library — a
+  `feminism` album vouches for tags on a `feminism` book) but the OFFER is
+  type-scoped (`--for-type book` never lists `album`/`artist`). `--type` narrows
+  the corpus when you want within-type signal only.
 - **Merge** (`= Merge book tags` in `log reading`): fold one tag into another
   library-wide — adds an alias *and* rewrites existing tags.
 - clog: `book-tags` (vocab+counts) · `book-tag-alias <from> --to <to>` ·
@@ -556,6 +576,14 @@ keeps the raw tag for analytics.
 - `add log` / friend pickers use the standard two-pane picker, so the right
   "Added so far" pane is dead weight in single-pick mode, and the Tags column
   truncates the longest tag lists. Cosmetic; revisit if it bugs.
+  - **PARTLY RESOLVED (2026-07-16)** for BOOK tags: the drill-in picker is now the
+    `MillerTags` checkbox control (above), so no dead right pane and no truncated
+    Tags column there. Still open for `add log` / friend pickers and for the book
+    row-action fast path, which all still use the two-pane `_PersistentLoopPickGui`.
+    Fixing those properly means adding a `layout: "checklist"` opt to that shared
+    template (1690 lines, 69 call sites across 20 files) rather than reworking it —
+    follow the existing `secondary_catalog` precedent, which already swaps the right
+    pane conditionally and defaults to current behaviour.
 - Friend hangouts are tagged only `#friends` (friend name is in the entry text).
   A per-friend tag (`stats cedar`) is a possible later upgrade.
 - `log <template>` and `log <friend>` share the `log <X>` shape with disjoint
