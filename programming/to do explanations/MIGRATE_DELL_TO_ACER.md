@@ -181,8 +181,9 @@ Top-to-bottom. If anything fails, note before proceeding — issues compound.
 - [ ] Natlink loads on Dragon start (tray icon, no error dialog)
 - [ ] Caster loads (`caster_messages.log` shows startup banner)
 - [ ] Say `"<domain> Commands"` for a few rules — debug probes fire
-- [ ] Say `"reboot caster"` — restarts cleanly (confirms `utilities.py` patch survived)
+- [ ] Say `"reboot caster"` — restarts cleanly (confirms `utilities.py` patch A survived)
 - [ ] Say an AHK-dispatched voice command — `ahk_event.log` shows `DISPATCH/in` + `DISPATCH/ok`
+- [ ] Say `"spot teldrassil"` — fires (confirms the `state.py` patch B survived; if it does nothing, re-apply Patch B)
 
 ### Stream Deck
 - [ ] Stream Deck app opens, sees Deck A and Deck B
@@ -224,7 +225,7 @@ If the cloned drive won't boot, BSODs repeatedly, or behaves so badly that fixin
 3. `git clone` everything back from `JamieHooper-code` org.
 4. Restore keyfile from E: to `Scripts/CopyPasteSlotCrypt/`.
 5. Restore Dragon profile from E: backup if needed.
-6. Re-apply the Caster `utilities.py` patch (block in `WIN11_SETUP_GUIDE.md §2.1 Step 8` — that section is still correct).
+6. Re-apply BOTH local internal patches (both in `WIN11_SETUP_GUIDE.md §2.1 Step 8`): Patch A = Caster `utilities.py` reboot; Patch B = dragonfly `state.py` `rule()` malformed-id fix (delete `state.cpython-310.pyc` after).
 7. Phase 4 checklist to verify.
 
 Budget: one weekend. Better than redoing months of voice-profile tuning, but worth avoiding if the clone path works.

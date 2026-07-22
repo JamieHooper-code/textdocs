@@ -1,5 +1,5 @@
 ---
-tags: [programming, media, recommendations, design-doc, books, voice-commands, qmd]
+tags: [programming, media, recommendations, design-doc, books, voice-commands, qmd, people, tags]
 ---
 
 # Unified Media Recommendations System — design doc
@@ -87,7 +87,7 @@ Source inventory (from the 2026-06 vault survey):
 ## Voice / UI
 
 **Live (2026-06):**
-- **`open media`** → `OpenMedia` — unified two-pane hub (`CompletionLogFunctions.ahk`), grouped by thematic umbrella so cross-type themes cluster (anarchist books + films together under THEORY). Cols Type/Title/Creator/Status/Tags; filter box narrows by any column. Per-item actions: `1`=mark in-progress · `N.2`=done · `N.3`=edit tags · `N.4`=recommender · `N.5`=remove. Works on books (delegates to the library) AND catalog items transparently via `clog _find_media`.
+- **`open media`** → `OpenMedia` — the unified hub, **rebuilt as a Miller (`Helpers\MediaHubMenu.ahk`, 2026-07)**, replacing the old impregnable flat two-pane list. It is a **thin aggregator that owns no data**: every top node is either a live DELEGATE of an independently-working system (mounted via that system's `_XAsNode()`) or a thin `media-query` branch, so updating a component / the catalog / a tag updates the hub automatically — no parallel drift. Root: **Books** (`_BookManagerAsNode` + `_ReadingAsNode`, Reading folded under Books) · **Quotes** (`_QuotesAsNode`) · **Music** sub-hub (Spotify library `_LibAsNode` + Ambient + catalogued) · **Movies / TV / Anime / Podcasts / YouTube / Web / Games** (`media-query --type X`) · **Photos / Videos** (personal media — **`photo`/`video` are now catalog types**, in `MEDIA_TYPES` + `FS_MEDIA_TYPES`; a scanner **`Scripts\MediaCatalog\media_fs_import.py`** — the disk→catalog bridge, like `kindle_import` for books — walks `E:\Media\{Photos,Videos}`, upserts one path-keyed entry per file with **folder-derived tags** (`Personal\Kink & Nudity` → `personal, kink, nudity`, `src="folder"` so hand-tags survive a rescan) and **drops entries whose file is gone** (disk = truth for existence, catalog overlays metadata). The hub's Photos/Videos nodes **serve from the catalog** grouped by folder (`media_fs_import.py folders`/`list`, shelled from AHK via `_MediaFsRun`), each with a **Rescan** action; files open in their default app on Enter (`N.2` reveal · `N.3` edit tags · `N.4` remove-from-catalog). Because they're catalog items they're tag/theme/searchable like any type — **but excluded from the LLM recommender** (`cmd_media_recommend` skips `FS_MEDIA_TYPES`)) · lenses **By Theme** (umbrella, cross-type) / **By Status** / **By Recommender** · Recommend + Add-media leaves. Item leaves reuse the existing actions (`_OpenMediaPerform`, kept in `CompletionLogFunctions.ahk`): Enter = mark in-progress · `N.2` done · `N.3` tags · `N.4` recommender · `N.5` remove. Built Method B (GuiHost, own-process, no-float) so every mounted `AsNode` resolves; a hub `search_index` over non-music catalog items keeps title search instant; exposes `_MediaHubAsNode()` for the future master menu. Deep-links preserved: `open media <type>` drills straight into that type (`music`→sub-hub), and a packed `tag:`/`rec:` token drills into a lens. The old flat GUI (`_OpenMediaBuildCatalog` / `_OpenMediaRightPane` / `_OpenMediaRightAction`) was removed.
 - **`add media`** → `AddMedia` — type picker (movie/tv/anime/music/podcast/youtube/web/game/book) + title/creator/tags/recommender form. `book` routes to `AddRead` (richer online lookup); everything else → `media-add` (status `queued`).
 - clog backend: `media-query [--type --tags --status --recommender --group umbrella|type]` · `media-add` · `media-set-status` · `media-set-tags` · `media-remove` · `media-set-recommender`. `import-staged --type <t>` bulk-imports any type.
 - **Note:** the old `open media` directory shortcut (opened `E:\Media` in Explorer) was renamed to **`open media direct`** (key in `directories.json`) to free the phrase for this hub.
@@ -112,6 +112,49 @@ Source inventory (from the 2026-06 vault survey):
 - **Music = nested.** `type: music` entries carry `subtype` (artist / album / song) and a **`parent`** id. Artist is top-level (`parent: null`); albums post **under** their artist (`parent: <artist id>`); songs under their album (or artist). The hub renders them nested. So a bare "get into Nujabes" rec is one artist entry; specific albums/songs hang off it.
 - **Websites / theory-sources:** `queued`/`done` status only (no middle "active" state — you don't "finish-reading" a site the same way).
 - **Series/reading-order** (Cosmere, Tolkien, Mistborn): kept in `notes` for now; no modeled link relationship yet. **Superseded for books by [[MEDIA_ENRICHMENT_SYSTEM]] — books now carry a structured `series {name, position}`, hub grouped + sorted by position.**
+
+## People — the recommender dimension (built 2026-07-19)
+
+`recommended_by` was a free-text string per item. It is now a link to a **person record**, making "who put me onto this" a browsable dimension of the whole catalog rather than a note on each row.
+
+**Why records, not strings:** renames stop orphaning things (items link by id); people carry **tags**, so *story and steep* becomes a real grouping you can browse; and spelling/casing drift collapses through aliases. The migration found 25 distinct recommenders across books + catalog, spread over 66 items.
+
+### Storage
+
+`E:\Media\catalog\person.json`, shape `{"items": [...]}` — deliberately the same shape and directory as a media type, so `MediaCatalog/people.py` reuses `load_media_type` / `write_media_type` / `catalog_lock` verbatim (atomic writes + cross-process locking for free). But **`person` is not in `MEDIA_TYPES`**, so `media-query` / `iter_catalog` / the recommend engine never surface people as things to read or watch. It is a dimension of the catalog, not a member of it.
+
+```json
+{ "id": "person:lina", "name": "Lina", "aliases": ["lina h"],
+  "tags": ["story and steep"], "notes": "", "added": "2026-07-19T..." }
+```
+
+Person tags share the one `media_tags.json` vocabulary via `applies_to: ["person"]` (added to `EXTRA_APPLIES_TYPES` alongside `quote`/`article`). Because `person` is absent from `MEDIA_TYPES`, a book picker is never offered "book club" and a person picker is never offered "anarchism" — the same `applies_to` gate that already separates quote tags.
+
+### Linking — and why nothing downstream broke
+
+Items gain `recommended_by_ids: ["person:lina", ...]` (**multiple** recommenders per item — two people recommending one book is real). Every write re-derives the legacy `recommended_by` string as the comma-joined display names. That one line is load-bearing: `book-query` col 5, `media-query` col 7, the `--recommender` substring filters, the hub filter box and `_book_as_media` all kept working with **zero** changes. Read paths lazily resolve a legacy string through name/alias matching, so un-migrated items still report ids without a write.
+
+**Author level:** `author_recommended_by_ids` sits beside `author_tags` in `library.json` — "she put me onto this *writer*", so the next book by that author arrives already attributed. `book-promote-recommender` is additive, mirroring `book-promote-tags`.
+
+### Commands (clog)
+
+`person-list [--tag]` · `person-add` · `person-set-tags` · `person-rename` · `person-merge --into` · `person-remove` · `person-items` · `person-migrate [--commit]` · `rec-rank --id|--ids` · `rec-set --ids --add|--remove` · `book-promote-recommender` · `author-recommenders` · `people-sync`.
+
+`rec-rank` is the picker feed and mirrors `tag-rank`'s contract: bands `current` / `partial` (group mode, "k/n" so one toggle applies to a whole batch) / `group:<tag>` / `other`. `tag-rank --id person:x --for-type person` ranks a person's own tags against the *people* corpus (a person's groups co-occur with other people's groups, never with a book's themes) — the emit half was factored into `_tag_rank_emit` so both corpora share one output format.
+
+### UI
+
+A **recommender is a tag from the UI's point of view**, so it plugs into the existing `MillerTags` control rather than a second picker — banding, group mode, add-new and N.M row actions all come for free. `MillerTags` gained `add_new_label` / `add_new_hint` / `add_new_title` / `add_new_body` / `detail` opts so the control can name its own noun (defaults preserve every existing backend verbatim).
+
+- **Per item:** "Recommended by ▸" on every book node (Current reads, To read, Recently added). Replaces the old free-text `_SetBookRecommender` prompt — the valid answers are a known finite set, so they're **picked, never typed** (gui-conventions).
+- **Per batch:** "Recommended by (all N)" on a download session, next to the existing batch-tag control. A sitting's books usually came from one conversation.
+- **Browse:** the **Recommended by** root row → Groups (person tags) → people → their items, with per-person Groups / Rename / Merge. Merge is a drill-in pick, not a typed name.
+
+### Voice
+
+`read recommend` opens the section; `read <person>` drills to one person. Both are literals/Choices sharing the `read ` prefix with `read <book>` / `read <genre>`, so **`_sync_people_choices` drops any person whose name a book or genre already claims** and reports it on stderr — otherwise Dragon can't disambiguate and one of the two commands silently dies. Dropped people stay fully usable in the menu; only the spoken shortcut is withheld. `person-list` col 5 carries the actual spoken phrase (empty when dropped) so the menu's Say column can't advertise a phrase that does nothing.
+
+**Not** `completion_friends.json` — that is a separate, older store for "log \<friend> walk" activity logging. Folding the two together is a sensible future move.
 
 ## Media enrichment — "keep the best data possible"
 

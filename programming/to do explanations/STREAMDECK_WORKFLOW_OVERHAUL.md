@@ -1766,3 +1766,348 @@ hands down its own buttons, so picking one there is "make this profile start as 
 authoring surfaces are the same `authoring.py` calls and the same composed Miller branches, not three copies.
 
 **152 tests.** Still open on §8: multi-parent inheritance (§8.2, deferred at v1).
+
+### 8.43 Making a group out of buttons you can already see — **[2026-07-16]**
+
+> "they are all like media manipulation buttons. I want to turn those into their own group. which makes me
+> think of **what would be the easiest way for me to create new groups?** so for example I see a group of
+> buttons on a page and I realize I want that group of buttons on another page or multiple pages, what is
+> easiest way for me to select that and modularize that?"
+
+`ledger capture` already did the hard half — copy the buttons *and their icon files* into the group's source
+profile, register the group. What it could not do is **create** that source profile: cloning lives in the
+streamdeck.py monolith and sdlib must not import it, so capture told you to run `copy-profile` first.
+
+That instruction was a trap with a scar already in the skill: **a group is EVERY button on its source page**,
+and a fresh `TEMPLATE` clone arrives holding TEMPLATE's buttons. `G GECK2 Switching` was built exactly that
+way, kept 16 buttons, and the first apply planned to scatter TEMPLATE's leftovers across every GECK2 profile.
+So the missing step wasn't "create the profile" — it was "create it **and blank it**", which you had to know
+to do by hand, and which failed quietly when you didn't.
+
+`new-group-from` is the whole thing:
+
+```
+streamdeck.py new-group-from "Home" --slots "5,2 6,2 7,2 5,3 6,3 7,3" --name media
+```
+
+**ADOPT-BACK is the point, and it's why `--attach` defaults on.** Capturing from Home leaves Home's six
+buttons exactly where they were but still *unowned* — the group exists and the profile it came from isn't
+using it. Attaching + rendering makes render recognise them **by signature** and adopt them in place: nothing
+moves, nothing is rewritten, and they become the group's. Only then is "modularized" true.
+
+**The media group, live:** 6 captured, **6 adopted in place** on Home, and the auto-mirror + membership mirror
+put it on Deck B's Home too — B's copies were deleted and re-placed as B's *own* managed buttons, which is
+§8.37's rule working (a `_mid` must never be forged across decks). Both decks now show `media/5,2`…`media/7,3`.
+
+A dry-run onto Youtube is the whole feature in one output: its 5,2–7,2 are the *same three buttons* and were
+**adopted**; its 5,3–7,3 are occupied by Jamie's own, so those three are correctly refused — the §8.4
+conflict/displace case, surfaced rather than trampled.
+
+**`ledger capturable`** backs the picker. The GUI must not invent its own idea of what can be captured — that
+is how two rules drift and the picker starts offering slots capture then refuses — so it applies capture's own
+tests (a passthrough is not a button; an already-managed button belongs to another group) and reports the
+reason with the row. Un-capturable rows are **shown, greyed, with the reason**, because "why can't I pick that
+one" is a question the screen should answer on the spot.
+
+**The GUI** is pick-profile → **tick the buttons** → name it. Multi-select is an in-line toggle list, not a
+text box of positions: the set is finite and known, and typing `"5,2 6,2 7,2 5,3 6,3 7,3"` by eye is the exact
+tedium the feature exists to remove.
+
+### 8.44 The VSD map's name collision, fixed rather than warned about — **[2026-07-16]**
+
+§8.42 surfaced this as a warning and left it: `vsd_profile_positions.json` was `{name: pos}`, but **a profile
+name is only unique within a deck**. Every mirrored profile is called the same thing on A and B, and §8.42's
+twins are same-named by design — so the moment the switcher held a button for both, the second silently
+overwrote the first and every switch for that name went to one deck.
+
+The deck is the missing half of the key, so it belongs **in** the key: `{"A": {name: pos}, "B": {...}}`.
+
+What the fix turned up: **`geck2-switching`'s source profile (`G GECK2 Switching`) lives on Deck B**, and the
+ledger Miller's "edit this group" looked its position up by name alone. Deck-keying it without passing the
+group's `source_deck` would have broken editing that group — and `vsd-ensure` didn't even accept `--deck`, so
+it resolved a twin's name to Deck A and would wire the wrong deck's button. Both fixed.
+
+AHK reads both shapes: a pre-2026-07-16 flat map is read as Deck A (which is what it meant — nothing ever
+referenced a Deck B profile while that format was live), so a stale file on disk degrades to the old behaviour
+instead of resolving nothing.
+
+**152 tests.** Still open on §8: multi-parent inheritance (§8.2, deferred at v1).
+
+### 8.45 Chrome split: the clean parent, and the rename that would have moved 35 buttons silently — **[2026-07-16]**
+
+> "we create a new chrome profile that is currently just a copy of the base template. and then what we can
+> consider chrome currently we will call chrome navigation. and that will be a child of chrome. very few chrome
+> pages will actually end up using that navigation stuff. and I want any new profile I create to actually be
+> clean children of chrome but not deal with all that stuff."
+
+The first real use of §8.41, and it needed two tools that didn't exist: **`rename-profile`** and **`ledger
+rename-node`**.
+
+**A name is an identity in more places than the manifest**, and each omission fails silently in its own way:
+the ledger node's `profile` (a node pointing at a name that no longer resolves is what *aborted a whole health
+scan* before §8.39); the contexts' `streamdeck_profile` (resolves to nothing, stops switching, says nothing);
+and for a node, its own key plus every child's `parent` plus the `@node:` content groups embedded in
+descendants' **frozen mids** — miss those and health reports the whole inherited set as stranded.
+
+**THE TRAP, and the reason this section exists.** Switch-Profile buttons target a profile by **UUID**, which a
+rename doesn't change. Usually that's exactly right — the buttons follow the thing you renamed. Here it was
+catastrophic-quiet: renaming Chrome → Chrome Navigation silently turned **35 profiles' "Chrome" switcher into
+a "Chrome Navigation" switcher**, and the only way to notice would be to press one. So `rename-profile` walks
+every page on both decks and NAMES the switchers that now point at the renamed profile. It does not repoint
+them — only the person renaming knows which of the two they meant — but it never lets the case be silent.
+
+**I THEN REPOINTED THEM, AND THAT WAS WRONG.** I read "few chrome pages will use the navigation stuff" as
+"so the plain `chrome` context should get the clean profile", pointed all 57 switchers + the `chrome` context
++ Claude's pinned button at the new Chrome, and told her so. Her correction:
+
+> "chrome navigation should replace chrome in every instance that existed before including like the stream
+> deck page and the context switching. the new chrome is more just for me to have as a parent to create
+> children from. functionally it should be like identical to how it was before."
+
+The clean `chrome` is a **parent, not a destination**. Nothing points at it; it exists to be inherited from.
+"Few pages need the nav stuff" was about the pages she'll create NEXT, not about what today's Chrome does.
+The whole restructure was supposed to be invisible from the deck — I turned it into a behaviour change.
+
+Reverting was the same one edit in reverse, which is the §8 thesis paying off either way: the shared switcher
+is one button in one group source, so both the wrong move and its undo were `batch-add ... --overwrite` +
+render, and 55 profiles followed. **36 (A) + 29 (B) switchers now target Chrome Navigation — every one, Claude
+included.** `vsd-sync` then reclaimed the clean Chrome's switcher button on its own: no context references it,
+which is exactly right for a parent.
+
+**The exclusion inverts with the target, which is the genuinely interesting bit.** `profile-switching/3,0` is
+excluded on whichever profile it POINTS AT — a switcher to yourself is dead weight. That's `chrome-navigation`
+(it's the destination), while the new `chrome` carries the normal four. Same mid, opposite meaning on two
+nodes, decided entirely by where the button goes.
+
+Notes from checking rather than assuming:
+* **`Claude`'s pinned 3,0** doesn't follow renders — it isn't a ledger node, so nothing manages it. Both the
+  repoint and the revert had to touch it by hand (`ProfileUUID` **lowercased** — the §7 scar). One profile
+  quietly disagreeing with the other 35 is the exact drift the ledger exists to kill, and it's invisible
+  because it lives on the Default page.
+* 7 switchers still name Chrome Navigation from the Default pages of hidden `G *` group sources: unmanaged,
+  never read (a group's buttons come from its CURRENT page), invisible. Left alone.
+* `TEMPLATE` **is** a node, so it moves with the rest — future `new-profile` copies are born correct.
+* `chrome-navigation`'s own page 3,0 is her Hotkey, covering the pinned switcher on page 0. Pre-existing and
+  deliberate — render.py already calls that out as "a real override, leave it".
+
+**Result — functionally identical to before, plus a parent.** `chrome-navigation` IS the old Chrome: same
+UUID (432121E7), same page, same 20 buttons, and the `chrome` context points at it exactly as it always did.
+`chrome` is clean (0 page buttons, the shared defaults, 18 free slots) and reachable by nothing — a template
+in the §8.41 sense, waiting for children.
+
+**AND THE AUTO-SWITCH BROKE — from §8.44, not from any of this.** Both Chrome and Youtube stopped switching.
+The always-on detector is a LONG-RUNNING AHK process: it had the pre-§8.44 flat-map reader in memory, the map
+on disk was now deck-keyed, so `m.Has("Youtube")` was false for every profile. `ahk_event.log` said so
+outright — and the giveaway was that the error text lacked the "Deck A" wording §8.44 added, proving the code
+in memory was old. Reloading AHK fixed it.
+
+**The lesson is about the SHAPE of the change, not the bug.** Changing an on-disk format that a resident
+process parses is a live migration, and the resident half doesn't update when the file does. The new AHK reads
+both shapes (a flat map is read as Deck A), so the *next* such change self-heals — but that tolerance only
+helps code that's already running it. A format change wants its consumer reloaded in the same breath, or the
+window between them is silent breakage that looks like something else entirely.
+
+Also fixed here: **`ledger <cmd> --no-sync` was rejected by the ledger sub-parser on every command**. The
+dispatcher read the flag for the autosync decision but never stripped it from the argv it handed to argparse,
+so a flag the top-level parser supports killed every `ledger` command that used it.
+
+**152 tests.** Still open on §8: multi-parent inheritance (§8.2, deferred at v1).
+
+### 8.46 Every new GUI entry point shipped broken — I tested the engine, not the wiring — **[2026-07-16]**
+
+Jamie tried to make `chrome-plex` from the Context Manager and got "a really long tooltip that I could not
+read because it went off the side of the screen and then nothing really happened." `ahk_event.log`:
+
+    streamdeck.py: error: unrecognized arguments: --actor voice
+
+`--actor` was a **top-level** argparse option, legal only BEFORE the subcommand. The AHK wrote it after. All
+**three** new entry points from §8.42/§8.43 — "+ New profile" in both Millers and "+ New group from buttons" —
+had it, so none of them could ever have worked. The `ledger` sub-CLI escaped only because ledger.py owns a
+parser that declares `--actor` itself.
+
+**The miss is the lesson, not the flag.** Every command was tested from the shell, where I never passed
+`--actor` — so I verified the engine and inferred the wiring. The one caller that always passes it is the one
+I never ran. §8.38's line applies to me here: *a checker that shares the code's assumption cannot catch the
+code's bug.* Testing `new-profile` from bash tests bash, not the button.
+
+Two fixes, at two depths:
+
+* **`--actor` is now stripped from argv wherever it appears**, exactly like `--no-sync` (which was already
+  immune, having been designed this way after being bitten). An option that means the same thing wherever it
+  appears should PARSE wherever it appears. Position-sensitivity is a trap laid specifically for callers who
+  build a command as one flat list — i.e. every AHK caller — and it fails LOUDLY in a shell and SILENTLY in a
+  GUI. Verified both orders, and that `[voice/bulk]` still lands in the history log.
+* **`SdPyErrLine`** — a failed streamdeck.py call now surfaces ONE line. Raw argparse stderr is a full usage
+  dump listing all 40 subcommands; piped into ShowTooltip it rendered as a single enormous line off the edge
+  of the screen. The real message was on it, and unreadable. **A tooltip that can't be read is the same as no
+  error** — which is why this presented as "nothing happened" rather than as a bug report. It prefers the line
+  containing `error:` (argparse always puts the complaint there), else the last non-empty line, collapses
+  whitespace, caps at 180 chars. The log still gets everything.
+
+Also fixed here: **`ledger <cmd> --no-sync`** was rejected by the ledger sub-parser on every command — the
+dispatcher read the flag for the autosync decision but never stripped it from the argv it passed to argparse.
+Same family of bug, found the same afternoon, in the path I *did* run.
+
+### 8.47 The kill with no counterpart, the squatters on 4,0, and landing where you edit — **[2026-07-16]**
+
+Three complaints from one session of Jamie actually USING §8.42, and all three were the tools being right in
+isolation and wrong as a workflow.
+
+**"I have had to restart my stream decks so many times... the whole thing just crashes afterward until I
+rebooted."** It was never a crash. `safe_write` FORCE-KILLS Stream Deck before every write — the §7 protection
+against SD flushing stale cache over the edit on exit, and correct. What was missing is its other half:
+**nothing ever started SD again**. Every write left both decks dead until she ran `restart` by hand, and the
+skill's own rule ("the script never restarts automatically") had made that documented behaviour rather than a
+bug. That rule was written for a CLI where *I* make ten edits and restart once. It is exactly wrong for a GUI,
+where every action is atomic and the person pressing the button is looking at the deck.
+
+`_autorestart` now fires on both dispatch paths (top-level AND `ledger` — the one the Millers actually use, so
+omitting it would have fixed this for me and not for her). The trigger is precise rather than a command
+whitelist: `WRITTEN_PROFILES` is populated *by safe_write itself*, so it restarts **iff we actually killed the
+deck and wrote**. A read restarts nothing. `--no-restart` batches. The rule reads: *if we killed it, bring it
+back* — a tool that kills a process to do its job owns restarting it, and "run restart afterwards" is not a
+design, it's a chore delegated to the user.
+
+**"there is buttons at 4,0 and 5,0 and I don't really know why they are there or what for."** Nobody would:
+they were an accident of copy order, and they were MY bug. Measured: **41 profiles have F13 at its home 1,2;
+exactly 2 had it at 4,0 — `chrome` and `chrome-plex`, the only two ever made by `new-profile`.**
+
+TEMPLATE's Default page is exactly the 12 buttons of `profile-switching` + `other-defaults` at their home
+slots — but **2 of the 12 carry no `_mid`**: 1,2/1,3 are pre-ledger hand-made "Scroll Up"/"Scroll Down" that
+the group never adopted, because adopt matches on signature and the group's versions are labelled "F13"/"F14".
+So every new profile inherited two unowned squatters on the group's home slots, `_uniques()` correctly refused
+to touch them, and F13/F14 flowed to the first free slots: **4,0 and 5,0**. The worst possible landing — the
+skill's own layout rule says "most important action goes at 4,0" — and what landed there was a **duplicate**:
+F13/F14 are `CenterScrollUp`/`CenterScrollDown`, the exact same keys the "Scroll Up"/"Scroll Down" at 1,2/1,3
+already sent (vk 124/125). Two dead buttons squatting on the prime slots of every profile she'd ever create.
+
+`_clear_squatters_on_pinned_homes` runs before the first render: on the Default page, delete any button that
+is unowned AND sits on a slot a pinned group owns. Narrow on purpose — a real button of hers is never at risk,
+because on a brand-new profile there is no such thing; everything on that page came from the template. Both
+existing profiles repaired (unfreeze the mid, drop the flowed copy, re-render). **All 43 nodes now place F13 at
+1,2**, and chrome-plex went from 14 pinned / 18 free to 12 pinned / 20 free — 4,0 and 5,0 handed back.
+
+The general shape: **a copied profile is scaffolding, not content.** The ledger owns the buttons. Anything the
+clone brings along that the ledger also owns is a squatter, and `resolved` FREEZES the first placement — so a
+bad first render isn't self-correcting, it's permanent until something unfreezes it.
+
+**"after creating a brand-new profile it should automatically take me to the spot to edit it... currently I
+create it and then I have to open the new user interface and blah blah."** `OpenStreamDeckLedger(path)` now
+takes an internal path and both creation surfaces land on the new node's group checklist. It mirrors
+`OpenContextEditor`'s `deep` flag and needs the same trick for the same reason: `LaunchMillerViewer` only
+ACTIVATES an already-open viewer, so a deep open must render in-process rather than ask the launcher for a
+window that exists and won't re-navigate. Creating a thing and choosing what's on it are one intent; making
+her navigate back to what she just made is the tool forgetting what she was doing.
+
+**152 tests.** Still open on §8: multi-parent inheritance (§8.2, deferred at v1).
+
+### 8.48 The checklist Jamie actually wanted — nested, per-button, and named — **[2026-07-16]**
+
+Five asks from using it, and one bug that §8.47 had just introduced.
+
+**"I just added the media and it says that it failed even though it seems to have worked."** It HAD worked.
+`_SdLedParse` took the LAST stdout line as the JSON payload, and §8.47's auto-restart had started printing one
+line after it. So every `--json` Miller call now reported FAILED for commands that succeeded.
+
+The invariant was mine and I'd even written it down in `cmd_new_profile`: *"LAST — nothing human may be printed
+after this point."* It survived exactly one new print statement. That's the tell: an invariant every future
+writer must remember is not a design, it's a trap with a comment on it — and the cross-cutting hooks
+(auto-mirror, auto-restart) print BY DESIGN and cannot each know they're last. So the parser got robust
+instead: scan bottom-up for the last line that is a bare JSON object. Trailing noise is now simply skipped, and
+the two other hand-rolled last-line parsers in ContextEditorMenu were routed through it.
+
+**"I don't want to see all of the B versions of everything... we can just hide all of those except for the
+exclusive be ones."** Twins are hidden from the profile list (`<node>-b` with a Deck A node of that name), with
+a greyed "(28 Deck B twins hidden)" row saying why. The GECK2 profiles are Deck-B-ONLY, have no Deck A
+counterpart, and stay — they're the only things on B she edits. Since §8.40 a twin's content is a *consequence*
+of its Deck A node, not an edit surface, so this is the list finally matching the model.
+
+**"the groups need a lot of work. for one they should be like nested."** Sections come from the TAGS — the
+`list-navigate` tag's members are already exactly those three groups, so the structure she wanted to see was
+structure the ledger already had and simply wasn't rendering. Deriving sections from a name prefix instead
+would have been a second, silently-diverging definition of the same fact (and would have folded
+`profile-switching-b` in with `profile-switching`).
+
+**"the default should be like accept all which is the top row and then the individual ones... underneath."**
+The shape is now identical at every depth — an "all" row, then the parts. Enter drills, `2` toggles the whole
+thing without drilling: the common act is "give this profile the nav buttons", and it shouldn't require
+walking into a level you didn't want. "Turn all on" for a group also clears INDIVIDUAL exclusions — otherwise
+"all on" would leave the buttons she'd removed one-by-one still missing, which is not what "all" means.
+
+**"ideally all of the buttons should be labeled very easily and clearly both by location and by name."** This
+was the real work. **Most buttons carry no Title** — icon-only is the convention here (3,217 have ShowTitle
+off) — so a checklist showing Title alone is a column of blanks with the position as the only handle.
+`describe_button` derives the name from the ACTION:
+
+    profile-switching   0,0 -> Home      1,0 -> Apps       2,0 -> Navigation   3,0 -> Chrome Navigation
+    other-defaults      0,1 CloseWindowOrTab   1,1 Alt+Tab   2,1 Ctrl+Alt+N    1,2 F13
+    media               5,2 Mute   6,2 Volume Down   7,2 Volume Up   6,3 Play/Pause
+    list-navigate-numbers   4,3 ONE   5,3 TWO   ...   7,2 EIGHT
+
+Two things it had to get right. **NativeCode, not just VKeyCode**: SD fills them differently depending on
+origin — a helper-written hotkey sets VKeyCode, one made in the SD UI can leave it -1 and set only NativeCode.
+The F13/F14 buttons on every profile are the second shape, so a VKeyCode-only reader would call the most
+widespread button on the deck "hotkey" and stop. And **the multimedia map is verified, not guessed**: each
+icon was extracted from the live deck and looked at (mute is 4; 5/6 are up/down — not an order anyone would
+predict). `actionIdx` 3 is deliberately absent: nothing on either deck uses it, so there's nothing to check a
+guess against, and a plausible guess would be indistinguishable from a fact.
+
+Fixing this also surfaced a §8.41 bug nothing had ever run: `group_buttons` on a content group did
+`dict(inherited_sources(...))`, which raises — those are 3-tuples. Tested `set_button` on content groups, never
+`group_buttons`. Same shape of miss as §8.46: the engine was tested, the wiring inferred.
+
+`SPECIAL_KEYS` moved to `sdlib/constants.py` (with a `KEY_NAMES` inverse) so sdlib can name a key without
+importing the monolith — the layering rule held.
+
+**"open stream should automatically take me to the profile/context that I'm on."** It resolves the current
+context chain to its Deck A profile, deepest-first exactly like VsdSwitcher, and opens there. The node is
+resolved in the DISPATCHER process and passed as a command-line arg, because the viewer is its own process and
+only includes the Stream Deck half.
+
+**152 tests.** Still open on §8: multi-parent inheritance (§8.2, deferred at v1).
+
+### 8.49 The nested checklist shipped broken, and the test that now catches it — **[2026-07-16]**
+
+§8.48's rebuild rendered an EMPTY level. Two bugs, both invisible to `ahk.py validate`, both surfacing as
+"the groups are no longer showing" with no error anywhere:
+
+* **An IIFE split across two lines.** `((nm, rs, a) => ...)` on one line and `(node, rows, allOn)` on the next:
+  AHK does not apply that as a call, so `MlActions` received the un-invoked lambda and the enclosing `MlBranch`
+  threw "Expected a String but got a Func" — pointing at a line that was fine. Every working example in the
+  file keeps the IIFE on one line; I broke the pattern to fit a line width.
+* **`_RegDivider` lives in RegistryEditorMenu.ahk**, which `Scripts/StreamDeckLedgerViewer.ahk` does not
+  include. In AHK v2 an unknown function name reads as an unassigned VARIABLE, so it threw at runtime and only
+  in the viewer — under MAINFUNCTIONS (where the Context Manager runs) the same code worked. All four uses were
+  mine; the viewer's own header even warns about this exact class ("fails at runtime, not at validate"). Fixed
+  with a local `_SdLedDivider`: six lines beat a cross-menu dependency for a horizontal line.
+
+Diagnosis was a headless probe that built each level inside try/catch — 30 seconds to the real error after
+guessing had produced nothing. **The Miller swallows a builder throw and renders an empty level**, which is
+what makes this class so quiet.
+
+**The test that should have caught it, and why it didn't.** `test_stream_deck_ledger_menu.ahk` validates the
+ROOT ONLY — its own comment says "shallow ... no drilling" — and the bugs were one level down. `MlValidateTree`
+has always taken `Map("deep", true)`; nothing used it.
+
+Turning it on in the window fixture **failed**, and the failure was the useful part: deep drills *every* root
+branch, and Conflicts / Deck A vs Deck B / History each scan the real decks or shell git regardless of ledger
+size, so the fixture blew even a 12s window-open wait and both window tests failed with a misleading "didn't
+open in time". Deep-from-root is not affordable anywhere in this menu.
+
+So the check went in the LEAF fixture — which already points the ledger at a scratch file — **rooted at the
+checklist subtree** rather than the menu root. One group, one drill, under a second, and it covers exactly the
+surface §8.48 rebuilt. Crucially the leaf fixture's include list mirrors the lean standalone viewer, which is
+the only reason it can catch a `_RegDivider`-shaped dependency at all.
+
+**Then I checked the guard by re-breaking the code**, because a green test proves nothing until you have
+watched it go red: with `_RegDivider` put back, `sd_ledger_leaf_every_level_builds` fails alone and names the
+row — `root / tog:zzleafgrp: children builder threw`. That is three bugs in one day (§8.46 `--actor`, §8.48
+`group_buttons`, this) with the identical shape: **the engine was tested from a shell, the wiring was
+inferred.** The GUI suite is manual (~90s, not in the Stop hook), so it is on me to run it after touching a
+menu — that is the actual lesson, and it is now the first thing in the skill's Miller section.
+
+**One deliberate behaviour change fell out.** A group row is now a BRANCH: Enter drills to its buttons, and
+arrowing onto it previews them in the right pane — which is Jamie's "when hovering a group I want to see all
+of the individual buttons". A branch cannot also be a leaf, so the whole-group toggle moved from Enter to row
+action `2` (and Enter-Enter still does it, via the "Turn all on/off" row inside). The existing leaf test caught
+that the instant it landed, which is precisely what it is for.

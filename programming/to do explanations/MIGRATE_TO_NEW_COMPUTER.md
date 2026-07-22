@@ -169,8 +169,9 @@ Systematically, top to bottom. If any step fails, note it before proceeding — 
 - [ ] Natlink loads on Dragon start (tray icon shows Natlink status; no error dialog)
 - [ ] Caster loads (check `caster_messages.log` for startup banner)
 - [ ] Say `"<domain> Commands"` for a few rules — debug probes fire
-- [ ] Say `"reboot caster"` — Caster restarts cleanly (confirms the `utilities.py` patch survived)
+- [ ] Say `"reboot caster"` — Caster restarts cleanly (confirms the `utilities.py` patch A survived)
 - [ ] Say an AHK-dispatched voice command — check `ahk_event.log` for `DISPATCH/in` + `DISPATCH/ok`
+- [ ] Say `"spot teldrassil"` — fires (confirms the `state.py` patch B survived; if it does nothing, re-apply Patch B)
 
 ### Stream Deck
 - [ ] Stream Deck app opens, sees both Deck A and Deck B
@@ -214,7 +215,7 @@ If the cloned SSD won't boot, BSODs repeatedly, or Dragon refuses to re-activate
    - Projects into `Desktop/Important/projects/`
 4. Restore keyfile from E: to `Scripts/CopyPasteSlotCrypt/`.
 5. Restore Dragon profile from E: if not preserved.
-6. Re-apply the `castervoice\lib\utilities.py` patch (diff in `WIN11_SETUP_GUIDE.md §2.1 Step 8`).
+6. Re-apply BOTH local internal patches (both in `WIN11_SETUP_GUIDE.md §2.1 Step 8`): Patch A = `castervoice\lib\utilities.py` reboot; Patch B = `dragonfly\grammar\state.py` `rule()` malformed-id fix (delete `state.cpython-310.pyc` after).
 7. Run the Phase 4 checklist to verify.
 
 Budget: one full weekend for fresh install + voice-profile re-training. Dragon will need 1-2 enrollment sessions to tune to the new mic acoustics.

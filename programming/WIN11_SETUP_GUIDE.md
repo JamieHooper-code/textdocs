@@ -196,7 +196,20 @@ Natlink is the bridge between Dragon and Python. Dragon's plugin API is 32-bit, 
 - [ ] If a rule fails to load, Dragon or the Natlink Messages window will show the Python error
 - [Claude can help] Debug any rule load errors — most are import path issues or settings.toml path problems
 
-**Step 8: Apply local Caster patches (REQUIRED — "reboot caster" won't work without this)**
+**Step 8: Apply local internal patches — Caster + dragonfly (REQUIRED)**
+
+We maintain two hand-patches to installed library internals. They live inside
+`site-packages` / the Caster clone, so a fresh install or an upstream pull
+reverts them — **re-apply both on any reinstall or dragonfly/Caster upgrade.**
+
+| # | File | What breaks without it |
+|---|---|---|
+| A | `castervoice\lib\utilities.py` (`reboot()`) | "reboot caster" throws `ModuleNotFoundError: natlinkstatus` and never restarts Dragon |
+| B | `dragonfly\grammar\state.py` (`State.rule()`) | Hardcoded-Choice voice commands with unusual proper-noun values (`spot teldrassil`, `spot wow`) silently do nothing — GrammarError aborts the whole recognition |
+
+---
+
+**Patch A — Caster `utilities.py` reboot() (Natlink 5.x)**
 
 The vanilla Caster source has one breakage against Natlink 5.x that we patch locally. If you're doing a fresh clone of `caster-main`, the upstream code still does `import natlinkstatus` which no longer exists (the module was absorbed into the `natlink` package and `NatlinkStatus` class was removed). Without this patch, saying "reboot caster" throws `ModuleNotFoundError: No module named 'natlinkstatus'` and the reboot sequence doesn't fire.
 
@@ -260,6 +273,75 @@ The patched reboot sequence is also what makes "reboot caster" actually work on 
 **Why this isn't upstreamed:** the fix is correct but the stock `reboot.bat` is what actually makes Dragon restart work on this machine (something about its specific taskkill sequence). Upstreaming would also need to preserve the out-of-process branch for WSR/Kaldi users, which requires more careful refactoring than a local one-line patch.
 
 **If upstream Caster is ever updated past this:** re-check that `utilities.py::reboot()` still uses `natlink.getCurrentUser()[0]` (or equivalent) instead of the removed `natlinkstatus` API, and re-apply if reverted.
+
+---
+
+**Patch B — dragonfly `state.py` `State.rule()` (tolerate DNS's inaccurate rule ids)**
+
+**File:** `C:\Users\jamie\AppData\Local\Programs\Python\Python310-32\lib\site-packages\dragonfly\grammar\state.py`
+(backup made at time of patching: `state.py.bak-prepatch`)
+
+**Symptom without it:** any voice command whose value comes from a hardcoded
+`Choice` — most visibly `spot teldrassil`, `spot wow`, and other unusual
+proper-noun ambient/genre names — does **nothing**: no tooltip, no AHK dispatch,
+no error voiced. `caster_messages.log` shows `GrammarError: Malformed
+recognition data: word 'X', rule id N`. Dictionary-word commands are unaffected,
+which is why it looks random.
+
+**Root cause (traced through the dragonfly source, 2026-07-21):** Dragon
+NaturallySpeaking sometimes reports an **out-of-range Natlink rule id** for a
+word it isn't confident about — typically a non-dictionary `Choice` value that
+also appears in another grammar's list. dragonfly's own natlink backend already
+expects this ("*DNS does not always report accurate rule IDs*" — see
+`GrammarWrapper._dictated_word_guesses_enabled`) and has a graceful-degradation
+retry. But `State.rule()` **raises `GrammarError`** on the bad id *before* that
+retry can run, and the exception propagates out of `results_callback`, aborting
+the entire recognition. Crucially, the `Choice` path (`ListRef.decode`) matches
+on the spoken **word** and never calls `rule()` — so if `rule()` simply failed
+gracefully, the Choice would match the word fine. Only `Dictation.decode` calls
+`rule()`, and that call is what throws.
+
+**Find this block in `State.rule()` (the `else` of the rule-id range check):**
+
+```python
+            else:
+                word = self._results[i][0]
+                raise GrammarError("Malformed recognition data:"
+                                   " word %r, rule id %d."
+                                   % (word, rule_id))
+```
+
+**Replace the `raise` with `return None`** (keep a comment explaining why):
+
+```python
+            else:
+                # PATCH (Jamie, 2026-07-21): DNS reports out-of-range rule ids
+                # for words it isn't sure about (non-dictionary Choice values).
+                # Upstream raises here, aborting the whole recognition before the
+                # Choice alternative (ListRef.decode, which matches on the word,
+                # not the rule id) can match -> command silently does nothing.
+                # Returning None is dragonfly's "unknown rule -> fail this element
+                # gracefully" signal (Dictation.decode already handles it), so the
+                # dictation alt bows out and the Choice matches. Re-apply after any
+                # dragonfly upgrade -- upstream master still raises.
+                return None
+```
+
+**How to apply on a fresh install:**
+1. Open the `state.py` above; find `def rule(self, delta=0):`.
+2. Replace the `raise GrammarError(...)` in its final `else` with `return None` + the comment.
+3. **Delete the stale bytecode** so the patch isn't defeated by clock-skewed `.pyc` invalidation: remove `dragonfly\grammar\__pycache__\state.cpython-310.pyc`.
+4. `reboot caster` and test `spot teldrassil` / `spot wow`.
+
+**Why `return None` is safe (never worse than upstream):** it only changes
+behavior for genuinely out-of-range ids, which currently crash. Real dictation
+words carry the special id `1000000` (handled separately), so normal dictation
+is untouched. `None` can only make `Dictation.decode` decline a word it couldn't
+identify — it can never cause a false match.
+
+**Why not upstreamed / not just an upgrade:** the latest dragonfly master
+(1.0.0-rc2) still raises here, so upgrading does not fix it. Filing upstream is
+worthwhile but this local patch is the immediate fix.
 
 ### 2.2 Startup Program
 - [ ] Pull startup program from OneDrive/GitHub

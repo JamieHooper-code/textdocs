@@ -588,3 +588,473 @@ keeps the raw tag for analytics.
   A per-friend tag (`stats cedar`) is a possible later upgrade.
 - `log <template>` and `log <friend>` share the `log <X>` shape with disjoint
   Choice sets — keep template/friend phrases from colliding.
+
+## Ambient soundtracks — pairing a book with background music (added 2026-07-18)
+
+A book can carry ONE ambient link (a YouTube video today). Opening the book
+opens the soundtrack; the Reading Miller shows it next to the book.
+
+**Storage** — on the book, in its `library.json`:
+
+```json
+"ambient": {"url": "...", "title": "...", "set": "2026-07-18T04:31:12-04:00"}
+```
+
+`clog book-set-ambient <id> --url U [--title T]` writes it (empty `--url` clears
+the whole record, so an unlinked book has no half-populated block); `clog
+book-ambient <id>` reads it back as `url<TAB>title` and prints **nothing** when
+unlinked — so an AHK caller's "is it empty" test is the whole check, with no
+sentinel string to keep in sync on two sides.
+
+**`book-recent` gained an 8th column: the ambient TITLE.** The Miller renders
+`♪ <title>` in a book's detail line, and shipping the label in the row is what
+keeps that free — the alternative is a `book-ambient` subprocess per rendered
+book, which is exactly the per-row-subprocess mistake `_ReadingRecentRowMap`
+was built to fix.
+
+### Why there is no ambient catalog
+
+There is no unified data backend for ambient tracks yet, so this stores the one
+fact we actually have (this book → this url + label) rather than inventing a
+taxonomy to hang it off. Every link records url/title/date, so this field is the
+migration source if a catalog arrives later. Picking from a library of known
+tracks inside the Miller is deliberately deferred until that backend exists.
+
+### Two commands, one write
+
+The link can be established from either side, and the two commands differ only
+in which half they already have — whichever window Jamie is in, the link is one
+phrase away and she never has to go fetch the other half. Both land on the same
+write (`_AmbientLink`).
+
+| Say | Standing in | Function | What it does |
+|---|---|---|---|
+| `grab music` | Kindle, reading | `GrabAmbientForBook()` | jump to Chrome, take what's PLAYING, come back to the book |
+| `grab book` | Chrome, watching | `GrabBookForAmbient()` | take this tab's URL, ask Kindle which book is open — never touches focus |
+
+**Both phrases are literals sharing a prefix with a Dictation sibling**
+(`grab <phrase> [<color>]` in `kindle_commands.py`, `grab <link_text_document>`
+in `chrome_commands.py`), so each MUST be declared ABOVE its sibling in the same
+mapping — Dragonfly prefers the rule it sees earlier (dict insertion order).
+Declared below, "grab music" gets swallowed and highlights the *word* "music".
+`voice_index check` reports these as COLLISION; that verdict measures prefix
+overlap and does **not** account for ordering, so it is a prompt to place the
+literal correctly, not a reason to pick a different phrase. `grab reset` and
+`grab tab` are the existing precedents in these same two families. Do NOT move
+the literal to a new rule class to dodge this — explicitly tested and rejected
+(`caster-voice/references/troubleshooting.md` § "Sibling rules with a shared
+prefix").
+
+### The gotchas
+
+**Chrome's UIA tree exposes a tab's Name but NOT its URL** — the address bar
+only ever shows the *selected* tab. So "what is the URL of the tab playing
+music" is unanswerable without first making that tab current. That's why
+`ChromeSelectAudibleTab()` selects rather than merely reports: selecting IS the
+read.
+
+**The "Audio playing" annotation persists on BACKGROUND tabs**, which is what
+makes that function possible where `ActiveChromeTabIsPlayingAudio` can't — the
+latter deliberately reads only the selected tab so it doesn't false-positive on
+background audio, and here background audio is the entire target. With several
+audible tabs, an **ambience**-titled one wins (same `ambience_keywords.txt` as
+`ActiveChromeTabTitleIsAmbience`): if a lecture and a rain video are both
+playing, the rain video is the soundtrack.
+
+**Tab-name annotations stack in any order** — `"… - Pinned - Memory usage -
+246 MB"`, `"… - Audio playing - Pinned"` — and each pattern is anchored to the
+END. A single fixed-order pass leaves the inner one behind (a first cut returned
+`"Pinned Thing - YouTube - Audio playing"` because "Pinned" was still on the
+tail when "Audio playing" was tested). `ChromeCleanTabName` peels until nothing
+changes, which is order-independent by construction.
+
+**Focus, don't reopen — and match on the TITLE.** `FocusChromeTab`'s url pass
+reads the **address bar**, and the address bar only ever shows the SELECTED tab
+(the same UIA limitation that forces `ChromeSelectAudibleTab` to select before
+it can read). So a background music tab never matches by url, and passing an
+empty `titlePattern` skips the one pass that CAN see it — the tab-strip scan.
+Shipped that way it logged `no match -> opening new tab` on *every* open: a
+duplicate tab each time, track restarting from 0:00, which is precisely what
+focus-don't-reopen existed to prevent. `OpenAmbientForBook` passes the stored
+title as `titlePattern`; because the scan is `InStr(tab.Name, pattern)` and the
+stored title is the CLEANED name, it still matches once Chrome re-annotates the
+live tab with " - Audio playing". The video id (`_AmbientUrlKey`, never the bare
+host — that would match any YouTube tab at all) stays as the second signal for
+when the track happens to be the selected tab.
+
+**"Already reading" must still start the soundtrack.** `ReadBook`'s
+do-not-disturb guard returns early when the requested book is already open, and
+the ambient hook was first written inline *after* it — so a second "read lorde"
+on an already-open book silently dropped the music, the one thing the feature
+exists to do. "Do not disturb" is about the PAGE (where you are in the book);
+opening the music disturbs nothing. `_ReadBookAmbient` is now the single
+definition called from every ReadBook exit path so they cannot drift again.
+
+**The soundtrack opens on BOTH `ReadBook` paths** (plain open and read-for-real).
+The soundtrack belongs to the book, not to the intent — peeking at a book you
+linked to rain should still give you the rain. Focus returns to Kindle, because
+opening a book means you want to be in the book.
+
+### The ambient library — GenreLinks.ini → catalog items (2026-07-20)
+
+`GenreLinks.ini` was two stores in one coat, split almost perfectly by HOST:
+its YouTube sections (WoW 276, Classic 83, Elden Ring 41, Skyrim 14, …) were the
+ambient library; its Spotify sections (Spanish 96, IndieFolk 33, …) duplicate
+albums `music.json` already models. **Only the YouTube half migrated.**
+
+`Scripts/MediaCatalog/ambient_migrate.py` — `extract` / `titles` / `retag` /
+`report` / `commit`. Result: **343 ambient items** in `music.json`
+(`subtype:"ambient"`), catalog 9,931 → 10,274, all originals intact.
+
+**Key on the video id, not the url.** `&list=…&index=23` is context, not
+identity, so the same track appears under several urls: id-keying merged **85
+duplicate appearances** that a url-keyed pass would have imported repeatedly.
+
+**Section names are shorthand, not taxonomy — verify against real titles.**
+`[Classic]` is *WoW Classic*, not classical music; all 83 read
+"… (1 hour, 4K, World of Warcraft Classic)". Tagging on the section name would
+have pushed 83 WoW tracks into the SHARED `media_tags.json` that books and
+quotes also read. Caught only because titles were fetched before committing.
+
+**Under-tagging is the quiet failure.** `[Ambient]` contained WoW tracks that,
+tagged by section alone, never got `wow` — so "random ambient from wow" would
+have silently returned an incomplete set. `TITLE_EVIDENCE` repairs this and may
+only ever apply tags already declared in the section map, so it cannot fork the
+vocabulary the way `thrillers`/`thriller` once did.
+
+**Authors come free from oEmbed.** `author_name` arrives in the same response as
+the title, and for this library the channel IS the artist — Meisio 277,
+Ramsiene 41, Everness 16, Athena IV 4. Fetching titles without authors would
+have meant a second full pass over 344 videos.
+
+New vocabulary (`mythology`, `ancient greece`) was registered via
+`quotes.py vocab-add`, never by hand-editing `media_tags.json`.
+
+### Group links — `ambient: {kind, ref}`
+
+A book's ambient link is now a REFERENCE, not a literal:
+
+```json
+"ambient": {"kind": "track", "url": ..., "title": ...}
+"ambient": {"kind": "group", "ref": "wow", "title": "wow"}
+```
+
+A group resolves to a fresh random pick **at play time** — storing a resolved
+url would freeze the choice forever, which is the difference between a
+soundtrack and one song on repeat. `book-ambient` returns the same
+`url<TAB>title` shape either way, so **the AHK caller never branches on kind**;
+adding groups required no change there. Links written before groups existed have
+no `kind` and are read as tracks.
+
+Query layer: `clog ambient-pick --tag T | --name N` (alias first — aliases are
+hand-curated, so higher confidence), `ambient-tags`, `ambient-list`. Tag lookups
+run through `expand_tags`, so `game soundtrack` reaches wow/skyrim/elden ring
+without naming them.
+
+`SpotGenreGo` is the cutover point: **catalog first, INI fallback**. Migrated
+ambient groups resolve against `music.json`; the un-migrated Spotify sections
+keep working through the INI untouched. `StartLockoutWithGenre` inherits this
+without knowing about it (packs still win first).
+
+### Two bugs this design created, and their fixes
+
+**Never offer per-field getters on a random pick.** A first cut had
+`AmbientPickUrl()` + `AmbientPickTitle()`; for a `--tag` lookup that is a second
+RANDOM query, so the tooltip would name a different track than the one that just
+opened. `AmbientPick()` returns the whole chosen row.
+
+**A group link stacks tabs.** Every play resolves to a different title, so
+`OpenOrFocusChromeTab`'s title match can never hit the tab from last time — two
+WoW tracks playing at once. Fixed by remembering the current pick in
+`%TEMP%\ambient_now.txt` (a FILE, not a global: every MAINFUN call is a fresh
+process) and treating "still open" as "already playing". `force := true`
+re-rolls, which is what the menu's explicit *Play it now* does; `ReadBook`'s
+implicit open does not.
+
+**Match a title PREFIX, never the whole string.** Tab titles are unstable:
+YouTube prefixes the playing tab with `(1) `, Chrome appends
+` - YouTube - Audio playing - Memory usage - 209 MB`, and a file round-trip
+leaves trailing bytes that `Trim()` does not strip — a full-string `InStr`
+failed on a tab that was visibly correct. `_AmbientTitleKey` takes 40 printable
+leading chars, which sits after YouTube's prefix and before every suffix.
+`ChromeHasTabTitled` is the read-only tab-strip test (no activation, no desktop
+switch) that makes the check safe on a hot path.
+
+### Packs integrated — one track, url AND file (2026-07-20)
+
+The scraped audio packs on disk (`E:\Media\Music\<pack>`) and the catalog knew
+nothing about each other: 284 WoW mp3s, 279 `wow` catalog items, no link.
+`ambient_migrate.py` gained two commands to close it, joining on TITLE:
+
+- **`link-local`** — sets `local_file` on catalog items that have a matching
+  download. **332 matched.**
+- **`import-local`** — creates catalog items for pack files with NO catalog
+  entry (OSRS's 454 game rips, Metroid's 9 ASMR tracks — never in GenreLinks).
+  **463 added, no url**, which is correct: a game rip has no YouTube origin.
+
+Ambient library is now **806 tracks**: 332 with both file+url, 463 local-only,
+11 url-only. One track = one record that knows its tags, creator, url AND
+whether it's on disk.
+
+**The join is by normalised title (`_norm_title`), and the enabling insight is
+that yt-dlp filenames ARE the video titles** — it only substitutes the FULLWIDTH
+lookalikes for characters illegal in Windows filenames (`｜`→`|`, `：`→`:`,
+`⧸`→`/`). Undo those + collapse to lowercase alphanumerics and the two sides
+join exactly, no fuzzy score that could mis-pair similar names.
+
+`ambient-pick` ships `local_file` as a 4th column; `AmbientPlay` prefers the
+**local file** (instant, offline, no browser) and falls back to the url.
+
+### FINAL root cause of the `spot <name>` crash — a dragonfly patch (2026-07-21)
+
+**The two entries below (and every "overlapping Choices" / "length-2 rule table"
+/ "spare IntegerRef" theory) are SUPERSEDED.** After a long, circular hunt
+(days of reboot-testing grammar-shape guesses and instrumenting Natlink), the
+real cause was found by *reading dragonfly's own source*:
+
+- Dragon reports an **out-of-range Natlink rule id** for unusual `Choice`-value
+  words it isn't confident about (`teldrassil`, `wow`, `songs`) — a known DNS
+  quirk dragonfly documents (`GrammarWrapper._dictated_word_guesses_enabled`:
+  "*DNS does not always report accurate rule IDs*").
+- `dragonfly/grammar/state.py::State.rule()` **raises `GrammarError`** on that
+  bad id, and the exception aborts the whole recognition — so nothing dispatches
+  and no tooltip is possible.
+- The `Choice` path (`ListRef.decode`) matches on the spoken **word** and never
+  calls `rule()`; only `Dictation.decode` does. So the throw was killing the
+  recognition *before* the Choice — which would have matched — got its turn.
+
+**Fix:** one-line local patch to `state.py` — the final `else` of `State.rule()`
+returns `None` (dragonfly's graceful "unknown rule" signal) instead of raising.
+The dictation alternative then fails cleanly and the Choice matches. This fixes
+**all** grammars and every future mis-tagged word — not just `spot`. Full patch,
+backup, and re-apply steps: `WIN11_SETUP_GUIDE.md §2.1 Step 8, Patch B`; skill
+copy in `caster-voice/references/troubleshooting.md`. Re-apply after any
+dragonfly upgrade (upstream master still raises). The `spot <spot_name>` single
+Choice + `spot <textnv>` dictation design below was correct all along — it just
+couldn't work until `state.rule()` stopped throwing.
+
+**Lesson (logged so it sticks):** when a `GrammarError` comes from a library,
+read the library's throw site and its callers *first*. The instrumentation was
+adequate; the wasted time was theorizing about DNS internals instead of reading
+the ~15 lines of dragonfly that actually raise.
+
+### `spot <anything>` was fully broken — the fix  *(SUPERSEDED — see 2026-07-21 entry above)*
+
+Every Choice-backed `spot <…>` was silently dead: `spot <genre>`,
+`spot <spot_slot>`, `spot <music_track>`, `spot <playlist_url>`. Dragonfly threw
+`GrammarError: Malformed recognition data: word 'songs', rule id 2` while
+DECODING the Choice — the action never ran, so no tooltip was ever possible
+(Jamie's exact report: "no tooltip or anything to explain what is happening").
+Confirmed across two Choice lists (`songs`/`weaving` in spot_slot, `teldrassil`
+in music_track) and it survived a Dragon restart. `spot <textnv>` (Dictation)
+was unaffected the whole time.
+
+**Fix: collapse all four into the one working Dictation command**, and resolve
+the spoken words in AHK (`SpotResolve`) instead of feeding Dragon four fragile
+DictLists. Precedence, in one place: hand-named slot → ambient catalog (alias,
+then random-from-tag) → music.json by voice_phrase → GenreLinks section. **Every
+exit tooltips, including the miss**, which lists what it tried. The now-unused
+`music_track`/`playlist_url` Choice extras were deleted (fewer DictLists = less
+of the surface that was throwing).
+
+### Two bugs the local-file column created
+
+**Never put an optional field first in a delimited row read by `_ClogRun`.** A
+local-only track has an empty url, so a url-first row began with a tab —
+`_ClogRun` Trim()s its output, silently ate the leading tab, and shifted every
+column left. `ambient-pick` now emits TITLE first (always non-empty).
+
+**`_ClogRun` didn't strip trailing newlines** — AHK v2 `Trim()` defaults to
+spaces+tabs only. The last tab-column (the file path) kept its `\r\n`, so
+`FileExist("…Rat Hunt.ogg\r\n")` failed and a local-only track "couldn't find" a
+file that was right there. Fixed at the source (`Trim(…, " \t\r\n")`), which
+also drops the empty trailing element `StrSplit(out, "\n")` produced for every
+multi-row caller — a latent papercut across the whole clog bridge.
+
+### Hardcoded `spot <name>` recognition restored (2026-07-20)  *(root-cause claim SUPERSEDED — see 2026-07-21 entry above; the single-Choice design here is still correct)*
+
+Dictation-only `spot <name>` recognised poorly ("really bad at picking them up
+if it's not hardcoded"). The four old Choice commands gave reliable recognition
+but were dead. Root cause re-examined: it was the FOUR OVERLAPPING Choices on
+the `spot` prefix, NOT Choice-plus-Dictation as such — `windows_commands.py`
+runs eight Choices + a Dictation on `open` and is fine. So the fix is ONE
+unified Choice, mirroring `open <directory>`:
+*(Correction 2026-07-21: overlapping Choices were never the real trigger — the
+single unified Choice is a fine design, but what actually unblocked recognition
+was the `state.py` `rule()` patch. See the FINAL root cause entry above.)*
+
+- `Scripts/gen_spot_choices.py` writes `hardcoded_spot_names.json` as a MAP
+  `{phrase: resolve_arg}` from the catalog (`clog ambient-names` = tags +
+  aliases) + legacy slots + GenreLinks genres. Ambient names resolve to
+  themselves; a genre resolves to its INI section (`folk punk` → `FolkPunk`).
+  Genres are written FIRST so catalog tags override the overlap (`wow` → `wow`,
+  not the `WoW` section — the catalog is the real home now).
+- `load_spot_names()` (with the import-fallback the cached-helper trap requires)
+  backs a single `Choice("spot_name", …)`.
+- `spot <spot_name>` (hardcoded, reliable) is declared BEFORE `spot <textnv>`
+  (dictation fallback); both call `SpotResolve`.
+- The commit step of `ambient_migrate.py` regenerates the Choice, so "committed"
+  means "and it's speakable".
+
+`spot wow` correctly opens the YouTube URL again: `AmbientPlay` is URL-first
+(packs.ini `spot_source = youtube` is the documented intent — the downloaded
+mp3s are the lockout timer's offline source), file only as fallback for
+local-only tracks (OSRS).
+
+### The ~200 un-migrated GenreLinks Spotify sections — left as-is, on purpose
+
+Spanish (96), IndieFolk (33), FolkPunk (28), Dance (25), SadBoi (10), … are
+**regular-music genre pools**, not ambient: ~130 album URLs + ~65 playlists.
+Only ~43 of the albums are already in the catalog; ~87 are not. Folding them in
+as first-class genre-tagged albums is the **Spotify scraping pipeline's** job
+(it exists — prefetch/media_ingest), needs network scraping for the missing 87,
+and is a separate feature (`spot folk punk` = random album, not ambience). They
+already WORK today via SpotResolve's GenreLinks fallback, so nothing is broken —
+they are just not upgraded to catalog items. Deferred, not forgotten.
+
+### The Spotify genre pools imported before scraping (2026-07-20)
+
+The ~200 un-migrated GenreLinks Spotify sections (Spanish, IndieFolk, FolkPunk,
+Dance, SadBoi, …) are now catalog items. Jamie's worry was right: the scraping
+pipeline finds albums by walking an ARTIST's discography, so a saved album not
+reachable from any scraped artist would never surface — waiting could lose the
+curation. So `spotify_genre_import.py` preserves it now:
+
+- **140 new stubs + 41 existing tagged** (183 staged, 14 multi-section dups
+  merged). Titles via **Spotify oEmbed** (no key, like YouTube's).
+- Stubs are `status: "queued"` (visible/usable), NOT `placeholder` (hidden) —
+  these are confirmed items Jamie chose. `enrich_pending: "spotify"` + empty
+  creator marks them for later fill; `media_ingest._find_existing` matches by
+  URL, so a later scrape of the same album augments in place, never duplicates.
+- Genre → tag (`FolkPunk` → `folk punk`), registered via `quotes.py vocab-add`.
+
+`spot folk punk` now resolves against the **catalog**, not the raw INI:
+`clog music-pick --tag` picks a random non-ambient item for a genre, wired into
+`SpotResolve` as step 4 (before the GenreLinks fallback). The Choice generator
+maps genres to their tag so the hardcoded path hits it too. GenreLinks stays as
+a fallback, now space/case-tolerant (`folk punk` → `FolkPunk`).
+
+Guard: the regular music catalog predates flat-string tags and holds some
+dict-shaped ones; `music-pick` keeps only string tags before `expand_tags`
+(which `.lower()`s and would crash on a dict).
+
+### Changing a lockout's music mid-session — `spot` during a lockout
+
+`spot <name>` now works INSIDE a running lockout without breaking it. The
+overlay runs in its own process with GLOBAL hotkeys (l/Space/arrows/m) that fire
+regardless of focus, so a naive nav would trip them and the pack would play over
+the new music. The fence:
+
+- `LockoutBeginExternalMusic()` (fires only when `timer_audio.pid` exists)
+  raises `timer_extmusic.flag` and waits ~1.15s (one overlay tick + margin).
+- The overlay's `_SyncExternalMusic()` (polled each Tick, next to the test
+  suite's `_SyncSuiteSuspend`) sees the flag and **suspends its global hotkeys**
+  + **mutes the pack once** (flipping to mirror display via `_RefreshDisplay`).
+- `SpotResolve` navigates, then `LockoutEndExternalMusic()` drops the flag; the
+  overlay hands hotkeys back — now in mirror mode, so arrows/Space drive the new
+  music. The mute PERSISTS: the lockout keeps running, mirroring the new source.
+  M brings the pack back. A 30s mtime backstop recovers hotkeys if the caller
+  dies mid-nav.
+
+This required separating resolution from action: `_SpotResolvePick` resolves
+with no side effects, and `SpotResolve` fences a lockout ONLY once it has a real
+target — muting the pack on a miss would leave silence. The fence is a no-op
+(and adds no delay) when no lockout is running.
+
+### CORRECTION: `spot` hardcoded recognition uses LITERALS, not a Choice (2026-07-20)
+
+An earlier entry claimed a single unified `spot_name` Choice fixed the dead
+Choice commands, and that the cause was "four overlapping Choices". **Both were
+wrong.** The single Choice threw the SAME `GrammarError: Malformed recognition
+data: word 'wow', rule id 2` and survived a Dragon reboot. And the very first
+failure ("spot songs") had "songs" in only ONE list, so overlap was never the
+cause.
+
+The honest, empirical picture: **every Choice-backed `spot <...>` in this rule
+throws that GrammarError** (four Choices, or one) for a Natlink reason not yet
+diagnosed. But **dictation and LITERAL phrases both work** here -- the rule
+already runs literal "spot add"/"spot random"/"spot check" fine.
+
+So `_add_spot_literals(SpotifyGlobalRule)` now generates one LITERAL "spot <name>"
+mapping entry per hardcoded name (from `hardcoded_spot_names.json`), each firing
+`run_mainfun_args("SpotResolve", [arg])` -- list-based so a multi-word arg like
+"folk punk" stays whole (mainfun_action's `args_text` would split on the space →
+"Too many parameters"). Literals compile to fixed grammar, not a DictList, so
+they sidestep whatever breaks the Choice. The generator skips any phrase whose
+"spot X" is already a hand-written command, so "spot random"/"spot favorite"
+keep their behaviour. `spot_slot`/`genre` Choices remain only for
+"spot swallow <...>"; there is no `spot_name` Choice.
+
+Lesson logged: do not claim a Dragon-grammar fix works without a live test --
+this is the third iteration on the same bug, each prior "fix" verified only
+structurally. The AHK dispatch side (SpotResolve) was always fine; the failure
+was entirely in Dragon's Choice decode.
+
+### `spot` GrammarError — ROOT CAUSE from the Dragonfly source (2026-07-20, 3rd pass)
+
+Prior two entries theorised (Choice overlap; "one Choice fixes it") and were BOTH
+wrong. Reading the actual Dragonfly source at the crash point settled it:
+
+`dragonfly/grammar/state.py:93` `rule()` raises `Malformed recognition data:
+word 'X', rule id N` when a recognised word's `rule_id` is `>= len(_rule_names)`
+(and isn't the dictation/letters sentinel). The crash is inside
+`elements_basic.py:1164`, the **Dictation element's decode**: saying "spot wow"
+makes Dragon tag "wow" with the rule_id of the **genre Choice's list sub-rule**,
+but this grammar's `_rule_names` is shorter than that id -> raise. Every failing
+word (wow=genre, songs/weaving=spot_slot, teldrassil=music_urls) is a **Choice
+list value**. Confirmed deterministic: `bin/reboot.bat` fully kills natspeak +
+recompiles all grammars, and it still reproduced -- so it's the grammar
+DEFINITION, not stale Dragon state.
+
+**Every `Choice` compiles to a Natlink list sub-rule.** In THIS grammar the
+compiled rule table and Dragonfly's `_rule_names` desync (exact Natlink reason
+undiagnosed -- other rules with Choices are fine, so it's something about this
+grammar's size/shape). The fix that addresses the mechanism directly: **remove
+ALL Choices from the rule.** No list sub-rule -> no out-of-range list rule_id ->
+the Dictation decode and the literal phrases both resolve cleanly.
+
+So the spotify global rule now has **zero Choices**:
+- Hardcoded names are LITERAL `spot wow` / `spot teldrassil` entries generated by
+  `_add_spot_literals` (literals are part of the main rule, not a list sub-rule).
+- `spot <textnv>` Dictation is the catch-all.
+- `spot swallow <genre>` / `<spot_slot>` (the only Choice users) were dropped;
+  `spot swallow <textnv>` (dictation) remains. Minor loss: no save-to-named-
+  genre-by-voice; restore as a dictation form if wanted.
+
+STILL UNVERIFIED against live Dragon (I can't drive recognition headless) -- but
+unlike the first two passes, this is the first that removes the exact construct
+the source shows is failing. If it STILL throws with zero Choices, the desync is
+independent of the spot Choices and the next step is bisecting the rule's
+command count.
+
+### `spot` GrammarError — THE ACTUAL FIX: mapping ORDER (2026-07-21)
+
+Three wrong theories before this (Choice overlap; "one Choice fixes it"; "any
+Choice in this grammar is cursed"). The real cause was documented in this
+codebase the whole time and Jamie remembered we'd solved it before.
+
+`failure-modes.md § shared prefix` + the LockoutRule's own comment:
+> "lockout <textnv>" before "lockout meditate ..." causes Malformed recognition
+> data errors on the word "meditate".
+
+**Dragonfly matches a rule's mapping in INSERTION ORDER.** A Dictation catch-all
+declared BEFORE a more-specific sibling sharing its prefix throws "Malformed
+recognition data: word 'X', rule id 2" on the specific word. The LockoutRule
+avoids it by declaring every literal/Choice variant BEFORE "lockout <textnv>".
+
+`_add_spot_literals` APPENDED, so every generated "spot wow" landed AFTER
+"spot <textnv>". That's why the log showed pure-dictation "spot well" working
+(no literal sibling) while "spot wow"/"spot teldrassil"/"spot folk" threw (each
+HAS a literal sibling, sitting after the catch-all). The fix: pop the fallback,
+add the literals, re-append the fallback LAST -- verified every literal now
+precedes "spot <textnv>".
+
+Both documented rules now hold for this grammar:
+- ORDER: specific-before-Dictation (this fix).
+- NO within-rule Choice dup: the rule keeps ZERO Choices, so no word is a list
+  value in two extras (the BookRule reading_person dedup lesson).
+
+Lesson: when a Dragonfly rule throws "Malformed recognition data", check mapping
+ORDER first (specifics before the `<textnv>` catch-all) -- it is the documented,
+precedented cause, not an exotic Natlink bug. Cost of not checking the docs
+first: three failed iterations.
