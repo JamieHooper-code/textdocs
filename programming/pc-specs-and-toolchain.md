@@ -27,9 +27,13 @@ Related: [[reference_computer_layout]] (memory), [[HOTKEYS]] (single source of t
 | Warranty | 1-year refurb (eBay seller) |
 
 ### Storage expansion notes
-- 3.5" HDD install requires an Acer bracket kit (or generic 3.5" cage) — chassis ships with the mounting holes but no caddy.
-- Spare SATA power leads in the Thermaltake PSU box if not already plugged in.
+- ⚠️ **Bay count is UNVERIFIED and the docs conflict.** This table says 2× 3.5" + 2× 2.5"; [[MIGRATE_DELL_TO_ACER]] says 2× 2.5" only. Both came from retail listings, neither from opening the case. Confirm visually before buying a drive.
+- 3.5" HDD install requires an Acer bracket kit (or generic 3.5" cage) — chassis ships with the mounting holes but no caddy. Matches Acer community reports for this chassis.
+- **Verified 2026-07-31:** zero internal SATA drives installed. Only internal drive is the 2 TB NVMe (`AGI2T0G43AI818`). All 4 SATA ports free; no SATA power lead in use.
+- The "E: drive" in §12 is the **G-DRIVE mobile USB-C external HDD (931 GB)**, not an internal bay.
+- ⚠️ **PSU modular cables are proprietary.** Thermaltake pinouts differ between models *and* between wattages of the same model; they deliberately don't publish them. A Corsair/EVGA/Seasonic modular cable will physically fit and can destroy the drive or PSU. Use the bundled accessory bag, or a cable sold for the exact model on the PSU label. SATA *data* cables are universal and safe to buy generic.
 - 2.5" SATA bays accept SSDs or 2.5" HDDs without a bracket.
+- Cable-free alternative: the Gigabyte B760M C V3 has spare M.2 sockets — an NVMe needs no power cable, no data cable, no bracket. Check the manual for M.2/SATA lane sharing first.
 
 ---
 

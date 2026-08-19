@@ -139,6 +139,37 @@ Every candidate key registered once with the HotIf-membership gate (above). Cand
 
 In cases 1–2 the gate **yields to a foreground AHK GUI** (`Keyboard_IsAhkGuiForeground()`) so arrows **navigate the wizard picker** (or any GUI) instead of being intercepted. Whether the picker itself acts on arrow keys is a separate GUI concern — the gate just stops stealing them.
 
+### AHK GUIs as first-class contexts (2026-08-16)
+
+That yield was originally **all-or-nothing**, keyed on the window (`exe == AutoHotkey64.exe` + non-empty title). Correct for a picker, wrong for every AHK GUI that isn't one.
+
+**How it surfaced:** inside the new typing box, the entire `wispr:recording` steamroller set (Delete / PgUp / PgDn) and the `[` Wispr toggle did nothing. Jamie's description — *"a lot of my bindings are being passed through… we built something at some point where bindings would not work inside of AutoHotkey GUIs"* — was exactly right.
+
+**Why it was invisible.** The guard returns **before** `ResolveBinding`, so there is no miss record, no `Bind/miss`, nothing to grep. The keys were not failing; they were never *claimed*. A binding that resolves perfectly and a binding suppressed by this guard looked identical from every log.
+
+**The fix — the GUI's context speaks for itself.** A `keyboard` block on `Contexts/<token>.json`:
+
+```json
+"keyboard": {
+  "bindings": "allow",        // "block" (default) | "allow"
+  "reserve_typing": true,     // letters/digits/punctuation stay native
+  "reserve": ["Tab"],         // extra slots this GUI keeps
+  "allow": ["["]              // fires anyway — beats every reserve
+}
+```
+
+Design points worth keeping:
+
+- **Default is the old behaviour.** No context, or no `keyboard` block → reserve everything. Every existing picker/Miller is untouched, and GUIs get adopted one at a time.
+- **Blocklist and allowlist must coexist.** A text surface reserves the typing keys *and* still wants `[` to toggle Wispr — and `[` **is** a typing key. Hence `allow` winning outright.
+- **Deepest-first, first statement wins outright** (not merged). A sub-context describing its keyboard is describing all of it; half-inheriting a parent's reserve list is unreasonable-about-able.
+- **Policy is cached, foreground is not.** `Keyboard_RefreshGuiPolicy` runs inside `CtxPassthrough_Recompute`, so the press-time gate stays O(1) Map lookups per the invariant. `Keyboard_IsAhkGuiForeground` stays a live call — the detector polls at 120ms, and a cached foreground answer could let a macro fire into a GUI for that window after a fast focus change.
+- **The policy is logged** on every context change (`gui=allow-typing +[` / `gui=block(all)`), next to `bound=[…]`. Those two together are the whole answer to "why didn't my key fire here" — a slot can be bound *and* reserved. This is the line that would have made the original bug a 30-second diagnosis.
+
+Code: `Keyboard_RefreshGuiPolicy` / `Keyboard_GuiBlocksSlot` / `Keyboard_IsTypingSlot` in `KeyboardDispatcher.ahk` (they live there, not in ContextPassthrough, because five always-on entry points include the dispatcher *without* the passthrough file — the closure only resolves in that direction). Four consult sites: `_CtxGateCheck`, `KeyboardMacroLayer_HotIfCallback`, `KeyboardMacroLayer_ModifierHotIfCallback`, and the picker-reserved bypass in `Keyboard_DispatchSlot`. Edited via the Context Manager's **Keyboard** facet.
+
+**Still blanket-guarded** (not yet context-aware): `CapsLock_IsAhkGuiForeground` (`CapsLockDispatcher.ahk`) and `Q0Max_IsAhkGuiForeground` (`Q0MaxDispatcher.ahk`). Same treatment applies when a capslock/macropad binding needs to reach into a GUI.
+
 ### Why this fixes typing
 
 In a normal text context, ~all letters are unbound → their gates are false → keys are never hooked → pure hardware native → no synthetic re-emit → no Dragon jangle. Only the handful of keys you deliberately bound *in that context* intercept. (Bound keys keep the existing `Keyboard_DispatchPhysicalOnly` synthetic-vs-physical gate so Dragon dictation of a bound letter still passes through.)

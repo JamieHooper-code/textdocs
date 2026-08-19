@@ -170,6 +170,53 @@ drag clips the end words in half on character-precise surfaces (Notepad++, Chrom
 editors). Kindle tolerates center-drag; the generic engine cannot, so it anchors
 on the edges.
 
+**Line-break recovery (`GrabReflow.ahk`):** a reader's `Ctrl+C` hands us exact
+words but flattens every newline to a space, so a grabbed exercise/poem/list comes
+out as one blob. The layout still lives in the OCR geometry, so we segment the
+grabbed span's OCR words into paragraphs and **re-insert the breaks into the exact
+clipboard text** — anchoring each paragraph by its first ~3 words. Hard **safety
+invariant:** reflow may change only whitespace (output must equal input once all
+whitespace is collapsed) — else it returns the original. So it can only add
+structure or no-op; it can never corrupt or drop a word, even on a wrong OCR or a
+multi-column page. Single-paragraph grabs are untouched.
+
+- **Kindle:** the grab already leaves text on the clipboard (that's how it
+  captures). `_KGOpenAddForm` re-OCRs the grabbed page-region
+  (`ReflowTextByOcrRegion`, which isolates one page of a two-page spread via
+  `OCR.FromRect`) and puts the **structured** version on the clipboard, ready to
+  paste — no new command. The quote store keeps the flat text (`quotes.py add`
+  takes `--text` on the command line, which can't carry newlines).
+- **Generic engine:** reflow runs on capture; **clipboard** keeps the breaks,
+  **todo** flattens (one line per entry), **quote** keeps them.
+- **Quote store preserves breaks:** `quotes.py add` takes `--text-file` (a UTF-8
+  file) as well as `--text`, so multi-paragraph grabs keep their newlines — command
+  lines can't carry them. The AHK `_QTextArg` helper (in `QuotesMenu.ahk`, shared by
+  the form save and the Kindle autosave) picks `--text-file` whenever the text has a
+  newline. The tag-suggest / detect-attrib CLI calls flatten their *input* only; the
+  stored text keeps its structure.
+
+**Paragraph detection (semantic, not visual):** wrapped lines within a paragraph
+are joined; breaks land only *between* paragraphs — so a plain paragraph stays one
+line, but multi-paragraph exercises/lists keep their shape. The **primary signal**
+is a line that ends a unit: it ends with terminal punctuation (`.?!`) **and** falls
+short of the right margin (`< 0.9×` the max line width). In justified text, wrap
+lines run to the margin and break mid-sentence, so a *short* line closing with a
+period/question mark is a real paragraph or list-item end — reliable even when OCR
+can't see the bullet glyph and the inter-item gap is tiny (both true for Kindle
+bulleted questions — the glyph/gap heuristics alone failed on them). Secondary
+signals still fire: a larger vertical gap (`> 1.3×` median step; `> 1.9×` = a
+blank-line section break), a first-line indent, or a bullet glyph. Each paragraph is
+located in the exact text by its first **5** words, and the search cursor advances
+**past** each match — without that, a repeated short phrase (`"how do you …"` occurs
+6× on one Self-Compassion page) re-matched the same spot and glued paragraphs
+together. Verified on a synthetic justified-list fixture.
+
+- **Known limits:** a genuinely two-column selection *within one page* can misplace
+  a break (never corrupts — invariant); single-page view is the most reliable for
+  structured grabs. Bullet splitting leans on OCR seeing the bullet glyph or a
+  slightly-larger inter-item gap; if a reader renders bullets with neither, the
+  items may still merge (fix: `make grab lines`).
+
 ---
 
 ## What v1 deliberately does NOT do (and why)

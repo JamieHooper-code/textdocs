@@ -34,6 +34,68 @@ Gatha situations are the ONE place a deeper `group` hierarchy earns its keep
 (functional retrieval — "give me a rushing gatha"); they stay nested and also
 carry thematic tags for cross-collection search.
 
+## `entry_types` — a quote's FORM (the third axis)
+
+Not everything grabbed from a book is a snappy quote — exercises, meditations,
+prompts. `entry_types` is a **multi-valued** list on each item classifying the
+*form* (`quote` / `exercise` / `meditation` / …), **orthogonal** to thematic
+`tags` and to `source`. An exercise still gets its normal tags + book provenance;
+this axis just lets you browse "all the exercises from a book." Kept a dedicated
+field (not a tag) so it's deterministic and never mixes into the LLM tag vocab.
+
+- **Default bucket:** empty / missing == a plain `quote`. `query --type quote`
+  matches empty items too; `query --type exercise` matches items whose list
+  contains `exercise`.
+- **Vocabulary:** seeded `[quote, poem, exercise, meditation]` in
+  `data["entry_types_vocab"]`, grows as new types are created;
+  `entry_type_vocab()` unions seeds + stored + used.
+- **Auto-classify:** `default_entry_types(text)` sets `exercise`/`meditation` by a
+  leading word ("Exercise …"), then falls back to SHAPE — `looks_like_verse(text)`
+  (≥4 lines, most short and not closing a sentence) classifies a `poem`. AHK
+  mirrors both in `_QDetectTypes` / `_QLooksLikeVerse`. Keep the two in sync.
+  Shape detection only works *after* the OCR reflow has restored the line breaks
+  (see "Line breaks" below) — on a flat Kindle clip everything looks like prose.
+- **Per-book / per-author DEFAULT type** (`quote_default_types` in library.json,
+  book wins over author): most books are entirely prose or entirely poetry, so the
+  FORM is a property of the book rather than something to re-pick per grab. A
+  poetry collection defaults to `poem`, a workbook to `exercise`. Empty = fall back
+  to per-grab auto-detection, which is what a MIXED book (Audre Lorde's *Selected
+  Works* — essays and poems in one volume) wants. Read via `quotes.py
+  book-entry-types --book-id X` (also in `book-settings`); written via clog
+  `book-set-quote-types` / `book-author-set-quote-types`, or the viewer's book
+  ⚙ Settings → **Default type (new grabs)** picker.
+- **Commands:** `add --types a,b` · `query --type X` · `entry-types` (list) ·
+  `entry-type-add --name X` · `set-types <id> --types a,b` ·
+  `book-entry-types --book-id X`.
+- **UI:** the add-form Miller has a **Type** node — a multi-select toggle list
+  (same control as tags) with a `＋ New type…` inline-create leaf. Kindle grabs
+  land pre-checked with the book's default type, else the detected one. **Auto-save
+  books pass `--types` explicitly** — auto-save skips the form, so without that a
+  poem from a poetry book would silently land as a plain quote.
+- **Titles are EXTRACTED, never invented.** `derive_title(it)` is the one place
+  that picks the extractor, so the save path and `derive-titles` can't disagree.
+  A poem uses `extract_verse_title` — the signal is the **blank line under line
+  one**, not its length, which is what separates a real title from the first line
+  of an excerpt grabbed mid-poem (no gap → no title, rather than losing the
+  opening line). An exercise uses `extract_heading` (labelled heading). Applied
+  automatically in `cmd_add`, so a poem is titled the moment it lands. The title
+  line stays IN the text: that's how the book prints it, and removing it would
+  move the text out from under make-preview's similarity check.
+- **Front-end:** `open exercises` (see below) browses by type → category → book,
+  and the quotes viewer has a **By type** branch. Non-default types are badged in
+  the list (`poem · [long] tags…`) — the viewer emits `entry_types` as TSV field
+  14 for it. Without the badge a poem is indistinguishable from a quote, which is
+  the one thing the type axis exists to tell you.
+
+## Ordering — newest first, grouped by capture recency
+
+Quote lists (`viewer --mode quotes`, non-pool) sort by `added` **descending** and
+emit `__DIVIDER__` section headers by capture recency: **Captured today** /
+**Captured this week** (last 7 days) / **Earlier**. `_QQuoteNodesFor` renders the
+sentinels as non-selectable divider rows. Display pools (`--pool`) keep their
+curated order. Every quote stores `added` (UTC ISO timestamp) and, for book grabs,
+`source.ref` (Kindle location, e.g. "loc 1951-1954") — both captured at save time.
+
 ## Storage
 
 | Thing | Path |
@@ -46,6 +108,8 @@ carry thematic tags for cross-collection search.
 | Engine + CLI | `Scripts\quotes\quotes.py` |
 | Importers | `Scripts\quotes\quote_import.py` |
 | Viewer + add flow (AHK) | `Helpers\QuotesMenu.ahk` + `Scripts\QuotesViewer.ahk` |
+| Exercises browser (AHK) | `Helpers\ExercisesMenu.ahk` + `Scripts\ExercisesViewer.ahk` |
+| Line-break reflow | `Helpers\GrabText\GrabReflow.ahk` (+ `Helpers\Tests\test_grab_reflow.ahk`) |
 | Voice rule | `caster\rules\quotes_commands.py` (`QuotesRule` in `rules.toml`) |
 | LLM task | `Scripts\local_llm\tasks.json` → `quote_tag` |
 
@@ -371,6 +435,205 @@ the copy citation is the ONLY source of the Kindle location; **`Esc` exits
 Kindle fullscreen — never send it**; the color swatches are checkboxes named
 `"<color> highlight"` under `NotecardViewClass`, addressable by UIA name so the
 popup's shifting position doesn't matter.
+
+## Line breaks — Kindle destroys them, OCR geometry puts them back
+
+**Kindle's clipboard hands over ONE flat line.** Verified 2026-08-06 against a
+real 8422-character grab: the raw clip contained *zero* newlines in the body.
+Every bit of structure a stored quote has was reconstructed afterwards. (There is
+also a `re.sub(r"\s*\n\s*", " ", quote)` in `parse-kindle-clip`, but it is not the
+culprit — there is nothing left for it to flatten.)
+
+Reconstruction lives in `Helpers\GrabText\GrabReflow.ahk`, shared by the Kindle
+grab and the generic Grab Text engine. It re-OCRs the grabbed page region, reads
+the WORD GEOMETRY, and re-inserts breaks into the exact clipboard text.
+
+- **Safety invariant:** reflow may only ever change whitespace. The output is
+  compared to the input with all whitespace collapsed; if they differ, the
+  ORIGINAL text is returned. So it can only add structure or no-op — a wrong OCR
+  read can never drop or garble a word. Worst case is today's flat text.
+- **Two modes.** `prose` = paragraph breaks only. `verse` = **one break per
+  line**, with a wider gap becoming a blank line (stanza break) — because in
+  poetry every line break is the poet's, and paragraph-only reflow ran whole
+  poems together into a single block.
+
+### The paragraph rule (and the bug that shaped it)
+
+One question decides prose reflow: **which rendered line-ends are also paragraph
+ends?** The governing fact is geometric — *a wrap line runs to the right margin;
+that is why it wrapped.* Only a paragraph's LAST line is free to stop short.
+
+This was originally four signals OR'd together (sentence-end, gap, indent,
+bullet) — any one firing broke the line. So a few pixels of OCR jitter in a
+line's start-x, or one slightly tall gap, split a sentence in half. On the 8.4k
+Hunter College address that produced **17 mid-sentence breaks against 6 real
+ones** (2026-08-06). The fix was not new thresholds but the SHAPE of the rule:
+shortness is now a **precondition**, and gap/indent/bullet only corroborate it.
+
+Rules in order (first match wins; each records the reason it fired):
+
+| Rule | Condition | Trusted alone? |
+|---|---|---|
+| `section gap` | gap after the line is > 1.9× median | yes — a blank line is unambiguous, and the only case a full-width line may break |
+| `sentence-end` | line stops short (<90%) AND closes with `. ? !` | yes |
+| `short + cue` | line stops CLEARLY short (<80%) AND next is indented / bulleted / gap > 1.3× | corroboration only |
+
+`_RflDecide` returns one record per line, and the SAME records drive both the
+reflow and the report — so the explanation can never drift from the behaviour.
+
+### Reading the report — `MAINFUN.bat ShowLastReflow`
+
+Every grab overwrites `%TEMP%\grab_reflow_report.txt` with a per-line table:
+reach (how far the line ran, as % of the column), the gap after it, whether it
+closed a sentence, the verdict, and the rule that decided it. When a capture
+comes out wrong, look for **a BREAK on a line whose reach is ~100%** (a wrap that
+should not have broken) or **a wrap on a short line that ends a sentence** (a
+break that was missed). Written *before* the reflow acts, so it exists even when
+the reflow then no-ops — which is exactly when "why did nothing happen?" is asked.
+
+### The capture log — permanent, and REPLAYABLE
+
+The report above is overwritten by the next grab, which is the wrong shape for
+improving the rule: by the time a bad capture is noticed the evidence is gone.
+So every grab also appends a durable record to
+**`E:\Media\catalog\capture_log.jsonl`** (append-only JSONL — a truncated tail
+can never corrupt earlier records, and analysis is a line scan).
+
+A record holds the thresholds in force, the per-line decisions, and **the raw
+OCR word geometry** as compact `[x,y,w,h,text]` arrays. The geometry is the part
+that matters: it cannot be reconstructed afterwards (the page has scrolled, the
+OCR can never be repeated), and it is what makes a capture replayable.
+
+Two record kinds:
+
+| kind | written by | means |
+|---|---|---|
+| `capture` | the save path, once the quote has an id | what the reflow saw and decided |
+| `correction` | the check editor, when the text is edited | **the reflow got it wrong** — before/after says how |
+
+Corrections are the ground truth. Editing a poem in the check editor is exactly
+the signal that the capture was wrong, so those records are what the rule should
+be tuned against — invented test cases can't tell you what actually fails.
+
+**The improvement loop:**
+
+1. `quotes.py capture-report` — totals, break reasons by frequency, and the
+   quotes you corrected by hand (listed first: study those).
+2. Change a threshold in `GrabReflow.ahk` (`_RflShortEnd` … `_RflIndentPx`).
+3. `MAINFUN.bat ReplayCaptures` — re-runs **the real rule** over every logged
+   capture's stored geometry and reports each line whose verdict would change,
+   flagging captures you had corrected. A change on a corrected capture is
+   evidence of an improvement; a change on one you accepted is a regression
+   until proven otherwise.
+
+Replay calls `_RflDecide` itself rather than a reimplementation — that is why
+`GrabReflow.ahk` is included in `MAINFUNCTIONS.ahk` (the include-closure check
+enforces it). A copy of the rule would drift from the one that actually runs,
+which is the single thing replay must never do.
+
+**Gotcha worth remembering:** AHK v2's `Round(v, n)` returns a **String**, so
+serialising `Round(reach, 4)` wrote `"1.0000"` into the JSON and every numeric
+comparison downstream would have been silently wrong. The capture stores raw
+floats.
+
+### Repairing text captured before the fix — `repair-breaks`
+
+`quotes.py repair-breaks [--id X] [--book-id Y] [--commit]` rejoins mid-sentence
+breaks left by the old rule. Dry-run by default, printing every join.
+
+Two conditions must BOTH hold: the line before does not end a sentence, AND the
+line after starts **lowercase**. Verse lines, list items and headings start with
+a capital or digit, so they survive. On top of that it is scoped by
+**provenance** — only `source.kind == "book"` items with a Kindle `ref`, never a
+poem or verse-shaped text. That scoping is load-bearing: gathas come from an
+importer that never ran the reflow and their verse legitimately runs on
+lowercase, so the text test **alone would have rewritten 19 gathas**.
+
+Applied 2026-08-06 to 14 book quotes / 80 joins. Verified after: item count
+unchanged, only `kind == book` items touched, and **zero words altered** — the
+repair is whitespace-only, same invariant as the reflow itself.
+- **`auto` (the default)** picks between them via `_RflIsVerse`: ≥4 lines and ≥60%
+  of them finishing under 75% of the column's right edge. Kindle wraps prose
+  ragged-right filling ~70–100% of the column (the same reason the segmenter's
+  short-line rule sits at 55%), so "most lines finish short" is a shape prose does
+  not produce. Deliberately conservative — a miss just yields paragraph reflow.
+- **A book whose default type is `poem` forces `verse`**, overriding detection.
+- Tests: `Helpers\Tests\test_grab_reflow.ahk` (pure tier, synthetic OCR geometry —
+  no Kindle or screen needed). Locks down verse-vs-prose detection, one-break-per-
+  line, stanza breaks, and the whitespace-only invariant.
+
+## Capture mode — what a grab DOES once it's captured
+
+Per book (or author) in library.json, `quote_capture_mode`:
+
+| Mode | What happens |
+|---|---|
+| `form` | open the add-quote form and fill it in (the original behaviour) |
+| `check` | **save it, then open the review editor** to eyeball / fix it |
+| `save` | save silently, no window |
+
+**Poems default to `check`.** Verse is the one case where a capture can be wrong
+in a way only a human catches: the line breaks are rebuilt from OCR geometry, and
+in a poem the line breaks *are* the content. Once a book's poems come through
+clean, flip it to `save`. Everything else, with nothing set, falls back to the
+legacy `quote_autosave` flag, so already-configured books are unaffected.
+
+Resolved by `book_capture_mode(book_id, is_poem)`; both resolutions ship in the
+single `book-settings` call the grab already makes (`capture_mode` /
+`capture_mode_poem`), so this costs no extra Python spawn on the grab hot path.
+Write with clog `book-set-quote-mode` / `book-author-set-quote-mode`, or the
+viewer's book ⚙ Settings → **On grab**.
+
+### The review editor (`_QReviewQuote`)
+
+Deliberately **the house prose editor** (`_SingleFieldSkipableInputGui`,
+`multiline`) rather than a bespoke form — the same surface `add journal` writes
+into, per `gui-conventions.md`. What it buys:
+
+- **`line_numbers`** — the Notepad++-style gutter. This is the whole point for
+  verse: numbered lines make a wrong break obvious at a glance.
+- **`draft_key`** — crash-proof drafting, so a mistake never costs the text.
+- The header shows **title · author · book · location**, so provenance is visible
+  without opening the viewer.
+- **Ctrl+Enter** sends it through; **Esc keeps the quote exactly as captured** —
+  it was already saved before the editor opened, so cancelling is never a loss.
+- Title is edited as a leading **`title: Some Name`** line, consumed on save —
+  the journal's inline-markup convention, so the editor stays ONE writing surface
+  instead of growing a field stack. Parsed by `SplitLeadingMarkup` in
+  `CommonFunctions.ahk` (only the first line counts; a `title:` mid-body is
+  prose), tested in `Helpers\Tests\test_common_markup.ahk`.
+- Writes back only what actually changed — a no-op `set-text` would re-derive
+  `display_ok` and quietly undo a manual display lock. `set-text` gained
+  `--text-file` so a multi-line edit survives (a CLI arg can't carry newlines).
+
+## `open exercises` — browsing practices, not quotes
+
+A quote is something you re-read; a practice is something you DO. So exercises
+get their own Miller (`Helpers\ExercisesMenu.ahk` + `Scripts\ExercisesViewer.ahk`,
+voice **"open exercises"**) shaped as a shelf you return to rather than a recency
+feed: **category → book → the items in READING ORDER**.
+
+- **Reading order is the point.** Exercises are grabbed out of sequence and
+  re-grabbed, so `added` says nothing. `viewer --order ref` sorts by the Kindle
+  location parsed out of `source.ref` (`ref_position()`), which is a real position
+  in the book. Items with no parsable location sort last instead of jumbling.
+- **Categories are DERIVED from tags in use** (`viewer --mode typecats --type X`),
+  not a separate registry — tag an exercise `ifs` and IFS becomes a category. It
+  inherits the usual cascade, so tagging the BOOK `ifs` categorises all of its
+  exercises at once. Adding a category needs no schema change.
+- **Voice `exercise <category>`** ("exercise IFS", "exercise poetry") deep-links
+  straight into one category via the Miller's `initial_path`. `_ExResolveCategory`
+  matches case-insensitively, treats underscores as spaces, and compares a
+  squashed form too, because Dragon spells acronyms out as "I F S".
+- **Items reuse `_QQuoteNodesFor`**, so every leaf drills to the same actions a
+  quote does (copy / edit tags / AI retag / delete) with no parallel copy.
+- **Names come from the book.** `quotes.py derive-titles --type exercise --commit`
+  fills `title` by EXTRACTING the heading from the text (`extract_heading` — line
+  one, once reflow has separated it), falling back to the local model (task
+  `quote_title`) only for older grabs whose heading is glued to the body. Never
+  overwrites a manual title.
+- Tunables are settings, not constants: `exercises.entry_type` (the menu works for
+  `poem`/`meditation` too) and `exercises.min_category_count`.
 
 ## Provenance note — the media_tags.json recovery (2026-07-06)
 

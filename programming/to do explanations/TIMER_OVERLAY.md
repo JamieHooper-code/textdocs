@@ -3,6 +3,11 @@
 Improvements queued for the timer overlay system. Headline entry in
 [[Personal]] points here.
 
+> Already built, documented separately in [[EXCEPTION_LOCKOUTS]]: exception
+> lockouts (`lockout book` — whitelist an app so its keys pass through and it
+> can cover the overlay), the meditation cool-down + envelope logging, the
+> `+`/`−` retarget keys, and meditation styles (`meditate IFS`).
+
 ## Quotes display
 Add `Scripts/quotes.txt` (one per line). Pick random at start or rotate on
 tick, display under song name.

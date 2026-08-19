@@ -1387,6 +1387,68 @@ and easy **promotion** to a dedicated registry. Computed live (not stored) so tu
 - **Edge:** localhost/IP urls (`127.0.0.1:7459`) group oddly at level 0 (registrable-domain on an IP); harmless,
   manual-overridable, or use level 1 (host). github.io-style public-suffix hosts cut to the suffix (rare).
 
+### 17.5l ROTATING destinations — refresh in place instead of duplicating (2026-07-29)
+
+Some destinations rotate: the League thread is a new Reddit post each split, a show moves to next
+season's page, a series gets a new playlist. The phrase stays; only the URL moves. The quiet add had
+two dedupe checks and this case fell between them — **same URL, any phrase** opened the existing entry
+(right), but **same phrase, different URL** hit `_DestUniqueKey` and silently became `open league 2`,
+leaving the stale entry live and giving Dragon two phrases for one destination. Jamie hit this
+2026-07-29 saying "add site league" on the new LCK thread (`AddDest/quiet | reg=sites key=open league 2`).
+
+- **Collision policy flipped (`_DestAddQuiet`).** A phrase Jamie typed or confirmed MEANS that entry,
+  so a collision now defaults to REPLACING it. Two paths: when the *prefill* already names a live
+  entry, the phrase box itself says `[EXISTS] 'open league' -> <current url>` and Enter replaces —
+  zero extra keystrokes, and it mirrors what the old `AddWatchShow` wizard already did right. When
+  the collision appears only *after* she edits the phrase (the case that bit her — Dragon heard
+  "openly", she typed "open league"), a numpad modal offers **1** Replace / **2** Save as new / **0**
+  Cancel, showing both URLs. The `" 2"` suffix survives only for a no-prompt add (`add_policy` `_phrase.ask=false`),
+  where no human is in the loop to notice a silent overwrite.
+- **Bare `set <name>` is the primary grammar (Jamie, 2026-07-29).** One command over EVERY destination
+  registry — 109 spoken names covering all 81 entries (sites 33, google_docs 40, youtube_videos 5,
+  watch_shows 3). The kind is never spoken; the Choice value carries its own registry id, so the single
+  AHK entry point routes correctly on its own. `set league` → sites, `set universe` → watch_shows,
+  `set journal` → google_docs. Spoken names are unique across all four registries (verified — 0 clashes);
+  if a future add collides, `DESTINATION_FILES` order decides and the loser stays reachable by its full
+  key. Declared LAST in the mapping so the kind-scoped siblings win when a kind IS spoken. **Namespace
+  note:** this deliberately claims the `set ___` namespace against the phrase-design "greedy slot" rule —
+  Jamie asked for it explicitly. Only live overlap is `meditate` (both a site and a `<link_category>`);
+  `set <link_category> <n>` requires a trailing number, so bare `set meditate` is unambiguous.
+- **`set site|doc|watch <name>` → `SetDestinationUrl(regId, key)`** — the narrower fallback, kept. Overwrites
+  ONLY `capabilities.identity_field` + `title_field` from the current Chrome tab; phrase, `default_pos`,
+  `open_fn`, `group`, `service` all survive. No prompts. One generic AHK fn serves all three verbs.
+  The spoken name is a **Choice built from the registry** (`destination_targets.py`), never a Dictation
+  arg — so it always names a real entry, which is precisely the failure mode that created `open league 2`.
+  Keys register under a SHORT name (leading opener verb stripped: `open league` → `league`) plus the full
+  key as an alias; a key already using optional-word syntax (`[open] voice`) registers full-form only, since
+  that spec already matches both and adding the short name would duplicate a grammar alternative.
+- **Sibling-URL detection.** A bare `add site` (no phrase spoken) that isn't an exact-URL dup checks
+  `_DestSiblingMatch`: same host **and** ≥2 shared leading path segments → offers the same replace modal
+  ("this looks like a newer version of…"). The 2-segment floor is what keeps it honest — verified against
+  the live 38-entry corpus with **zero** false positives (amazon `/gp/css/…` vs `/gps/css/…` correctly
+  diverge at segment 1), while the next League thread matches at 3.
+- **Identity guard (`_DestValidIdentity`) — load-bearing.** Registries declare `identity_type` (`url` for
+  sites/docs/watch/youtube, `path` for directories); a `url` registry now refuses anything not matching
+  `^https?://`. Found the hard way: `ChromeCurrentUrl()` falls back to `GetCurrentURL()`, which sends
+  Ctrl+L/Ctrl+C to the **foreground** window — with Chrome in the background a live test returned
+  `"Chapter Four: More on Systems"` and wrote it straight into the entry. A destination saved with a
+  non-URL looks fine in the editor and only fails later when the phrase is spoken, far from the cause.
+- **`AddWatchShow` collapsed onto the shared path.** `watch_shows` was already a registry
+  (`identity_field=url`, `choice_set=watch_show`), so its bespoke 3-InputBox wizard (name → URL → service)
+  was duplicated machinery. It now calls `_DestAddQuiet("watch_shows", …)` with `Map("service",
+  _WatchDetectService(url))` as the `defaults` override — one phrase box instead of three, and it inherits
+  the collision policy for free. `_WatchGuessName` + `_WatchPeek` deleted as dead.
+- ✓ Verified: live `SetDestinationUrl` round-trip on a throwaway `sites` entry — URL + title swapped from
+  the real Chrome tab, `default_pos:"left"` and `group:"testgroup"` preserved; the guard rejected the junk
+  URL without touching the entry (`SetDest/reject` in `ahk_event.log`); sibling matcher 0/38 false
+  positives; all 81 registry entries across the four destination registries reachable by some spoken name.
+  Cross-registry routing proven on a throwaway `watch_shows` entry too (different field layout —
+  `service`+`url`, `title_field: null`): service preserved, URL swapped, no phantom title field. Both
+  test entries removed; `sites.json` and `watch_shows.json` byte-restored to their pre-test contents.
+- **Note:** no "volatile sites" list was built. Once a colliding `add site` asks and `set <kind> <name>`
+  exists, every entry is implicitly refreshable — a hardcoded list of known-rotating sites would be pure
+  bookkeeping.
+
 ### 17.5 Interaction map (so the seams stay honest)
 
 ```

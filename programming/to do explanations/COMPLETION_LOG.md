@@ -435,6 +435,61 @@ equal):
   window-title string — confirm once, match forever. clog: `book-resolve-kindle --raw`,
   `book-set-kindle-title <id> --raw`, `book-add --kindle-title`.
 
+#### Book identity — md5 join, truncation match, and merging duplicates (added 2026-07-30)
+
+The cascade above had one failure mode that reliably produced **two records for one
+book**. Anna's Archive truncates long titles in the *filename* while the library keeps
+the full title from metadata, so:
+
+- Kindle window title: `The Witching Year_ A Memoir of Earnest Fumbling Through -- …`
+- library record:      `The Witching Year: A Memoir of Earnest Fumbling Through Modern Witchcraft`
+
+Those two never compare equal no matter how they are slug-normalised — the short one is
+a *prefix*, not a variant. `log read` fell to its NOMATCH branch, whose only exit was
+`book-add`, and the book split in half: the downloaded record kept the file, the Anna's
+Archive metadata and the tags; the new record collected the status and every reading
+session. Nothing joined them again.
+
+Three changes, each fixing a different link in that chain:
+
+**1. md5 is the join key (new tier 0).** An AA filename carries the record md5, and so
+does the library entry (`annas.md5`, and the stored `file`). That is an EXACT join for
+every sideloaded AA book — the same key the download pipeline already uses to marry a
+sidecar to its file, so this is one principle applied twice rather than a new idea. It
+outranks ISBN and every title tier because it cannot false-positive.
+
+**2. Truncation matching (new last tier).** For non-AA books, `_title_contains` asks
+whether one title's token set is a clean **subset** of the other's. Deliberately
+containment, not similarity: the failure is a title cut short, where the short form is a
+subset of the long one and a symmetric measure like Jaccard scores it *low* precisely
+when it should score high. Guards: identity-bearing tokens only (`_TITLE_STOPWORDS`
+dropped), a 4-token floor, and — critically — **multiple hits are treated as ambiguous
+and fall through to NOMATCH** rather than guessing between *Dune* and *Dune Messiah*.
+Verified across all 264 books: every title resolves to itself, zero false positives.
+
+**3. The library is offered before `book-add`.** On a miss, `_LogReadPickExisting`
+(CompletionLogFunctions.ahk) shows matching library books plus a "+ Add as a NEW book"
+row. Picking one calls `book-set-kindle-title`, which **learns the link**, so the next
+`log read` on that title is an instant tier-2 hit. The seed for that search is the first
+identity-bearing word, not the whole title — the whole title is exactly the string that
+just failed to match.
+
+**Cleaning up pairs made before this existed:** `clog book-merge <duplicate> --into
+<keeper> [--dry-run]`. Folds the duplicate into the keeper (a non-empty field on the
+keeper always wins; tags union by name; `_MERGE_PROTECTED` identity fields are never
+taken from the duplicate), then deletes it. **It also re-points reading sessions** —
+`log.jsonl` stores `fields.book` as a plain title *string*, so deleting a duplicate
+without rewriting those orphans every session logged against it. Always `--dry-run`
+first; it prints fields filled / fields kept / tags added / sessions moved.
+
+Known remaining duplicate pairs (surfaced by the sweep, **not** auto-merged because
+some are genuinely different editions): *Self-Compassion* (2011 vs 2015, different
+ISBNs), *The Artist's Way Workbook* (two ISBNs), *The Body Is Not an Apology* (manual
+to-read + downloaded record — same shape as the Witching Year case). Also **`No Bad
+Parts` has two records sharing one id** (`manual:no_bad_parts`), which is a data bug
+rather than an edition split: `_find_book` returns the first, so the second is
+unreachable and `book-merge` cannot address it by id.
+
 #### `log read <name>` / `log <name>` — log a current book by spoken name
 
 Every **currently-reading** book has a **spoken name** (a book's custom
