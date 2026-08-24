@@ -156,6 +156,160 @@ A **recommender is a tag from the UI's point of view**, so it plugs into the exi
 
 **Not** `completion_friends.json` — that is a separate, older store for "log \<friend> walk" activity logging. Folding the two together is a sensible future move.
 
+## Links — capture folded into the catalog (built 2026-08-21)
+
+`web` was always a media type, but nothing *captured into it*. The `save link
+<category>` command (`SaveCurrentLink` → `LinksaverToVault.ahk`) wrote markdown
+bullets into `ObsidianVault\<Category>.md` against its own private inline-`#tag`
+vocabulary. So there were two link libraries, and the 2026-06 migration
+(phase 5) imported some of the same pages into `web.json` while the capture
+command kept writing to the vault — **5 of 26 vault bullets were already
+catalogued**. The fix was not a new section; it was pointing capture at the
+section that already existed.
+
+**`grab link`** (`Helpers/LinkGrabber.ahk`) replaces it. Jamie's rule: the word
+"save" is retired across this system.
+
+- **Routing.** `INIDATA/media_sites.json` (64 rules) maps a URL to a type +
+  kind + status; `Scripts/MediaCatalog/media_sites.py` is the ONE interpreter
+  (AHK shells it, so the two sides can't drift). YouTube → `youtube/video` or
+  `/channel`, Letterboxd → `movie`, Wikipedia → `web/reference` **statusless**.
+  Unmatched → `web/article`. A rule naming an unknown type/subtype is dropped
+  with a warning, never stored — `media_sites.py check` validates all of them.
+- **Categories became tags.** `PoliticalBooks` was a filename pretending to be
+  a taxonomy; it is `political` + `books`, which the umbrella layer already
+  models. `grab link <tag>` pre-seeds one. `AddSavedLinkCategory`,
+  `saved_link_categories.json`, `vault_tags_scan.py` and the twelve `_Obsidian*`
+  markdown helpers are gone (~370 lines + a second tag vocabulary).
+- **Capture reads the URL properly.** The old path hand-rolled `Send "^l"` +
+  clipboard save/restore (visible flash, ~5s hang on YouTube, drops fullscreen).
+  Now `ChromeCurrentUrl()`.
+- **Idempotent.** Re-grabbing a saved page opens *its* tags instead of making a
+  near-duplicate. Dedupe is `_canon_url` identity (tracking params + fragment
+  stripped) across **every** type, via `clog media-find-url`.
+
+### The capture form is a persistent VIEWER (rebuilt same day)
+
+The first build called `_MillerColumnPickGui` inline from the MAINFUN dispatcher
+under a `; miller-modal-ok` exemption. That exemption is for a genuine
+pick-and-dismiss modal; this is a form Jamie sits in, edits fields in, and opens
+sub-dialogs from. She hit all three documented failure modes within minutes:
+
+- it **floated** (always-on-top) over whatever she was reading;
+- every sub-dialog (title box, new-type form) opened **behind** it, because a
+  floating parent outranks a normal child window;
+- it **died the moment she ran another voice command**, because it lived in the
+  dispatcher process the next dispatch tears down.
+
+Now it uses the enforced trio — `LaunchMillerViewer` → `Scripts/LinkGrabberViewer.ahk`
+→ `_MillerViewerShow` (which hard-forces `always_on_top := false`). Verified:
+`WS_EX_TOPMOST` is false, and the window survives an unrelated MAINFUN dispatch.
+
+**State crosses the process boundary as a file.** Reading Chrome's URL must
+happen in the dispatcher, where Chrome is foreground; by the time the viewer
+exists, the front window is the form. So `GrabLink()` captures + resolves
+defaults, writes one state JSON to `%TEMP%`, and passes the path as `A_Args[1]`.
+An already-open form is **closed first**, because `LaunchMillerViewer` reuses a
+same-titled window and would otherwise show the previous page's state.
+
+The profile editor (`open link profiles` / "link defaults") is the same trio:
+`Helpers/LinkProfilesMenu.ahk` + `Scripts/LinkProfilesViewer.ahk`.
+
+**Testing note:** `ahk.py show GrabLink` cannot test this end-to-end — it runs in
+no-focus-steal mode, so Chrome can't be foreground and `GrabLink` correctly bails
+with "no URL from the browser". Test by launching `Scripts/LinkGrabberViewer.ahk`
+directly with a state file. Tests: `Helpers/Tests/Gui/test_link_grabber_menu.ahk`
+(+ fixture), registered in the runner — `MAINFUN.bat RunGuiTests link_grabber`.
+
+### Per-site defaults — link profiles
+
+A profile answers "when I grab a link from HERE, what should it already be?" —
+type, kind, status, tags, creator, recommender, title cleanup. Store
+`INIDATA/link_profiles.json`, engine `Scripts/MediaCatalog/link_profiles.py`
+(this REPLACED the earlier `media_sites.json`/`media_sites.py` router, which
+could only pick a type).
+
+**Profiles LAYER, they do not compete.** Every matching profile applies,
+least-specific first; scalars are overridden by the more specific layer and
+**`tags` accumulate**. That is what makes "specific subreddits get their own
+defaults" work without restating the parent's:
+
+```
+.reddit.com                -> type web, kind thread, strip " : r/…"
+.reddit.com  ^/r/OCPoetry  -> tags [poetry, community]
+---------------------------------------------------------------
+r/OCPoetry  =>  web / thread / poetry + community
+```
+
+Specificity is **computed** (context, host length, path presence, path length),
+not file order, so adding a profile can never accidentally shadow an existing
+one by being inserted above it.
+
+**Matching is by URL and/or CONTEXT.** `match.host` (leading dot = domain or any
+subdomain), `match.path_regex`, `match.url_regex`, plus an optional `context`
+token from the unified registry. Contexts are *available, never required* — most
+sites will never warrant one, so a profile may use either or both.
+
+Validation is strict-but-quiet: a profile naming a type/kind/status the registry
+doesn't define is reported on stderr and that FIELD is dropped; the rest of the
+profile still applies. `link_profiles.py check` validates all of them.
+
+**Creating one is a pick, not a regex-typing exercise.** The grab form's
+"Defaults" row shows which layers matched (so you can see *why* the form looks
+the way it does) and offers `suggest`-derived options — "the whole site
+(reddit.com)" vs "just this section (reddit.com/r/OCPoetry)" — seeded from the
+form's current values. So "make this the default for this site" is one action.
+
+### The type registry — types are data now
+
+`MEDIA_TYPES` was a hardcoded Python list. It is now derived from
+**`INIDATA/media_types.json`**, one row per type carrying `label` /`statuses` /
+`status_labels` / `subtypes` / `hub` / `fs` / `recommend`. A built-in seed in
+`media_catalog.py` keeps the catalog working if the file is corrupt (degraded,
+not broken). Consequences:
+
+- **Adding a section is a menu action** — `+ New section` in `open media`, or
+  `＋ New type…` inside the grab form, both → `clog media-add-type`. Same for
+  within-type kinds (`media-add-subtype`) and tags (`media-add-tag`, which wraps
+  `quotes.py vocab-add` so a new tag is *pickable*, not just stored).
+- **`web` is labelled "Links"** everywhere Jamie sees it, while the storage key
+  stays `web` — ids like `web:mariame_kaba_wikipedia` keep working. Label and
+  key are deliberately allowed to differ.
+- **Statuses are per-type.** `web` has `queued`/`done`/**`reference`** and no
+  `active` (you don't half-read a bookmark). `_valid_status` clamps per type.
+- The hub's type list, the CLI's `--status` choices, and the pickers all read
+  the registry, so none of them need editing when a type is added.
+
+### What got folded in
+
+| Source | Result |
+|---|---|
+| 26 vault bullets | 21 imported (5 were already catalogued); note name → tags; a Google-search URL rejected as not-a-resource |
+| 10 `page-grabs/*.md` (Web Clipper) | indexed with **`archive_path`** → the full-text archive is finally queryable; it had **no index at all** |
+| 23 numbered link slots | imported, slot category → tag (`cook`→cooking, `rot`→brainrot); titles fetched live (YouTube oEmbed + `<title>`) |
+| existing 44 catalog items | **subtype backfill** — 36 YouTube channels, Wikipedia promoted to `reference` |
+| `SavedLinks/*.txt` | deleted (dead since March, already migrated) |
+| GenreLinks.ini (859 music URLs) | **left alone** — playback chain, not a reading library |
+
+`web` 9 → 36, `youtube` 35 → 52. One-time migration:
+`Scripts/MediaCatalog/link_migrate.py` (dry-run default, `--commit`, dedupes by
+URL identity + title-id, `--no-fetch` for offline).
+
+The numbered slots stay the **launcher** (`cook 3` must open instantly, no
+Python on the hot path), but `set <cat> <n>` now also mirrors into the catalog
+via `link_ingest.py` — fire-and-forget, same shape as `_SpotCatalogIngest`, so a
+slow catalog write never costs the slot. **`SLOT_TAGS` is duplicated in
+`link_migrate.py` and `link_ingest.py` and the two must agree** — one imported
+the old slots, the other files new ones, and a drift would scatter the same
+shelf across two tag names.
+
+**Browsing:** a type with kinds gets a "By kind" lens above its flat list
+(`media-query --subtype`, `--group subtype`), which is what keeps a growing
+Links section legible. **Perf gotcha:** a Miller previews the highlighted row's
+children eagerly, so the grab form caches the type registry and tag vocabulary
+per capture (`_GLResetCaches`) — uncached it spawned a Python process per arrow
+key, exactly the trap `MillerTags.ahk` documents.
+
 ## Media enrichment — "keep the best data possible"
 
 **Full design: [[MEDIA_ENRICHMENT_SYSTEM]]** (locked 2026-06-19; build deferred). One-line: for every book (and later every media type), auto-collect the richest data possible — description, genre tags, cover, series, bibliographic — behind a Spotify-style confirmation step, on a generic provider seam so TV/movies reuse the core. Recommendations are out of scope for now; we bank genres/series/subjects as the future engine's fuel. See that doc for the API research, source strategy, data-model, genre-conforming, series handling, confirmation UX, and the deferred Anna's-Archive-download + StoryGraph-scraper seams.
