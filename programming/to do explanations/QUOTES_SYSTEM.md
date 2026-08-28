@@ -445,8 +445,14 @@ also a `re.sub(r"\s*\n\s*", " ", quote)` in `parse-kindle-clip`, but it is not t
 culprit — there is nothing left for it to flatten.)
 
 Reconstruction lives in `Helpers\GrabText\GrabReflow.ahk`, shared by the Kindle
-grab and the generic Grab Text engine. It re-OCRs the grabbed page region, reads
-the WORD GEOMETRY, and re-inserts breaks into the exact clipboard text.
+grab and the generic Grab Text engine. It reads the span's OCR WORD GEOMETRY and
+re-inserts breaks into the exact clipboard text.
+
+The Kindle grab feeds it the **cached** words from the overlay's own OCR pass
+(`%TEMP%\kindle_grab_words.tsv`, written by `_KGCacheWords`, sliced by
+`_KGCachedSpan`), not a fresh screen read — see "Grab the geometry once" below.
+`ReflowTextByOcrRegion` (the old screen re-OCR) survives only as the fallback for
+a cache miss.
 
 - **Safety invariant:** reflow may only ever change whitespace. The output is
   compared to the input with all whitespace collapsed; if they differ, the
@@ -456,6 +462,61 @@ the WORD GEOMETRY, and re-inserts breaks into the exact clipboard text.
   line**, with a wider gap becoming a blank line (stanza break) — because in
   poetry every line break is the poet's, and paragraph-only reflow ran whole
   poems together into a single block.
+
+### Grab the geometry once (2026-08-27)
+
+**"Exercise: Accessing the Self Through Unblending" saved as one run-on block:
+1 break found in 48 lines, and no title** — the title is extracted from line one,
+so a reflow that no-ops also arrives nameless. Three faults, all in the same
+decision to re-OCR the screen *after* the grab:
+
+1. **The region was derived from the span's first and last word rects alone.**
+   A long passage runs off the BOTTOM of the left page and onto the TOP of the
+   right one, so `fy` (1130) > `ly` (420). `min`/`max` over those produced a band
+   of y 412–1155 that simultaneously *cut off the span's own tail* on the left
+   page (which ran to y 1385) and *swept in ~450 words of unrelated text* above
+   it on the right.
+2. **A band that wide but short straddles the gutter.** Windows OCR segments two
+   side-by-side pages correctly only when it can see whole pages; given a
+   horizontal slice it merges them into shared lines (`and back. about day.` —
+   left-page words at x 684 glued to right-page words at x 1447).
+3. **It measured the screen after the selection and highlight had run**, so any
+   scroll between grab and reflow silently changed what was measured.
+
+The fix removes the second OCR entirely. The overlay already OCR'd the window to
+number the sentences, and that pass is strictly better: it is the exact words the
+selection was made from, in reading order, from before anything moved. Those
+words are cached to TSV and the span is sliced back out by exact anchor match —
+a miss means the cache belongs to another page, and the old re-OCR takes over.
+It is also ~600 ms faster per grab.
+
+### Two-page spreads are stacked, not interleaved
+
+A Kindle spread is one window, so a span crossing the gutter is two side-by-side
+columns. Every rule downstream assumes ONE column and each fails differently on
+two: lines group by `y` so the pages merge; `maxRight` becomes the *right* page's
+margin so every left-page line reads as "stopping short" and the spread is
+misdetected as **VERSE**; the step from the left page's last line to the right
+page's first is negative, so the gap ratios are meaningless.
+
+Rather than teach four rules about columns, `_RflStackColumns` normalises the
+input: find the gutter (a word-free vertical band, wide in absolute pixels *and*
+relative to the text, with ≥15% of the words on each side, so a page number can
+never split a page), then translate the columns into ONE tall column sharing a
+left margin, **exactly one line-step apart**. The page break then reads as an
+ordinary wrap — which is what it is. Measuring that join from the previous
+column's *descender* instead of its last baseline adds a line's height and the
+gap rule reads the page boundary as a stanza break; the pure tests pin this.
+
+Verified against the real failing geometry: 671 words → 1 gutter at x 1280 → 2
+columns → verse misdetection `YES → no`, stacked column width 836px, the same
+width a single-page capture reports. A single-column page finds no qualifying
+gutter and passes through untouched.
+
+The capture record carries `columns`, and the report prints a `page columns` line,
+so a spread is visible in `ShowLastReflow` rather than inferred. Note the stored
+geometry is the STACKED column — replay therefore exercises the paragraph rule,
+not the column detector, which is covered by the pure tests instead.
 
 ### The paragraph rule (and the bug that shaped it)
 
@@ -583,6 +644,368 @@ single `book-settings` call the grab already makes (`capture_mode` /
 `capture_mode_poem`), so this costs no extra Python spawn on the grab hot path.
 Write with clog `book-set-quote-mode` / `book-author-set-quote-mode`, or the
 viewer's book ⚙ Settings → **On grab**.
+
+### What the first real spread taught us (2026-08-27, second pass)
+
+Two exercises re-grabbed under the new code exposed four more faults. All four
+were invisible in the text and obvious in the report, which is the point of it.
+
+**1. Anchors matched token-by-token; OCR disagrees about where words end.**
+Breaks are placed by finding a line's opening words back in the flat text. OCR
+read "you just" as "youjust" and "If they" as "Ifthey" — two merges that cost 2
+of 5 breaks on one exercise, gluing its heading to its first paragraph. The
+report showed all six paragraph ends decided CORRECTLY; they simply could not be
+placed. OCR splits words too ("kn ow th e"), so it fails in both directions.
+Fixed by matching the CHARACTER RUN: concatenate the normalised tokens and search
+for the anchor's own concatenation. Word boundaries vanish and every merge and
+split with them. The match must still begin at a token boundary, since that is
+where the break gets inserted.
+
+**2. OCR splits LINES too, and a fragment is short.** Grouping words by y has to
+tolerate jitter, so its threshold is a fraction of a word's height — which also
+splits off a stray comma, an italic run, a superscript. The result is a record
+holding a fragment of a line, sitting almost no distance above the rest of it.
+Shortness is the precondition for ending a paragraph, so four breaks landed
+MID-SENTENCE on "The Path", every one on a fragment: the report showed them at
+gap ratios of **0.2x and 0.3x**, and one had "," as its whole first word. A
+paragraph break cannot fall inside a rendered line, so the fix belongs to the
+geometry: `_RflMergeSplitLines` merges anything closer than 0.6 of a line step
+into the line it belongs to, before any rule sees it. That also restores the
+line's true right edge, which the verse discriminator depends on.
+
+**3. "Dark" cannot be an absolute level.** The rule scanner used a fixed cutoff
+of 140. Kindle's sepia theme renders paper at a flat **132**, so every row of a
+1440-row page reported as a rule — and the two real rules were invisible in the
+noise. Paper can be parchment, sepia, grey or black; the only thing true across
+all of them is that a rule is much darker than the paper beside it. The cutoff
+is now a fraction (0.65) of the band's MEDIAN level. These bands are the gaps
+between paragraphs, so they are overwhelmingly background, and a 2px rule inside
+a 30px band cannot move a median. Measured on the real page: paper 132, the rule
+at y=456 running 97% of the column at level <=66. The scan then found exactly
+what the screenshot shows — one rule on the left page, and on the right a rule
+plus both edges of a boxed callout.
+
+**4. N paragraphs need N-1 breaks.** The suspicion ratio compared placed breaks
+against the paragraph COUNT, so a flawless capture read "17 of 18 placed" — one
+short forever, with the ratio skewed to match.
+
+Also: `[[hr]]` landed three words into a heading-first capture and the generated
+quote id came out `exercise_the_path_hr_since_...`. An id is permanent and is how
+a quote is referred to for life; `make_quote_id` strips markers first.
+
+And `structure_stats` counted blank-line-separated GROUPS as paragraphs, which
+reported a 20-paragraph exercise as "3" — the opposite of the eyeball check the
+number exists for. A paragraph is a non-empty line; blank-line groups are now
+reported separately as `sections`.
+
+**A caveat this leaves behind.** `recapture_verdict` reads "more breaks" as
+better, so a fix that REMOVES spurious breaks reads as *worse* and will refuse to
+overwrite. That is right for a bad OCR pass and wrong after an engine fix. The
+existing override is "make preview" (`--replace`), which drops the old record
+before the dedup check runs; a one-off engine fix is otherwise best applied by
+replaying the stored evidence and writing the result with `set-text`, which is
+how both of these exercises were repaired without re-grabbing.
+
+### Replay, and applying a fix without re-grabbing (2026-08-27, third pass)
+
+Eight exercises re-grabbed at once made the one-at-a-time diagnosis untenable, so
+the survey became a tool: `ReplayGrabEvidence` (own process —
+`Scripts/GrabReplayHost.ahk`, `Helpers/GrabText/GrabReplay.ahk`) re-runs every
+kept capture through the CURRENT reflow and reports which would change. It runs
+in its own process for the same reason the grab does: MAINFUNCTIONS is
+`#SingleInstance Force`, so any command Jamie fires mid-sweep kills it — which it
+did, on the first attempt.
+
+Making that report meaningful took two corrections:
+
+- **The evidence stored the whole PAGE's words, not the SPAN the reflow ran on.**
+  A fixture built from it would feed the reflow ~3x the words and match nothing.
+  `words.tsv` is now the span; `page_words.tsv` keeps the window for context.
+- **It stored the raw clipboard, and the reflow never sees that.**
+  `parse-kindle-clip` strips the Kindle citation first, so replaying from
+  `clip.txt` differed by those ~95 characters every single time — all twelve
+  captures reported as changed and the report said nothing. `input.txt` is now
+  what the reflow was handed; `clip.txt` stays as provenance.
+
+A folder predating either is marked `legacy` rather than silently diffed.
+
+**Applying a fix to already-stored quotes.** Every reflow fix silently makes past
+captures better than what is stored, and a stored quote does not re-derive
+itself. `Scripts/codebase_tools/reflow_reapply.py` replays the evidence and
+writes the result back — but only under the same guard a re-grab gets
+(`recapture_verdict`), because without it the first run would have flattened
+"Five Things to Know About Parts", overwriting a good stored capture with the
+replay of one the verdict had already REJECTED as worse.
+
+The exception is a **changed geometry basis**: when a capture ran with a
+different COLUMN COUNT than the engine now finds, its output was computed on a
+page shape we now know was wrong, and comparing break counts across the two is
+meaningless. `replayed_meta.json` records what the current engine saw so that
+comparison can be made.
+
+### The 15% column floor (the bug this pass found)
+
+`Mapping Your Parts` came back as 32 lines, one break per line — verse, on a
+prose exercise. The gutter WAS detected (96px). The second column held 73 words,
+**10.2%** of the grab, and the per-column floor was 15% of the words, so it was
+dropped — leaving `maxRight` on the far page's margin, all 644 words of the main
+column measuring as "short", and the whole spread reading as verse.
+
+A share of the passage was the wrong shape for that floor. What it actually
+guards against is a page number or a margin artifact, and those are one or two
+words however long the passage is: `_RflColumnMinWords() => 3`.
+
+### Near-duplicate detection
+
+Three duplicates in one afternoon, every one from the same cause: re-grabbing a
+passage with bounds a sentence different ("grab 57 to 131", then "57 to 133").
+Different words, so the exact dedup key misses and it lands as a second quote.
+
+`find_near_duplicate` closes it: after the exact key misses, look for an item
+from the SAME BOOK with word-set similarity >= 0.85 and treat it as a recapture.
+Measured on the real store — 11 long passages from *No Bad Parts* — the true
+duplicate pair scores **0.963** and the highest-scoring pair of genuinely
+different exercises scores **0.369**. The threshold sits in an empty gap, not on
+a balance point.
+
+Two guards keep it honest: it is scoped to one book, and it ignores short texts
+(`NEAR_DUP_MIN_WORDS`). Jaccard is noisy below a few dozen words — a 33-word
+passage plus one 8-word sentence already falls to 0.80, where a 900-word exercise
+plus the same sentence stays above 0.96 — and a short highlight is a duplicate
+you can see at a glance anyway. A short quote sitting INSIDE a long exercise
+scores low regardless, because Jaccard divides by the union.
+
+### The choice — a collision asks instead of deciding (2026-08-27)
+
+`recapture_verdict` compares break counts. That is a good guess and it is only a
+guess: an engine fix that REMOVES spurious breaks reads as "worse", a capture
+with different bounds may be the one Jamie actually wants, and sometimes the
+right answer is a second, separate quote. She had no way to know any of that
+until the numbers were in front of her — and by then it had already happened.
+
+So a collision STOPS and asks, with the store still untouched:
+
+```
+Already saved as Exercise 1 — Getting to Know a Protector
+
+stored:    10 paragraphs, 13 line breaks, 1 rule
+this grab: 13 paragraphs, 16 line breaks, 1 rule
+This grab reads better — Enter overwrites.
+
+ [ Overwrite it (PgDn) ]  [ Keep both (PgUp) ]  [ Discard this grab (End) ]
+```
+
+**A modal, not a tooltip.** This is a decision, and decisions get
+`_ConfirmationModalGui` per `gui-conventions.md`. The first build was a tooltip
+with hotkeys and a countdown; Jamie asked for the modal and no countdown, which
+is also the better design — it blocks until answered, so there is no timer that
+can lose the capture and no window in which ordinary navigation keys are quietly
+claimed. `Numpad1` takes the default and `Numpad0` discards, free from the
+template. Per-button `hotkeys` give PgDn/PgUp; `End`/`Esc` hit `cancel_result`.
+
+Asking at all requires the decision to come BEFORE the write, which is what
+`add --plan` is for: it runs the whole dedup and verdict path and reports what
+WOULD happen without saving. The commit then runs as `add --onto <id>`
+(overwrite in place, whatever the verdict) or `add --as-new` (skip the collision
+entirely). `_recapture_preview` is built from the same two `structure_stats`
+calls `apply_recapture` uses, so the preview she is shown and the edit that runs
+cannot disagree.
+
+**The recommendation only picks which button Enter fires** — overwrite when the
+grab genuinely reads better, otherwise discard. It never silently trades a good
+capture for a worse one because Enter was the nearest key.
+
+A "make preview" edit (`--replace`) never reaches the prompt: that is already an
+explicit instruction about which quote to overwrite.
+
+### The long-paragraph warning
+
+A paragraph far bigger than the rest of ITS OWN capture is where a missed break
+hides. Size alone cannot say it (this book genuinely runs long — Daily IFS
+Meditation's biggest is 860 and correct) and ratio alone cannot either (a
+two-paragraph capture can differ 3x innocently). Both together are specific:
+`LONG_PARA_CHARS = 1200` **and** `LONG_PARA_RATIO = 2.3`, which across the eight
+No Bad Parts exercises flagged exactly the ones that were visibly two or three
+paragraphs run together and none of the ones that were right.
+
+### Per-column margins, and where the short-line threshold really sits
+
+Jamie spotted this one from the output: "the left-hand page washed into a single
+paragraph while the paragraphs seemed to work on the right hand side". She was
+right. The two pages of a spread are NOT the same width — measured, 802px against
+845px, and 783 against 837 on another capture. Column stacking gives them a
+shared LEFT margin, but a single global `maxRight` then measured every line of
+the narrower page against the wider page's margin.
+
+`_RflColMargins` keys the margin by column. That alone cost two correct breaks
+elsewhere, which said the threshold was also wrong, so every line in every
+capture was measured:
+
+| reach | lines |
+|---|---|
+| 85-89% | 12 |
+| 90-94% | 15 |
+| 95-99% | **276** |
+| 100-104% | **79** |
+
+355 lines at 95% or over, 15 between 90 and 94. **That cliff is the signal**: a
+wrap runs to the margin, so anything stopping below 95% stopped short on purpose.
+`_RflShortEnd` was 0.90 and missed nine paragraph ends in that band, every one
+closing with a full stop. The lines in the band that are NOT paragraph ends do
+not end in punctuation at all, so the sentence-end rule excludes them without the
+threshold's help. It is now 0.95, and placement across every real capture went to
+9/9, 11/11, 12/12, 14/14, 19/19.
+
+### Re-grabbing IS the repair path (2026-08-27)
+
+`dedup_key` collapses whitespace, so a re-grab of an already-captured passage is
+a **collision**, not a new quote. The old behaviour was to reject it and keep
+what was stored — which meant **the reflow could never improve anything already
+captured**. Every fix to it only helped passages not yet grabbed.
+
+So a collision now compares the two captures and takes the better one, in place:
+
+- **better** (more line breaks, more markers, or it finally yields a title) ->
+  overwrite the stored text, re-derive the title, and report what changed:
+  `line breaks 1 -> 47 - paragraphs 1 -> 12 - title added`
+- **worse** (fewer breaks) -> KEEP the stored capture and say so. Jamie re-grabs
+  to fix a bad capture; silently trading a good one for a page that happened to
+  OCR badly this time would be the exact opposite of the point.
+- **same** -> say "no change" with the shape, so "did that do anything?" has an
+  answer.
+
+In place, **not** a replacement record: the words are identical (that is what
+made it a collision), so this is the same passage recaptured. Replacing the
+record would throw away the tags, facets and favourite state the id accumulated;
+adding a second would leave two copies differing only in whitespace — the exact
+duplicate this store had to be cleaned of. A title set by hand is never
+overwritten (`title_source == "manual"`).
+
+**Markers are stripped before the dedup key is computed.** A re-grab that
+recovered a section rule differs from the stored text by the literal `[[hr]]`,
+and keying on that would make the improved capture a *different* quote — landing
+a near-duplicate instead of taking the recapture path that exists to replace it.
+
+### Structural markers - page furniture OCR cannot see
+
+A book page carries structure that is not text: the horizontal rule closing a
+section, a box round a callout. On the real *No Bad Parts* spread, its two rules
+produced **zero** non-alphanumeric OCR tokens. As far as word geometry is
+concerned they do not exist.
+
+They are recovered from the PIXELS and recorded as a marker on its own line:
+
+```
+...and go about your day.
+
+[[hr]]
+
+What the Self Is and What the Self Isn't
+```
+
+The form is deliberate and extensible (`[[box]]`, `[[center]]`, ...): a marker is
+a WHOLE LINE that is nothing but `[[name]]`. One regex strips them, a viewer can
+parse them trivially, and no line of prose can ever be mistaken for one.
+
+**How the rule is found.** `ScDarkRunRows` (ScreenCapture.ahk) reports rows in a
+band holding an unbroken horizontal dark run over half its width, sampling every
+4th pixel because a rule is solid and this is the grab hot path. The reflow only
+ever asks about a **section-sized gap**, so the band holds no text - and text
+could not produce a false positive anyway, since glyphs are separated by gaps and
+a text row's longest run is one word wide. That is the whole discriminator, and
+it is what the tests pin.
+
+The page capture is of the **client area**, so image pixel (x, y) is the same
+point as OCR word (x, y) - no offset to carry. Lookups use the words' RAW
+coordinates, never the stacked ones, because column stacking invents y positions
+to join two pages and those correspond to nothing on screen.
+
+**The invariant moved up one level**: reflow may now introduce whitespace *and
+markers*, so the check is that the WORDS are identical once both are removed.
+That still guarantees the thing the invariant exists for - no word can ever be
+dropped or garbled by a bad read.
+
+Markers stay in `text` (the source of truth, and what a viewer interprets) and
+are stripped from `display_text` / `plain_text`, so a bell quote never reads
+`[[hr]]`. `structure_stats` counts paragraphs on the stripped text, so "12
+paragraphs" means twelve paragraphs.
+
+### Evidence, and the regression corpus
+
+A grab that comes out wrong is noticed hours later, by which time the page has
+scrolled and the OCR can never be repeated. That is why the 2026-08-27 run-on
+exercise took a full investigation: the answer was in geometry that no longer
+existed anywhere.
+
+Every grab now leaves a folder (`E:\Media\catalog\captures\<stamp>_<slug>\`,
+`Helpers\GrabText\GrabEvidence.ahk`):
+
+| file | what it is |
+|---|---|
+| `window.png` | the page as the OCR saw it - which spread, mid-scroll or not |
+| `words.tsv` | RAW OCR word geometry, before column stacking - unreconstructable later |
+| `clip.txt` | what Ctrl+C actually handed over (one flat line) |
+| `text.txt` | what was stored - `clip.txt` plus whitespace and markers |
+| `report.txt` | per-line decisions plus the OUTCOME line |
+| `meta.json` | ids, book, ref, types, mode, and the run's proposed-vs-placed counts |
+
+The screenshot is taken at **OCR time**, not save time: the reflow runs on the
+overlay's OCR pass, so a screenshot of any later moment documents a different
+page than the one being explained. On/off and retention are settings
+(`kindle.capture_evidence`, `kindle.capture_evidence_keep`).
+`OpenLastGrabEvidence` opens the newest.
+
+**Freezing a good one as a test.** The reflow is a pile of thresholds, each
+chosen to fix one book's failure; a change that fixes the next book can silently
+break the last one. Once a capture has been *looked at and judged right*:
+
+```
+py Scripts/codebase_tools/reflow_fixture.py promote <name> [--with-image]
+```
+(or `FreezeLastGrabAsTest <name>`) copies the input triple into
+`Helpers/Tests/fixtures/reflow/<name>/`, and
+`Helpers/Tests/test_grab_reflow_corpus.ahk` replays every frozen capture through
+the REAL reflow on every Stop hook. `--with-image` also freezes the PNG, which is
+what makes the fixture cover the pixel pass.
+
+Two traps the harness itself had:
+- The comparison must be **exact** (bar line endings). The collapsing comparison
+  the safety invariant uses would call a flattened result identical to a correct
+  one and pass every regression silently.
+- Test files are `#Include`d into the runner at the AHK root, so `A_ScriptDir`
+  resolves to the ROOT and a fixture path built from it is simply missing -
+  which every assertion reads as "found nothing", i.e. a silent pass. Use
+  `A_LineFile`.
+
+`promote` refuses a capture with no line breaks at all: that is the failure this
+whole system exists to catch, and freezing one would pin the bug in place.
+
+### The save notice — "Saved as Exercise 9 — …"
+
+An auto-save skips the form, so the tooltip is the ONLY thing that says what
+happened. It used to say `auto-saved` and nothing else, which meant a silent
+mis-capture (wrong passage, lost line breaks, no title) looked exactly like a
+good one, and a *failed* save looked like a good one too.
+
+It now names the item the way Jamie refers to it — `Saved as Exercise 9 —
+Accessing the Self Through Unblending`:
+
+- **The number** is the one she'd count to in `open exercises`: a book's
+  practices in READING order. `place_in_book()` in `quotes.py` therefore uses the
+  same sort (`ref_position`) and the same filter (this book, this entry type,
+  active) the viewer uses — a number computed any other way wouldn't match the
+  row she counts to.
+- **The title** is the book's own heading, extracted from line one of the
+  reflowed text. A grab that failed to recover its line breaks arrives nameless,
+  which makes a bad capture visible in the notice itself.
+- **A plain quote gets no number.** Its position among a book's hundreds of
+  highlights is not a name for it; "quote 412" would be noise.
+- **No id back means nothing was written**, and the notice says so
+  (`SAVE FAILED — …`) instead of claiming a save.
+
+Both the place and the title ride along in `add --json`'s emit, computed while
+the store is already open and sorted — no second Python spawn on the grab hot
+path. A dedup collision reports `Already saved — <what it collided with>`.
 
 ### The review editor (`_QReviewQuote`)
 

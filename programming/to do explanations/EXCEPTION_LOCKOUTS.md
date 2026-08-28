@@ -1,6 +1,6 @@
 ---
 tags: [design, lockout, meditation, context, architecture]
-related: ["[[TIMER_OVERLAY]]", "[[SETTINGS_SYSTEM]]", "[[COMPLETION_LOG]]", "[[ALWAYS_ON_CONTEXT_DETECTOR]]", "[[CONTEXT_LOG]]", "[[VOICE_COMMAND_SYSTEM]]"]
+related: ["[[MEDITATION_PACKS]]", "[[TIMER_OVERLAY]]", "[[SETTINGS_SYSTEM]]", "[[COMPLETION_LOG]]", "[[ALWAYS_ON_CONTEXT_DETECTOR]]", "[[CONTEXT_LOG]]", "[[VOICE_COMMAND_SYSTEM]]"]
 status: built (v1) — 2026-08-05
 updated: 2026-08-18
 ---
@@ -214,6 +214,14 @@ re-resolves them from the registries. Without this, resuming a book lockout woul
 come back sealed and lock her out of the very book she was reading — the one
 failure mode here that actually hurts.
 
+Resume also goes through `_AppendMirrorFlag`, the same gate every other launcher
+uses: if something is genuinely making noise when she says *resume lockout*
+(`DetectMirrorProvider` requires WASAPI-confirmed audio, so a paused or stale
+tab does not count), the session comes back **muted + mirrored** and the music
+already playing keeps the speakers. `M` unmutes the pack if she wants it. Resume
+restores the *session*, not the soundtrack — before this it launched the pack
+unconditionally and started playing on top of whatever was already on.
+
 ## Meditation styles
 
 Same registry shape, different axis:
@@ -244,8 +252,11 @@ stay identical — otherwise the log grows values its own picker can never show.
 
 ## Still open
 
-- **Guided meditation pack.** The backend is built and logs a style; the audio
-  pack doesn't exist yet. When it does it plugs in as an audio source.
+- ~~**Guided meditation pack.**~~ **DONE 2026-08-26** — see
+  [[MEDITATION_PACKS]]. A pack is a `kind = meditation` row in packs.ini, so it
+  inherits favourites/skip/the F,S,L keys from the music packs. The clock is
+  DECOUPLED from the audio: `lockout = min(recording length, the pack's
+  max_lockout_minutes)`, and the recording plays on past the unlock.
 - **A poetry profile.** The mechanism is there; it needs a context with a
   `title_regex` for the doc.
 

@@ -1,5 +1,5 @@
 ---
-tags: [programming, media, recommendations, design-doc, books, voice-commands, qmd, people, tags]
+tags: [programming, media, recommendations, design-doc, books, voice-commands, qmd, people, tags, plex, tv, episodes, favorites]
 ---
 
 # Unified Media Recommendations System — design doc
@@ -313,3 +313,189 @@ key, exactly the trap `MillerTags.ahk` documents.
 ## Media enrichment — "keep the best data possible"
 
 **Full design: [[MEDIA_ENRICHMENT_SYSTEM]]** (locked 2026-06-19; build deferred). One-line: for every book (and later every media type), auto-collect the richest data possible — description, genre tags, cover, series, bibliographic — behind a Spotify-style confirmation step, on a generic provider seam so TV/movies reuse the core. Recommendations are out of scope for now; we bank genres/series/subjects as the future engine's fuel. See that doc for the API research, source strategy, data-model, genre-conforming, series handling, confirmation UX, and the deferred Anna's-Archive-download + StoryGraph-scraper seams.
+
+## Episodes — the TV hierarchy, and "make favorite" (built 2026-08-25)
+
+**Voice: "make favorite" / "make unfavorite".** Marks the episode playing right
+now as a favorite. Nothing needs to be set up first — the show, season and
+episode records are created on the spot if they don't exist.
+
+### What was missing
+
+`tv.json` held 27 flat show records and nothing below them. Seasons and episodes
+existed only as a **denormalized blob** copied onto each caught item —
+screenshots and song finds both carry `show: {title, season, episode}` plus a
+`show_id`. So every surface knew *which episode it caught something in*, and
+nothing could answer **"what else happened in S2E6"**, because there was no
+episode to point at.
+
+### The hierarchy is the one music already uses
+
+`subtype` + `parent` were already in the item schema, proven by
+artist → album → song. TV is the same shape:
+
+```
+tv:adventure_time                  (show)
+  tv:adventure_time:s02            subtype season,  parent = the show
+    tv:adventure_time:s02e06       subtype episode, parent = the season
+```
+
+Adding `season`/`episode` to the `tv` and `anime` subtype vocabularies was a
+row in `media_types.json` — no Python. `media-query --subtype episode` and
+`--group subtype` worked immediately.
+
+### Ids are NUMERIC, never title-derived
+
+`make_id` slugs the **title alone**, which is right for a top-level item and
+wrong for a child — and it fails silently: the second item with a taken title is
+refused with `exists:` and exit 1. Nothing is corrupted, nothing is logged, the
+item just never arrives.
+
+Music has been living with this. **`music:lover` belongs to Alice Phoebe Lou**,
+so no other artist can ever have a track or album by that name — across 6,833
+albums sharing one namespace with 3,172 artists. Episodes would be worse: every
+show has a "Season 1" and "Pilot" repeats forever.
+
+So seasons and episodes are keyed `s02e06`, not by title. That survives an
+episode being renamed in Plex, zero-pads so plain string sort gives broadcast
+order, and represents season 0 (Plex's specials) — a falsy value an
+`if season:` guard would silently drop.
+
+For everything else the fix is **additive and collision-only**: a child whose
+flat id is taken gets rescoped to `<parent_id>:<slug>` (`music:taylor_swift:lover`).
+Rewriting existing ids would orphan every `parent` reference pointing at them —
+a migration, not a repair — so nothing that works today changes.
+
+Pinned in `Scripts/codebase_tools/tests/test_episode_hierarchy.py`.
+
+### Favorite is a TAG, not a field
+
+`favorites` already existed in the shared vocabulary (scoped to `web`); it was
+widened to every media type. That means `media-query --tag favorites`, umbrella
+expansion, and every Miller tag picker worked on favorited episodes the day this
+landed, with **no new query plumbing** — the same reasoning the catalog already
+applies to ambient tracks: *a new grouping needs no new section, just a tag*.
+
+**Unfavoriting removes the tag, never the record** — screenshots and song finds
+point at that episode and would be orphaned.
+
+### Asking Plex, not the window title
+
+Every other catch surface identifies a show by parsing the Chrome tab title,
+which is right there — the title survives fullscreen when the URL does not
+(see `show_titles.py`). But the tab title is
+`Adventure Time - S2 · E5 - Google Chrome`. It carries the show and the numbers
+and **not the episode title**, so "Storytelling" is simply not recoverable from
+it. Plex knows, so `plexlib.now_playing()` asks `/status/sessions`.
+
+**`/status/sessions` reports ACTIVE PLAYBACK ONLY**, and the likeliest moment to
+say "make favorite" is right after an episode ends — when the session list is
+empty but the title still names what she was watching. So the title parse is the
+fallback, feeding `plexlib.find_episode(show, season, episode)`, which walks
+show → season → episode by **`index`, never by title** (a season is "Season 2"
+in one library and "Series 2" in another).
+
+Shows are matched on a normalized title because the tab title carries a year the
+library record usually doesn't (`INVINCIBLE (2021)` vs `Invincible`). Plex's own
+title filter is a prefix match and misses exactly that case.
+
+A show that isn't in the Plex library at all still gets a full record from the
+title parse, minus the episode name — the same call `ensure_show` already makes
+about a show it can't resolve. Invincible is in the song finds and not in the
+library; it backfilled as `tv:invincible:s04e01` and is a real record.
+
+**Plex identity:** both ids are stored. `plex_rating_key` (601) is a row number
+in *this* server's database and stops meaning anything if the library is
+rebuilt; `plex_guid` (`plex://episode/5d9c0b7d…`) is global and survives that.
+Guid is identity, rating key is the fast local handle.
+
+### Generic by construction
+
+`now_playing.py` is a **resolver registry** — one function per source, all
+returning the same flat dict. Plex is implemented; YouTube is an explicit stub
+carrying the shape it must return (a channel plays the part of the show, a video
+the part of the episode, with no season between them — which the ensure-chain
+already handles, since season is skipped when `None`). Adding a source is a
+resolver there, **not** a second voice command.
+
+### Where it lives
+
+| Layer | File |
+|---|---|
+| Hierarchy primitives (`season_id`/`episode_id`/`child_id`/`ensure_item`/`add_item_tag`) | `Scripts/MediaCatalog/media_catalog.py` |
+| **Record layer** — chain, links, reverse query | `Scripts/MediaCatalog/episodes.py` |
+| **Resolver layer** — who's playing + favorite | `Scripts/MediaCatalog/now_playing.py` |
+| Plex session + library lookup | `Scripts/acquire/plexlib.py` (`now_playing`, `find_episode`) |
+| AHK entry points | `Helpers/MediaFavorites.ahk` (`MakeFavorite`, `UnmakeFavorite`, `ShowNowPlaying`) |
+| Browse (show → episodes → catches) | `Helpers/MediaHubMenu.ahk` |
+| Tests | `Scripts/codebase_tools/tests/test_episode_hierarchy.py` (25) |
+
+## Everything plugged into the episode (built 2026-08-25)
+
+The record layer and the "what's playing" layer are **two modules on purpose**,
+and the split is about who calls which:
+
+| | needs |
+|---|---|
+| `now_playing.py` — resolvers, one per source | the network, a foreground window |
+| `episodes.py` — records, links, reverse query | nothing; pure catalog work |
+
+`make favorite` needs both. The **screenshot and song-find capture paths need
+only the second** — and they are hot paths (Print Screen; a song caught
+mid-episode), so they must never pay for an HTTP round-trip. Everything in
+`episodes.py` works offline from (show, season, episode), which is exactly what
+those two already parse.
+
+### The link
+
+Both stores now carry `episode_id` beside their existing `show_id`
+(`episodes.py link --commit` backfilled 11 rows). That pointer is the whole
+point: the numbers in a show blob can *describe* an episode but can't be
+**joined on**.
+
+```
+episodes.py caught tv:steven_universe_future:s01e15
+  screenshot  shot00001  …_Jubilant-Longhorn.png
+  screenshot  shot00002  …_Ironic-Kakapo.png
+  screenshot  shot00003  …_Gargantuan-Dugong.png
+```
+
+A reader falls back to **deriving** the id from the show blob when the field is
+absent, so rows written before the link — or a store restored from an old
+backup — still join correctly.
+
+`episode_id` is stored **beside** the show block, never inside it. It isn't a
+property of the show, and `backfill-shows` decides whether a row changed by
+comparing the freshly-parsed block against the stored one — an extra key in
+there made every row compare unequal and a dry run reported eight rewrites that
+weren't real.
+
+### The placeholder rule
+
+A capture creates the episode from **numbers alone** (`S02E05`) — no Plex call
+on the Print Screen path. `episodes.py enrich --commit` fills the real titles in
+afterwards, and any path that already knows the title upgrades the placeholder
+**in passing**. Without that upgrade, whichever surface touched an episode first
+would own its title forever, so a screenshot taken before the first favorite
+would leave the record reading "S02E05" permanently. The upgrade is guarded on
+the placeholder pattern, so a title Jamie edits by hand is never overwritten.
+
+### Browsing it
+
+`open media` → TV drills **show → episodes → what was caught in them**, with
+catch counts on each episode row ("3 shots", "1 song"). Episode counts come from
+**one** `episodes.py shows` call per node-list build, never one per row — a
+per-row check would recreate the per-item-disk-pass shape that made the art
+gallery take 48 seconds.
+
+`media-query` gained **`--top-level`** (parent-less items only), and the TV/Anime
+listing uses it. This is load-bearing rather than cosmetic: once `tv` became
+hierarchical, the plain listing put three rows called "Season 1" and a row
+called "S04E01" in among the shows alphabetically, which reads as a corrupt
+catalog rather than a tree.
+
+**Still on the denormalized blobs, deliberately:** `SongFindsMenu.ahk` and
+`ScreenshotsMenu.ahk` group by parsed episode LABELS. They work, their sort
+logic is non-trivial, and the records they'd point at are already reachable from
+the hub — so repointing them is a real refactor with real regression risk and no
+new capability. Worth doing when one of them is next opened for other reasons.
