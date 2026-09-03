@@ -493,13 +493,14 @@ unreachable and `book-merge` cannot address it by id.
 #### `log read <name>` / `log <name>` — log a current book by spoken name
 
 Every **currently-reading** book has a **spoken name** (a book's custom
-`log_name`, else the **author's surname**), so you can say **"log read lorde"**
+`log_name`, else **the best word out of its title** — see below), so you can say
+**"log read lorde"**
 and it logs that book *with its catalog tags* — no picker. (Renamed 2026-06 from
 "log reading" → "log read"; "log reading" now cleanly means the daily *reading*
 template.) Pipeline:
 
 - `clog._sync_reading_choices()` regenerates `INIDATA/VoiceChoices/reading_books.json`
-  (`{spoken_name: {id, title}}`, surname default, deduped on collision) **and bumps
+  (`{spoken_name: {id, title}}`, title-word default, deduped on collision) **and bumps
   the `log_commands.py` reload marker** every time a book's reading status changes
   (`book-set-status` / `book-add`). Caster's content-delta watcher reloads the rule
   → the new book is sayable within seconds, no manual reboot.
@@ -510,7 +511,39 @@ template.) Pipeline:
   title+tags via `clog book-get <id>` and logs a `Reading — <title>` entry.
 - The bare `log <reading_book>` shorthand (no "read") also works.
 - Set/clear a custom spoken name with `clog book-set-log-name <id> --name <name>`
-  (the add-from-scratch form has a "Spoken name" field; blank = surname default).
+  (the add-from-scratch form has a "Spoken name" field; blank = the derived name).
+
+##### The derived name comes from the TITLE (2026-09-01)
+
+It used to be the **author's surname**, and that was the wrong handle: Jamie
+refers to a book by its title, so *The Tarot* became `read place` (Robert Place)
+and *The Florida Wildlife Encyclopedia* became `read shupe` — names she would
+have to look up in order to use. Her ask: *"the most unique but sayable word
+from the title"* — tarot, bones, midnight.
+
+`_spoken_title_words()` ranks the title's words on **(long, early)**. Length is
+the workable proxy for distinctive: the short words in a title are the common
+ones, and an English title front-loads what it is about. Dropped first:
+
+- **grammar words**, and a **closed list of very common verbs** (`became`,
+  `must`, `built`…). Closed, never an `-ing`/`-ed` suffix rule — that rule throws
+  away *Witching* and *Gathering*, which are the best word in their own titles.
+- **generic book words** (`collection`, `selected`, `works`, `memoir`,
+  `encyclopedia`, `history`…). Real words, useless as handles: "read collection"
+  could mean six books.
+- **the subtitle** — *The Witching Year: A Memoir of Earnest Fumbling Through
+  Modern Witchcraft* is called The Witching Year, and unsplit "witchcraft" wins
+  on length.
+- **the author's given names**, keeping the surname, so *The Selected Works of
+  Audre Lorde* is `lorde` and not `audre`.
+- **non-ASCII words** (de-accented first) — Dragon hears English, so a Spanish
+  title needs a manual name.
+
+A **collision walks the title**: two tarot books give `tarot` and `wisdom`, not
+`tarot` and `pollack`. The surname is now only the last-ditch fallback, for a
+title that yields nothing at all. Pinned in
+`Scripts/codebase_tools/tests/test_book_spoken_names.py`; the pure ranking is
+`clog.assign_spoken_names()`.
 
 #### To-read list (`add read` / `open read`) — Phase 1
 

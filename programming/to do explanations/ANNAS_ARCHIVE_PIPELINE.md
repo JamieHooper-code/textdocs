@@ -151,8 +151,22 @@ server #1:  [link] "📚 Download now"        server #2:  "To download, copy thi
 ```
 
 So there is no "which shape did this server give us" question: **the url is the
-path on every server**, and the "Download now" link is a fallback for a page
-that somehow has one and no url.
+path on every server**. The "Download now" link is never clicked — not even as
+a fallback.
+
+**It was a fallback for exactly one day, and that was worse than either option
+on its own.** The link and the url do not render simultaneously: on server #1
+the link often lands a beat earlier, so a poll that accepted "link if no url
+yet" took the Chrome path on some runs and the aria2 path on others, *for the
+same server, at random*. No retry, no resume, no queue slot — silently, on an
+unpredictable subset of books. A fallback that fires sometimes is worse than
+either branch chosen consistently.
+
+Now we simply wait for the url. A page that genuinely never prints one is a
+failing server and is reported as one, which is far more useful than quietly
+downloading through the worse path. `_AA_ConfirmSaveAs` and `_AA_ArmWatcher`
+were deleted along with the link path — nothing in this pipeline drives Chrome's
+downloader any more.
 
 **This shipped backwards, and it was silent.** The first version checked for the
 link first and returned on it — so server #1, whose page carries *both*, was
@@ -237,11 +251,24 @@ transfer does not go faster, it gets refused.
 
 The worker is **self-electing**: whoever enqueues first takes a lockfile and
 drains the whole queue; later callers see the lock, add their item and exit, and
-the running worker picks it up. Nothing stays running once the queue is empty.
-That is deliberate — it means there is no daemon to babysit, and **no way for
-stale code to keep serving after an edit**, which is the trap the mailwatch
-daemon documents at length. One-at-a-time is structural (one worker, awaiting
-each transfer), not a setting anyone can get wrong.
+the running worker picks it up. Nothing stays running once the queue is empty,
+so there is no daemon to babysit. One-at-a-time is structural (one worker,
+awaiting each transfer), not a setting anyone can get wrong.
+
+**It is NOT immune to the stale-code trap**, and an earlier version of this doc
+claimed it was. A worker that is *mid-drain* holds the modules it imported at
+start, so an edit does not reach it until the queue empties and the next worker
+starts. That was observed directly: a fix landed at 10:19 and a failure recorded
+at 10:24 still used the old code path. Short-lived, but real — if you need a
+change to take effect NOW, wait for the queue to drain.
+
+**A worker that dies mid-transfer leaves an orphan.** `next_item()` only hands
+out `queued` rows, so a row left `active` by a dead worker is stranded forever:
+never retried, never reported — the exact "a book quietly went missing" failure
+the queue exists to prevent. The next worker therefore **reclaims** any `active`
+row on startup, which is safe precisely because it holds the exclusive lock: an
+`active` row at that moment provably has no live owner. aria2 resumes from the
+part-file, so reclaiming costs nothing.
 
 The lock steals only from an owner that is really gone: pid alive **and** a
 python image name, the same two-part check the mailwatch pid-reuse bug forced.
@@ -370,7 +397,23 @@ server failed, so the pattern was invisible and #4 kept its turn in the
 rotation.
 
 `INIDATA/anna_server_health.json` now records every attempt per server, and
-**two consecutive failures bench that server for an hour**.
+**two consecutive failures bench that server**, for an escalating period:
+
+| Bench | 1st | 2nd | 3rd | 4th | 5th+ |
+|---|---|---|---|---|---|
+| Sits out | 1 hour | 6 hours | 1 day | 1 week | 1 month |
+
+**A server with NO recorded success ever starts at the week rung.** That is the
+"I don't think I've ever seen it work" case, and it is a genuinely different
+thing from a server that usually works and is having a bad day. Server #4 has
+never once succeeded (0 ok / 5 failed): making it earn a month through four
+separate benches would waste eight more click-throughs proving what its history
+already says.
+
+**The ladder counts bench EPISODES, not failures.** A failure recorded while the
+server is already sitting out does not climb it — otherwise one bad hour could
+rocket a server to a month. It climbs only when a bench expires, the server is
+tried again, and it fails again.
 
 - **Two, not one.** A single 502 is normal weather on these hosts and aria2
   retries through it; benching on one would pull healthy servers out.
@@ -434,6 +477,114 @@ Ctrl+W closes whatever tab is in front.
 If the download later fails, `anna_fetch.py` **reopens the book's md5 page** so
 the retry is one `jump` away rather than a fresh search. The download url is
 dead by definition at that point; the book page never expires.
+
+## `jump` on a book page downloads it
+
+`jump N` on the search results clicks result N. `jump` on a **book page**
+(`/md5/<hash>`) runs the whole download instead — rotation, queue, import,
+Kindle send — exactly as if she had jumped to it from the results.
+
+This closes the retry loop. When a download fails, `anna_fetch.reopen()` puts the
+book page back on screen; one `jump` from there tries again. Before this, that
+reopened page was a dead end — pressing jump on it produced a ListNav
+`no_profile` failure, because there is no list on a book page to navigate.
+
+**It is pure data.** `INIDATA/Contexts/anna_s_archive_detail.json`:
+
+```json
+{ "parent": "anna_s_archive",
+  "match": { "exe": "chrome.exe", "url_regex": "annas-archive\.[a-z]+/md5/" },
+  "nth_click_function": "AnnaGrabBook" }
+```
+
+`nth_click_function` is an existing ListNav seam (Google Calendar uses it so
+`jump 13` means day-of-month 13, not the 13th grid cell). The profile names the
+function; the engine stays site-agnostic.
+
+**The N is ignored, deliberately.** There is no list, so N names nothing — every
+jump on a book page means the same thing. `AnnaGrabBook` takes an optional
+parameter purely to absorb it; without one AHK raises "Too many parameters" and
+the jump silently does nothing.
+
+**Why the lookup is not `_LN_ActiveProfile`.** That function answers "which
+profile describes the LIST here", and its eight other callers immediately read
+`profile["selectors"]` from the result — so widening it to selectors-less
+profiles would hand them a Map with no selectors and break them far from the
+change. `_LN_NthOverrideProfile` asks a different question and is the only
+caller of its own answer.
+
+**Specificity:** on a book page both `anna_s_archive` (exe+title) and
+`anna_s_archive_detail` (exe+url) score 2, and the tie breaks on DEPTH — the
+detail context is a child, so it wins. Verified offline against the real failing
+values, along with the search page still resolving to `anna_s_archive_results`
+so `jump N` there still clicks row N.
+
+## Two aria2 settings that cost real downloads
+
+**`--always-resume=false` is not optional.** aria2 defaults it to *true*, which
+means that when a server refuses a Range request it **aborts** with exit 8
+("server does not support resume") rather than starting over. A 22MB book died
+that way on 2026-09-01 having already transferred most of itself. The partner
+hosts are inconsistent about Range — one advertised `Accept-Ranges: bytes` while
+a sibling refused it — so the only safe posture is: resume when the server
+allows it, restart from scratch when it does not.
+
+**A partial file is not a finished one.** aria2 writes straight to the target
+name, so a half-finished download is *also* "a file that exists with size > 0".
+The early-return that skips re-fetching an already-present file therefore has to
+check for the **`.aria2` control file**, which aria2 deletes only on completion.
+Without that check a retry reports "already downloaded" and hands a TRUNCATED
+book to the importer — into the library, on to the Kindle, silently. A real
+25.9MB partial was one retry away from exactly that.
+
+Both are pinned in `Scripts/codebase_tools/tests/test_anna_fetch.py`.
+
+## Integrity — a truncated book looked like a finished one
+
+**The failure:** a book finished at 3.5 MB against a stated 84.5 MB, aria2
+reported **success**, and it was imported into the library and e-mailed to the
+Kindle. Nothing anywhere compared what arrived to what was supposed to arrive.
+
+**Why aria2 could not tell.** It only knows a transfer is short if the server
+sent a `Content-Length`. A partner server that closes the connection early, or
+answers with chunked encoding, hands over a truncated file that looks complete:
+exit 0, no error, no warning.
+
+**The fix is free, because AA identifies a file BY its md5** — and that md5 is in
+the url, the filename, the sidecar and the download-manager row. So aria2 simply
+verifies it:
+
+```
+--checksum=md5=<the md5 already in the name>
+```
+
+A mismatch becomes exit 32, which fails the item like any other failure: no
+import, no send, and the note says exactly what went wrong. Strictly better than
+a size check — it catches corruption as well as truncation, and cannot be fooled
+by a file that happens to be the right length.
+
+A size check rides alongside as belt-and-braces, using AA's stated `Filesize`
+from the captured sidecar, because *"got 3,673,576 bytes, Anna's Archive says
+88,625,752"* is far easier to read than *"checksum failed"* — and it still works
+when no md5 was available.
+
+**Bounding the md5 regex is load-bearing.** `([0-9a-f]{32})` against a
+percent-encoded url matches `20c7e49af174931d9f205f0e10c394b1` — borrowing the
+`20` from a `%20` and dropping the real hash's last two characters. That wrong
+hash handed to `--checksum` would fail EVERY download while looking like a
+server problem. The pattern is bounded by non-hex on both sides, and the
+**decoded name** is preferred over the url.
+
+### Auditing what is already on disk
+
+`py Scripts/downloads/verify_books.py [--quiet]` hashes every AA-named book in
+the library against the md5 in its own filename. No network, no metadata
+lookup — the expected checksum is already in the name. It prints the
+`/md5/<hash>` url of anything bad so it can be re-fetched, and exits with the
+count of failures.
+
+First run over 118 books found exactly one bad file, which is the reassuring
+answer: the corruption was real but not widespread.
 
 ## Gotchas that cost real time
 

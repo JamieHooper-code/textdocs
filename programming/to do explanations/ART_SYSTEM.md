@@ -80,6 +80,29 @@ Two scan-scope rules: `_galleries` (generated hardlinks) and `_index` (derived d
 
 A 5-second in-process memo collapses the burst of `iter_works()` calls a single `art_server` request makes (six call sites) into one scan. Short on purpose: the scan is cheap once warm, staleness is not. Each writer subcommand is its own process, so the memo can never serve stale data across a write; `art_gallery.invalidate()` exists for a future writer that needs its own next pass to see what it just wrote.
 
+## Downloading a subject is a drip, not a bulk run
+
+A subject collection is hours of wall clock — 49 occult terms against up to 400 Met object lookups each — and the museum APIs rate-limit under it. So `cmd_subject` works the way `med_download.py` does for the meditation packs, and for the same reasons.
+
+- **Resume.** Progress is checkpointed per term into `_index/_download_state.json`, so a kill, a reboot or a rate-limit stop costs at most the term in flight. Re-running the same command continues; `--restart` forces a clean pass. Without this a restart silently redid hours of *scanning*, because the only thing that skipped was work already on disk.
+- **Cooldown.** A 403/429 stops the **whole** run and stamps `cooldown_until`; the next run refuses until it expires. Pushing through a rate limit is what turns a 3-hour block into a much longer one, so the rate limit is deliberately re-raised out of `met_subject_search` rather than swallowed per-term. `--force` overrides.
+- **Variety.** `--max-per-artist` (default 6) spans the whole collection, not one term — museum relevance ranking clusters hard, and the clustering that hurts is the same name recurring *across* terms. `Unknown` is exempt: it is a bucket, not a person, and capping it would discard most anonymous Renaissance woodcuts.
+- **Per-term quota.** `TERM_LIMITS` overrides `--limit-per-term` for the veins worth going deep on. A term that **fills** its quota is telling you there was more behind it — the museum ranks by relevance, so hitting the cap means good matches were still coming. `witches` came back 30/30, so it gets 150; `demons` (28) and `devil` (27) stopped short and were therefore nearly exhausted at 30, so raising them would buy nothing. This is the answer to "I want more witches" — a bigger number, not more witch-adjacent search terms.
+
+  Raising a number makes that term pending again **automatically**, and only that term: `_term_pending` re-runs a term only if it filled its quota *and* the quota has since risen. An exhausted term stays done. Works already on disk return `skip` and do not consume the new quota, so a raise fetches only what is genuinely new. It lives in the data, not as a CLI flag, so the scheduled task picks it up with no arguments to remember.
+- **Deepening ad hoc.** `--terms "witches,witch"` re-runs named terms without redoing the collection. Artist counts survive, so deepening never costs the spread.
+- `art_import.py subject-status` reports done/remaining terms and any active cooldown. The durable log is `_index/_download.log`.
+
+Unattended runs go through the **`ArtOccultDrip`** scheduled task, hourly, `MultipleInstances=IgnoreNew`. Hourly is safe precisely because the cooldown guard decides whether a given firing does anything; a blocked hour costs one log line.
+
+### Three bugs this cost, all of which looked like nothing was wrong
+
+1. **The throttle only fired on a hit.** `time.sleep(0.15)` sat after the `yield`, so every `continue` path — not public domain, no image, failed `subject_hit` — skipped it entirely. A term matching *nothing* hammered all 400 ids back-to-back with zero delay; six such terms earned the 403. The sleep is now in a `finally` so no early `continue` can ever skip it, and `MET_SUBJECT_BAIL_AFTER` stops a term that has found nothing by object 100.
+2. **`sys.stdout` is None under `pythonw`.** The module-level `sys.stdout.reconfigure(...)` raised on **import**, so the scheduled task died before its first line of work. The only symptom was `LastTaskResult=1` and a log that never gained a line — the task looked like it was running hourly while doing nothing at all. Guarded now, with `_attach_console_fallback()` pointing the streams at the log so ordinary `print()` calls survive too. `med_download.py` already had the guard; `art_import.py` did not.
+3. **A concurrent probe earned the block in the first place.** Bypassing the module's sequential, backed-off `_get` with a thread pool got the Met to 403 everything for ~20 minutes. Use `_get`.
+
+All three are pinned in `Scripts/codebase_tools/tests/test_art_subject_resume.py`.
+
 ## The surface
 
 ### Viewing — `Helpers\ArtGallery.ahk` → HTTP → `art_server.py`
