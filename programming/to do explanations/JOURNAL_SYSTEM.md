@@ -1,7 +1,7 @@
 ---
 tags: [programming, journal, caster, ahk, tagging, media-system, writing]
 created: 2026-07-29
-related: ["[[QUOTES_SYSTEM]]", "[[MEDIA_SYSTEM]]", "[[COMPLETION_LOG]]", "[[EXPORT_SYSTEM]]"]
+related: ["[[QUOTES_SYSTEM]]", "[[MEDIA_SYSTEM]]", "[[COMPLETION_LOG]]", "[[EXPORT_SYSTEM]]", "[[JOURNAL_QUESTION_LOOP]]", "[[JOURNAL_SOURCES]]", "[[PEOPLE_SYSTEM]]"]
 ---
 
 # Journal System
@@ -375,6 +375,35 @@ browses. Three entry points:
   of the session, not the template.** She sits here for minutes. It is also no
   longer +AlwaysOnTop: that turned out to be a write-only option on this template
   (see § *Flags go through `_GuiApplyStandardSetup`*).
+### Where saving leaves her — and why the Miller opens FIRST
+
+`journal.after_save` picks the landing: `miller` (the entry's own page),
+`document` (the whole rebuilt journal, the default) or `both`. Currently
+`miller`.
+
+The **Miller half runs before the tagging pass, the document half after**, and
+the split is not cosmetic. `enrich` calls a local LLM; a cold model costs about
+forty seconds. With the open behind it, Jamie hit Ctrl+Enter on a long entry,
+watched nothing happen, opened the journal by hand, moved on to ChatGPT — and
+the automatic open finally fired into a foreground that had left. It read as
+*"it didn't open the entry automatically"* (2026-09-04), and the event log
+showed why: `journal: saved` at 17:45:55, `AddJournalEntry` not returning until
+17:46:34.
+
+Opening early is safe **because nothing on an entry's Miller page displays a
+tag** — tags live one drill down, by which time enrich has long finished. The
+document half genuinely has to wait: a document generated before the tagging
+pass would bake in an untagged entry and stay wrong until the next write.
+
+Measured after the change: Miller window at 1.96 s, tags written at 3.88 s
+(warm model — the gap is the whole cold-start delay).
+
+One consequence worth knowing: `enrich` re-parses the same inline markup `add`
+already parsed, so it re-reports the same unresolved tags. `_JUnknownIsNew`
+keeps a per-save memory of what was already put to her, because *declining* a
+tag and then being asked again thirty seconds later reads as the first answer
+not having counted.
+
 - **`grab chat`** → `GrabChatToJournal`. Capture the ChatGPT/Claude conversation
   in the front Chrome tab as a NEW entry.
 - **`grab chat here`** → `GrabChatToLastEntry`. Append it to the most recent

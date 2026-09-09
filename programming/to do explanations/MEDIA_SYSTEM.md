@@ -1,5 +1,5 @@
 ---
-tags: [programming, media, recommendations, design-doc, books, voice-commands, qmd, people, tags, plex, tv, episodes, favorites]
+tags: [programming, media, recommendations, design-doc, books, voice-commands, qmd, people, tags, plex, tv, episodes, favorites, uia, automation]
 ---
 
 # Unified Media Recommendations System — design doc
@@ -499,3 +499,81 @@ catalog rather than a tree.
 logic is non-trivial, and the records they'd point at are already reachable from
 the hub — so repointing them is a real refactor with real regression risk and no
 new capability. Worth doing when one of them is next opened for other reasons.
+
+## `watch <show>` in the Plex desktop app (built 2026-09-07, rebuilt 09-08)
+
+The web player was **software-transcoding Mushi-Shi's video AND audio** — 10-bit
+4:4:4 h264 that Chrome cannot decode, plus FLAC pushed through `aac_mf` — and
+the mangled audio was the "demon singing" bug. The desktop app renders through
+mpv and **direct-plays both**, so the fix was to route the show there:
+
+```
+INIDATA/VoiceChoices/watch_shows.json → "Mushy": { "service": "plex_desktop" }
+```
+
+`_WatchIsDesktopService` makes `WatchShow` skip Chrome entirely for such a
+service — otherwise the show opens in both and the two clients fight over the
+same server session.
+
+### Why it is UI automation
+
+Three link routes were tested and **none exists**: no `plex://` protocol is
+registered (the `plex://` strings in the bundle are server-side music-station
+URIs); a Plex web URL on the command line does nothing warm *or* cold; and
+`/clients` is empty, so the server cannot proxy a `playMedia` to it. The app has
+no addressable pages.
+
+### The route
+
+**search → the result's TITLE → the show page's hero `Resume`** → answer
+`Resume Playback` if it appears → `Expand Player` → `f` → assert it is playing.
+
+Two other routes were built first and rejected **on measurement**, by planting a
+known resume point and reading back where playback actually began:
+
+| Route | Planted | Started at | |
+|---|---|---|---|
+| Continue Watching card's hover overlay | — | correct | but see below |
+| The search **row's** own ▶ button | 5:00 | **0:00** | restarts the episode |
+| The show page's hero `Resume` | 8:00 | **8:09** | correct, and stable |
+
+The Continue Watching row resumes correctly but its play control **does not exist
+until the card is hovered**, which makes the step a race — and the sidebar is a
+drawer that expands on pointer proximity and paints *over* the row, so the
+automation ended up holding it open with its own cursor and covering the very
+first card. The show page's Resume has none of that: always present, no hover.
+
+### What this app does to break automation
+
+Every one of these produced the *same* visible symptom — "the click did nothing":
+
+| Trap | Reality |
+|---|---|
+| **A stuck right mouse button** | Windows gives its owner a mouse capture and swallows every synthetic click machine-wide. Hover keeps working, so the target highlights and shows tooltips. Cost hours. `UiaReleaseStuckMouseButtons()` now runs inside the click guard. |
+| Chromium's a11y tree is **lazy** | The first query after the window comes forward returns only the native title bar. `ElementFromPoint` wakes it. |
+| The sidebar is a **hover-expanding drawer over content** | Rows lay out from x=96; the drawer swells to ~270 and covers them. UIA reports covered elements' rects perfectly happily. |
+| Player controls **auto-hide** | `Pause` / `Minimize Player` / `Exit Full Screen` leave the tree entirely. A pointer *delta* raises them; moving to a spot the cursor already occupies emits no event at all. |
+| The breadcrumb link's Name goes **stale** | Still read `TV Shows adtam • steelflicks` after navigating to hers, while its child text nodes read `TV Shows` / `JAMIE-PC`. |
+| The sidebar toggle's Name is **inverted** | `Collapse` when collapsed, `Expand` when open — it names the state, not the action. |
+| A card's play control is named by **watch state** | `Resume` part-watched, `Play` for a fresh episode. |
+| A left-over **search panel** covers the page | And survives a bare `Escape`, because focus is not in the box. One failed run silently broke the next. |
+| `f` is a **toggle** | Sending it when already fullscreen drops back to a window. |
+| A stray click on the **video** toggles pause | Which yields a fullscreen, right-episode, direct-playing, perfectly *paused* show — the one failure a screenshot cannot tell from success. |
+
+That last one is why the flow ends with a real postcondition: `plexlib playstate`
+asks the server, and `_WatchPlexEnsurePlaying` un-pauses if needed.
+
+`ExitPlexVideo` is the counterpart — *"normally the home button is not
+visible"*: raise the controls, leave fullscreen, pause, minimize the player (it
+covers the whole app, and Home is *underneath* it), then Home.
+
+### The lesson worth keeping
+
+`UiaClickElement` logging `success:1` means *a click was sent at those pixels* —
+nothing about what was under them. Hand-written click sequences with no
+post-conditions reported success while navigating into **another server's
+library**. Every step now asserts what it was supposed to cause and logs what it
+saw instead, which is what turned each of the traps above from a round trip into
+a single log line. The recorder already emits the right primitive for this in
+its DRAFT CLICK-THROUGH block (`UiaClickThenWaitFor`); ignoring it was the
+original mistake. See `~/.claude/skills/ahk-functions/references/uia-clicking-debugging.md`.
