@@ -206,6 +206,27 @@ is visible. It is no longer acted on. The real reply is kept whole as
 `tests/fixtures/reply_2026_09_06_league.md` rather than reduced to a snippet,
 because the shapes that fooled it are the point.
 
+### THE MARKS COME OFF BEFORE THE NUMBER IS LOOKED FOR
+
+Both spellings are common and only one of them used to parse:
+
+```
+1. **What is the manager afraid of?**      number outside the bold   OK
+**1. What is the manager afraid of?**      number INSIDE the bold    missed
+```
+
+The second starts with `*`, so `_LIST_RE` tried it as a **bullet**, wanted a
+space after it, found another `*` and failed. The line came back unnumbered, the
+run never formed, and a reply that asked five numbered questions was read as
+having asked none. Round 2 on 2026-09-10 landed in the journal as one unrelated
+sentence scraped by the fallback scan, and the tooltip said
+`(not numbered — scanned)` — accurately, because it genuinely could not see them.
+
+`_scan_lines` now runs `strip_markdown` over the line *first*, then matches.
+Safe for real bullets: `* item` keeps its `* ` (a lone asterisk with no closing
+partner is not emphasis) and `- **bold**` becomes `- bold`, which still matches.
+The real reply is kept whole as `fixtures/reply_2026_09_10_bold_numbers.md`.
+
 ### A FRAGMENT IS NOT A QUESTION, and the capital is the test
 
 Measured on one real conversation (6 turns, 29,950 chars). A naive scan of the
@@ -283,6 +304,54 @@ at her.
 cannot fail, so it happens before any write — if the match is wrong or the append
 fails, she still has the questions.
 
+### `grab chat` uses the same four now — it used to use two
+
+The resolver above is `JournalEntryForChat` in `Helpers\JournalCapture.ahk`, and
+**both** `grab chat` and `grab questions` go through it. That is new as of
+2026-09-10.
+
+`grab chat` previously had only tiers (2) and (4) — no conversation id, no
+last-ask record. When the opening message missed, it silently made a NEW entry
+and Jamie had to delete it and re-do the attach from the Miller. The event log
+for 2026-09-08…10 shows `GrabChatToJournal` followed within twenty seconds by a
+manual `AttachChatToEntry` on the entry it should have found itself, four times:
+
+```
+16:53:20  GrabChatToJournal()                              ← new entry
+16:53:30  deleted "(untitled)"                             ← she removes it
+16:53:36  AttachChatToEntry("…buttplug_exile_teen_dream…") ← the way that works
+```
+
+The attached-file problem noted in (3) is not occasional — for a long entry it
+is the norm, and it is exactly why tier 1 has to exist. Measured on the
+2026-09-10 conversation:
+
+```
+first user message   940 chars — all of it the standing prompt, no entry words
+the entry            7395 words
+chat-match           returned nothing at all
+find-chat --url      resolved the entry exactly
+```
+
+The link was already stored. `grab chat` just never asked for it.
+
+### The link is written from every direction
+
+`set-chat-url` used to be called only by `grab questions`, so the hardlink
+existed only if she happened to grab questions first. It now happens in
+`_JAppendChat` — the one place an attach is performed, which covers `grab chat`,
+`grab chat here` **and** `attach the chat in front` — plus in
+`_JournalCreateAndOpen` when a chat is saved as its own entry, so a second
+`grab chat` on that conversation attaches to it instead of making a rival copy.
+
+Best-effort and silent: the chat is already saved by the time it runs, so a
+failure costs the next match its shortcut, not her writing.
+
+Pinned by `test_journal_chat_resolution.py` — both commands delegating, no
+private `chat-match`/`find-chat` left in either wrapper, and tier 1 ahead of
+every dialog. Source-shape tests rather than behaviour tests, because what
+regressed was the two commands drifting into two implementations.
+
 ## Voice commands
 
 | Phrase | Does |
@@ -301,6 +370,19 @@ is asking for trouble.
 Nothing is ever submitted. Same rule as `AskAIAboutEntry`: the message is staged
 and she presses Enter, so a mis-grab is one Ctrl+A away from being discarded
 rather than something already sent.
+
+### Where a grab leaves her — the bottom of the box
+
+`journal.questions_open_editor` opens the writing box on the entry so she can
+answer the round straight away, and the round is at the **end**. The box used to
+open with the whole entry SELECTED, because that is a multiline Edit's default
+on focus — so a 7000-word entry sat highlighted with the caret at the top, and
+the next character typed would have replaced all of it.
+
+`caret_at_end` fixes it, with one correction: it sent `{End}`, which is
+end-of-**line** and lands at the end of line one. It sends `^{End}` now — end of
+the text, which is also where the questions are. Every caller of the shared box
+gets this; for a single-line prefill the two are identical.
 
 ## Settings
 
