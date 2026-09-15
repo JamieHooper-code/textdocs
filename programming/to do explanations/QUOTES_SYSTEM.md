@@ -262,11 +262,60 @@ a surface reads:
 ```
 mindfulness_bell -> {groups:[gathas], length_class:[short], display_ok:true}
 lockout          -> {tags:[calming,inspiring,hope,resilience], length_class:[short,medium]}
-newtab           -> {tags:[theory,identity,philosophy], length_class:[short,medium]}
+checkin          -> {entry_types:[checkin]}                    # the bell's check-ins
+newtab_checkin   -> {entry_types:[checkin], groups:[checkins/body, checkins/breath, checkins/mind]}
+newtab_pacing    -> {entry_types:[checkin], groups:[checkins/pacing]}
+newtab           -> {entry_types:[quote], groups:[reminders]}  # was theory/identity/philosophy tags
 ```
 
-A surface calls `quotes pick --pool <name>` — nothing is tagged per-surface. The
-existing `MindfulnessBellRule` is the natural first consumer.
+A surface calls `quotes pick --pool <name>`. Nothing is tagged per-surface.
+
+**Pools can select by FORM** (`entry_types`, added 2026-09-15). This is checked
+before tags on purpose:
+- The tag test expands every item's inherited book and author tags, which reads
+  `library.json` per item. The `lockout` pool takes ~7 s.
+- A pool that selects only by form or group never takes that path, and answers
+  in ~0.25 s.
+- A missing `entry_types` counts as `quote`, the same rule `query()` uses.
+- Pinned by `Scripts/codebase_tools/tests/test_quote_pools.py`.
+
+The old `newtab` tag pool surfaced mostly *Circe* passages. Tags say what a
+quote is *about*; a surface usually needs lines that are *for* a moment.
+
+**More pool options** (2026-09-15), all field lookups and all pinned in the same
+test file:
+- **`min_affinity: N`** keeps items upvoted at least N times on the shared
+  affinity scale.
+- **`exclude_buried: true`** drops anything voted below zero.
+- **`union: [poolA, poolB]`** is either named pool, once each, in order. It is
+  resolved inside `pool_query`, so `pick`, the viewer's Pools node and the wait
+  gates all agree. It is guarded against a pool that names itself.
+
+A union has no filters of its own. Resolving it anywhere else would match the
+whole store.
+
+**Don't feed a curated surface with `min_affinity`.** It was tried for the new
+tab Quotes panel and pulled back the same day. An upvote in the reading room
+would have put book pages on a page Jamie wants kept to lines that genuinely
+help while programming. That panel reads the `reminders` group only, and an
+approval puts a line there. Votes on the page only change how often a line
+comes up.
+
+**`checkin` is an entry type**, like `prompt`. These are the somatic check-ins
+the new tab page shows and the mindfulness bell rings.
+- **Groups:** filed under `checkins/body|breath|mind|pacing`. The group's last
+  segment is the kind the page shows as a pill.
+- **Tone:** somatic and inspiring, never judgmental or managerial.
+- **Approval:** every line was approved by Jamie before it went in.
+- Full rule and the review history: [[NEW_TAB_PAGE]].
+
+**`pick --all --out <file>`** writes the pool atomically instead of printing
+it. It exists for windowless callers: the bell refreshes its check-ins with a
+detached `pythonw`, so a Python start never blocks the always-on process.
+
+That is also why `quotes.py` has a no-stdout guard at the top. `affinity.py`
+calls `sys.stdout.reconfigure()` on import, and under pythonw stdout is `None`,
+so every windowless launch died silently before this fix.
 
 ## Local-LLM auto-tagging (favor existing; guard against explosion)
 
@@ -316,7 +365,7 @@ group-tags <g> | group-set-tags <g> --tags … | group-add-tags | group-suggest-
 set-tags | add-tags | set-group | set-display-ok | set-text | set-title | remove <id>
 groups | tags | tag-report                       # tag-report = curation view
 review-list [--min N] | review-approve <tag> [--parent --book --apply] | review-reject | review-prune
-pools | pick --pool <name> [--all]
+pools | pick --pool <name> [--all [--out FILE]]      # --out: atomic file, for windowless callers
 viewer --mode groups|tags|books|authors|pools|review|vocab|quotes|onetags|suggest …
 parse-kindle-clip --file <clip> [--window-title …]   # Kindle grab: clip -> quote + provenance TSV
 import-kindle | import-gathas | import-collected <file> [--commit]

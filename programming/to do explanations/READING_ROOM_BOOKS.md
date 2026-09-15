@@ -116,6 +116,25 @@ same capture modes, same tagger, plus an anchor that paints the highlight back
 onto the page. A quote grabbed from the reader and one grabbed in Kindle are the
 same kind of record.
 
+**The numbers cover the page on screen, not the chapter.** A chapter is one item,
+so numbering the item put 383 numbers across every page of it — the first one
+visible was 199, and Dragon hearing "grab 209 to 210" as "290 to 10" saved ten
+pages as one quote (2026-09-13). The page reports its visible span on every page
+turn and resize (`/api/view` — block + offset at each end, the coordinates an
+anchor already uses), and `set_numbering` keeps only the units overlapping it,
+renumbered from 1. Turning the page with numbers up renumbers for the new page.
+With no report for the current item (the server just restarted) it numbers the
+whole item and the tooltip says "page unknown". Tests:
+`Scripts/codebase_tools/tests/test_read_server_numbering.py`.
+
+**A "make grab" button un-mutes the mic and re-mutes it after the grab.**
+`_GTMicArm` / `_GTMicRestore` in `Helpers/GrabTextLaunch.ahk`, shared by the
+reader, Kindle and generic paths: a flag file in `%TEMP%` (every MAINFUN call is
+a fresh process), cleared by a *successful* grab — a refused one keeps the mic
+live so she can say it again — with a `grabtext.mic_remute_seconds` safety
+re-mute in `Scripts/GrabMicExpiry.ahk`. From voice the mic is already live, so it
+does nothing.
+
 **Three things need a store record and say so** rather than failing somewhere
 deep: affinity (a chapter has nothing to score), the Miller hand-off (it browses
 practices), and the Kindle location jump. Each is guarded in `read_server.py`
@@ -128,15 +147,90 @@ among themselves correctly, and the `ch` is the tell that stops
 
 ## What the EPUB reader does to the text
 
-Formatting is **flattened on purpose** — the reader has her fonts, her measure,
-her page colour, and re-applying a publisher's stylesheet would fight it. What
-survives is the structure that changes how it *reads*:
+**The book's own typesetting, with her settings laid over it** — what Kindle does.
+`reader.publisher_styles` (on by default) and `reader.publisher_fonts` (the book's
+embedded typefaces, off). Built 2026-09-14, replacing a page that flattened every
+book on purpose: set beside Kindle, the flattened page had lost the chapter
+ornament and number, the small-caps titles, the italic epigraphs, italics all
+through the text, and every image. A tag list could not have fixed it — across
+the 119 library EPUBs italics are as often a **class** (`.italic`, `.i`, calibre's
+`.calibre7`) as an `<em>`, and 117 books carry images, 73 footnote links, 48 floats.
 
-- one line per paragraph (the reader's own convention)
-- `<br/>` → a line of its own, so **verse stays verse**
-- headings → `[[h2 ...]]` / `[[h3 ...]]`, rules → `[[hr]]` — the block vocabulary
-  the page already draws
-- images, classes, drop caps → gone
+| Piece | Where |
+|---|---|
+| Which documents are chapters, their titles and ids | `book_text.py` — still decided from the flattened text, so ids never move |
+| Publisher markup + scoped stylesheet | `Scripts/reader/epub_render.py` (`Book.add_sheets` / `Book.chapter` / `Book.note`) |
+| Images and fonts out of the zip | `/api/asset?b=<book id>&p=<zip entry>` |
+| Footnote pop-ups | the note already on the page, else `/api/note?b=&h=` |
+| Tests | `test_epub_render.py` (the invariant under real-world markup), `test_read_server_numbering.py` |
+
+**The one invariant.** The text held for block N is exactly the `textContent` of
+the element carrying `data-b=N`. Highlights, the grab, the numbering and the
+visible-span report all count characters in it, so one character of drift moves
+every mark in a chapter, silently. `epub_render` builds the markup and the text in
+ONE pass — whitespace collapsed server-side, `<br>` written as `"\n<br>"` (an
+invisible newline that is still a character, so verse grabs keep their lines), and
+any nesting the HTML parser would repair written as a display:block span.
+`check_invariant()` re-parses to prove it: 0 mismatches in 6,925 library chapters,
+and 0 in 1,589 blocks checked inside Chrome itself.
+
+**Both modes use the same blocks.** With formatting switched off the page draws
+those blocks as plain paragraphs (`section.bookplain`, `white-space:pre-line` for
+the newlines), so flipping the setting never moves a highlight.
+`Scripts/reader/migrate_reader_anchors.py` moved highlights from the old flattened
+blocks — a dry run found all ten existing ones already sat at identical offsets.
+
+**The stylesheet is tamed, then scoped.** Colours, font families, absolute sizes
+(turned into em), leading, left/justify alignment, positioning, columns and vendor
+properties are removed so her theme, typeface, size and columns win; centre and
+right alignment, italics, small caps, indents, borders and floats stay. Classes
+become `c-*` and ids `e-*`, so a book's `.center` or `#toc` can never style — or be
+found by — the reader's own page. **Each stylesheet is scoped to the documents that
+link it**, never pooled: pooled, the download site's injected "Looking for more?"
+page (`div{border:double}`, `img{width:50%}`) drew a rounded double box round every
+epigraph and blew a 60px chapter ornament up to 400px.
+
+**The reader's own chapter title** is printed only when the chapter has no heading
+of its own (`reader_collection.book_heads_itself`) — otherwise it prints the
+contents-page name over the book's own "5 / THE DOMESTICATION OF HUNCH". No title
+drawn means no title unit in the numbering.
+
+**Footnote asides are hidden in the flow and shown on demand** — except in a notes
+*chapter*, where they are the whole page (`_mostly_notes`; four books' endnotes had
+rendered nearly empty before that rule).
+
+**Ink on white paper is blended into the page.** An ornament or line drawing
+stored on an opaque white ground is meant to look printed; drawn as-is it was a
+white bar beside every chapter number of *The Left Hand of Darkness*.
+`epub_render.ink_on_white` judges each picture once (thumbnail: border ≥90%
+near-white, <8% coloured pixels, not already transparent; cached per file by
+name+size+CRC) and marks it `img.rr-ink`, which runs an SVG filter
+(`#rr-ink-filter` in the page body): each pixel's darkness becomes opacity, painted
+in `--ink` — so white turns see-through on any paper, the marks match the text,
+and a dark theme gets light marks with no extra rule. Colour pictures and
+full-bleed photos are left alone: in *Man and His Symbols* 18 white-bordered
+drawings are marked and 109 photos are not.
+
+**Why a filter and not `mix-blend-mode:multiply`:** multiply computed correctly and
+changed nothing on screen. `#flow` carries the page-turn `transform`, a transform
+isolates its contents, and the picture blended with the transparent layer the text
+sits on instead of the paper behind it. Anything that has to interact with the
+page colour from inside `#flow` hits the same wall.
+
+Traps:
+- **lxml's XML recovery drops undeclared named entities** (`&eacute;`, `&mdash;`)
+  rather than failing — they are turned into numeric references before parsing.
+- **Parse as XML first.** An HTML parser reads a self-closed `<a id="page47"/>` as
+  an OPEN link that swallows the rest of the paragraph.
+- **DRM-locked EPUBs are refused by name** (`book_text.drm_locked`, via
+  `readability`: "this EPUB is DRM-locked — read it in Kindle"). An encrypted book
+  opens fine as a zip and every chapter decodes to noise — *Self-Compassion*
+  (Neff) came up with garbage chapter titles. The test is
+  `META-INF/encryption.xml` encrypting a TEXT file (xhtml/html/ncx/opf) with
+  anything but font obfuscation: two library books scramble only their embedded
+  fonts (`http://ns.adobe.com/pdf/enc#RC`, `http://www.idpf.org/2008/embedding`)
+  and read normally, so they must never be caught. `ReadBookHere` already sends an
+  unreadable book to Kindle.
 
 **Chapter names come from the contents page**, not the document: inside a
 chapter the heading is often "I" or an ornament, while the TOC is where "Chapter

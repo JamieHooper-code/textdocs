@@ -54,8 +54,11 @@ moves out of `Desktop\Important`.
 - Per-file cap: 250 GB.
 - Current E: mirror targets: AutoHotkey, Atlantic Logistics, certs,
   CredentialFiles, Important (whole desktop).
-- `Important` contains `projects/poem-poster/clipart/` at ~27 GB.
-  **Exclude `clipart/` from the OneDrive mirror** (and other bulk media
+- `Important` used to contain `projects/poem-poster/clipart/` at ~27 GB.
+  It moved to `E:\Media\Poetry\poster\clipart` on 2026-09-14 (old folder
+  archived to `E:\Archive\poem-poster-2026-09-14`), so it is no longer in
+  the mirror's path. The rule still stands for anything like it:
+  **exclude bulk clipart from the OneDrive mirror** (and other bulk media
   from item 16b). Cloud backup of clipart is wasteful — it's not data
   I'd ever restore from cloud, and it eats quota fast.
 
