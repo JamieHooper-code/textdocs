@@ -265,7 +265,7 @@ lockout          -> {tags:[calming,inspiring,hope,resilience], length_class:[sho
 checkin          -> {entry_types:[checkin]}                    # the bell's check-ins
 newtab_checkin   -> {entry_types:[checkin], groups:[checkins/body, checkins/breath, checkins/mind]}
 newtab_pacing    -> {entry_types:[checkin], groups:[checkins/pacing]}
-newtab           -> {entry_types:[quote], groups:[reminders]}  # was theory/identity/philosophy tags
+newtab           -> {entry_types:[quote], groups:[remember]}  # was theory/identity/philosophy tags; group renamed from `reminders` 2026-09-17
 ```
 
 A surface calls `quotes pick --pool <name>`. Nothing is tagged per-surface.
@@ -297,7 +297,7 @@ whole store.
 **Don't feed a curated surface with `min_affinity`.** It was tried for the new
 tab Quotes panel and pulled back the same day. An upvote in the reading room
 would have put book pages on a page Jamie wants kept to lines that genuinely
-help while programming. That panel reads the `reminders` group only, and an
+help while programming. That panel reads the `remember` group only, and an
 approval puts a line there. Votes on the page only change how often a line
 comes up.
 

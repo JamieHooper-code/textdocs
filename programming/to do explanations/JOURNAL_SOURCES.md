@@ -70,6 +70,54 @@ write** — two entries started seconds apart would otherwise both come out as #
 An **exercise numbers per exercise**, not per book: a practice you return to is
 its own thread, while the book it came from is a shelf.
 
+Linking an OLDER entry into a series (`set-source`) gives it the next number,
+not its place in time — `journal.py series-renumber --id <any entry> [--commit]`
+puts the run back in date order and moves machine-written title stems with it.
+
+### Series names — the short name titles use (2026-09-16)
+
+"Daily IFS Meditation" is what the exercise is called in the book and in every
+entry's header. In a title it is too wordy, and her IFS titles all open `IFS: `,
+so a series has a **short name** of its own:
+
+```
+data["series_meta"]["exercise:quote:exercise_daily_ifs_…"] = {"label": "Daily"}
+→ title stem  "IFS: Daily #7: "
+```
+
+- Keyed by `source_key`, stored in the **journal** store (it is a fact about how
+  her entries are titled, not about the exercise), so books and exercises share
+  one mechanism. No label → the source's own title, so nothing existing changed.
+- The `IFS: ` is **not part of the name** — it is the title prefix of the form
+  the exercise implies (below). She names only the part that is hers.
+- Edit: Journal ▸ an entry ▸ **🔢 Series name** (row appears only on a numbered
+  entry), or Journal ▸ By source ▸ the series ▸ last row. CLI `series-label`.
+- Renaming **restems** every title that still opens with the exact old stem and
+  leaves anything she worded her own way alone (`restem_title`; the colon in the
+  stem is what stops `#1:` matching `#10:`).
+
+### Forms an exercise implies
+
+The IFS form used to come only from the classifier's regex, so *Daily IFS
+Meditation #1* was filed as IFS (its header says "IFS") while *The Path #2* was
+not — an IFS exercise missing from the IFS list, silently. Now a form declares
+the source tags that imply it:
+
+```
+entry_types_meta["ifs"]["source_tags"] = ["ifs"]      # type-meta ifs --source-tags ifs
+```
+
+and an entry about an **exercise** whose effective tags (the quote store's own
+`item_effective_leaf_tags` — own + book + author, the same set `open exercises`
+categorises by) carry one gets the form: added on `add` / `set-source` (additive,
+never removes), and kept by `classify_entry(e, data)` on every re-derive.
+**Exercises only:** an exercise IS a practice; a book is a topic, and an entry
+reacting to a chapter of *No Bad Parts* is not a parts-work session.
+
+There are no sub-types. "Daily is a kind of IFS" is two axes: the FORM (`ifs`,
+so it lists with every IFS entry) and the SOURCE (which exercise, numbered).
+Tests: `Scripts\codebase_tools\tests\test_journal_series.py`.
+
 ## Detection is data, not a chain of ifs
 
 A context declares how to journal it, in `INIDATA\Contexts\<token>.json`:
@@ -213,6 +261,23 @@ One new type, **`response`** ("me responding to something I read, watched or
 did"), spoken as `response` / `reading log` / `about`, with no title prefix — the
 title already carries the book. `source.kind` is the finer distinction, and the
 "By source" branch is what actually browses it.
+
+## Parts and reminders (2026-09-17)
+
+Two more source kinds, both numbered, both subjects, from [[REMINDERS_SYSTEM]]'s
+"Check in with journaling":
+
+- **`part`** — `person_id` is an IFS part in the person store. Its series is the
+  PART (`source_key` checks `person_id` first, like a letter): *IFS: Artemis #3:*.
+  The entry is linked to the part.
+- **`reminder`** — `reminder_id`, for a reminder with no single part; numbered per
+  reminder.
+
+Both carry `reminder_id` (new in `SOURCE_FIELDS`, `--source-reminder-id` on
+`add` / `set-source` / `source-next`, a row in `_JSourceArgs`), and saving the
+entry records the reminder's check-in. The form comes from the reminder's section
+(`journal_types`), passed explicitly — a `part` source does not imply forms the
+way an exercise does.
 
 ## Files
 

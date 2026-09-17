@@ -1,7 +1,7 @@
 ---
 tags: [programming, new-tab, dashboard, local-viewer, quotes, completion-log, projects, mindfulness]
 created: 2026-03-25
-updated: 2026-09-15
+updated: 2026-09-16
 related: ["[[COMPLETION_LOG]]", "[[QUOTES_SYSTEM]]", "[[Personal]]"]
 ---
 
@@ -40,7 +40,7 @@ data**, served by `AutoHotkey/Scripts/newtab/newtab_server.py` on `127.0.0.1:829
 | Rotation | Outside, Stretches, Reading, Meditation (not swimming); checking one logs it |
 | Check-ins | A `checkin` entry type in the quote store, imported only after line-by-line review |
 | Bell | Reads the same `checkin` pool: buried lines never ring, upvoted ones ring more often |
-| Quotes panel | **The curated `reminders` group only** (see the rule below) |
+| Quotes panel | **The curated `remember` group only** (see the rule below; renamed from `reminders` 2026-09-17 — that word now belongs to [[REMINDERS_SYSTEM]]) |
 | Votes | ▲/▼ on every line of every pool panel, on the shared affinity scale |
 | Novelty | **Pool panels are drawn, not listed:** a fresh weighted sample in a fresh order every time the page is looked at |
 | Collapse | Every panel title is a link that collapses the panel. It stays collapsed across reloads and reboots |
@@ -69,7 +69,7 @@ minutes*). Jamie's notes from the review, for every future line:
 **Quotes: genuinely helpful while programming, or not at all.** No pages from
 books, no political quotes, nothing that is only interesting. **Don't water it
 down.** It is better to draft new lines and wait for good ones than to fill the
-panel with near-misses. So the panel reads the `reminders` group only, and a line
+panel with near-misses. So the panel reads the `remember` group only, and a line
 gets there only by her approval. A book highlight she approves goes in as its own
 short reminder; the highlight stays with its book.
 
@@ -100,7 +100,7 @@ Bell: Helpers/MindfulnessBellPoller   reads the `checkin` pool (see "The bell")
 | Rotation | `clog last <template>` for each `ROTATION` row | log Outside or Stretches for today; Reading and Meditation are logged for her already, so they show "auto" |
 | Check-In | pool `newtab_checkin` | ▲/▼; Edit: text, kind (body / breath / mind), add, delete |
 | Pacing (was "Brain / Productivity") | pool `newtab_pacing` | ▲/▼; Edit: text, add, delete |
-| Quotes to Remember | pool `newtab` (group `reminders`) | ▲/▼; Edit: text, add, delete |
+| Quotes to Remember | pool `newtab` (group `remember`) | ▲/▼; Edit: text, add, delete |
 
 **The draw.** A pool panel shows a weighted sample: weight = 1 + score, and a
 buried line (score ≤ -1) is never drawn (Efraimidis–Spirakis, in
@@ -168,7 +168,14 @@ hotkey.
 - **An empty pool exits 1.** `fetch_pool` treats that as zero rows, not a failure.
 - **An unreadable `storage.json` stops the server** rather than being emptied on
   the first click.
-- **`panel_order` carries a trailing `null`** (the Add Panel card). It's harmless.
+- **`panel_order` is retired** (2026-09-16). `panel_layout` replaced it, and the
+  first drag removes the old key.
+- **Hidden tabs get no frames.** A background Chrome tab and the Claude browser
+  pane get no animation frames and no ResizeObserver callbacks. So the page
+  uses timers, not `requestAnimationFrame`, to reveal the board and handle
+  resizes, and the height hold looks broken in the pane when it isn't. Test
+  layout with `py Scripts/newtab/check_layout.py`, which runs headless against
+  the live server and answers every POST itself, so it never writes.
 
 ## Phases
 
@@ -181,12 +188,95 @@ hotkey.
 5. 🟡 **Grow the Quotes panel to 25–100.** 16 lines after round 1, 42 after
    round 2 (both 2026-09-15). New drafts go through the same review.
 6. ⬜ **Voice**: a `newtab` context; "check N" / "done <template>" as API calls.
+7. ✅ **Stable layout** (raised and built 2026-09-16). Every redraw changes the
+   text, so panel heights change and the layout reshuffles each time she comes
+   back. Either fix panel sizes and fit the text inside, or make the packing
+   move less. The current packing is an old hack, so look at it fresh.
+   She still wants panels to size to their content. What she doesn't want is
+   small size changes moving things, so she can learn where things are.
+
+   **Diagnosis, 2026-09-16.**
+   - `#board` uses CSS multi-column (`column-count: 4`). The browser balances
+     column heights and flows panels top-to-bottom, then left-to-right, so a
+     panel's column depends on the heights of every panel before it.
+   - At 1920 px wide, 8 reloads produced two layouts, alternating 4 times.
+     - Layout A uses all 4 columns.
+     - Layout B moves Watching under Reading. That shifts Rotation, Pacing,
+       Check-In and Quotes one column left and leaves column 4 empty.
+   - The trigger is small. Check-In's height ranged 519–641 px and Quotes
+     269–350 px, depending on which lines were drawn.
+   - Collapsing a panel changes its height by hundreds of px, so it reshuffles
+     the same way.
+   - Panels also paint empty, then fill as each fetch returns, so the page
+     reflows while it loads.
+
+   **Decisions (Jamie, 2026-09-16).** The rule is that she owns the column and
+   the content owns the height.
+   - **Explicit columns.** The saved layout is a list of columns, each an ordered
+     list of panel ids; it replaces `panel_order`. Only her drag moves a panel
+     sideways. A height change nudges only the panels below it in the same column.
+   - **Grow now, shrink reluctantly.**
+     - A panel grows at once, so text is never clipped.
+     - A redraw she didn't cause that comes out shorter keeps the old height,
+       as bottom padding, unless it loses more than max(60 px, a quarter of
+       the panel).
+     - She approved "about one row". Built with one row first, but the numbers
+       said no: a drawn row is 32–72 px, and Check-In's natural height runs
+       539–641 px, so Quotes would still have moved on most redraws. With a
+       quarter, Check-In settles at its tallest draw and holds; in 12 headless
+       redraws, Quotes moved twice early on and then not again.
+     - Anything she does inside a panel (pointer, key, input) frees it for 4 s,
+       so her own changes, like collapsing it or ticking a to-do, land at once.
+     - This is kept in memory, not saved. A full reload starts from natural
+       heights.
+   - **Hide the board until every panel's first load has landed.**
+   - **Seed from today's 4-column layout A.**
+     - Column 1: Programming, House, Reading
+     - Column 2: Watching, Rotation
+     - Column 3: Pacing
+     - Column 4: Check-In, Quotes
+   - **Narrow windows: fold, don't rearrange.**
+     - She is often at half screen. At about 1280 px wide, 3 of today's 320 px
+       columns fit.
+     - She chose 3 columns at half screen over 4 squished ones.
+     - At 3 columns, column 4 stacks under column 3.
+     - At 2 columns, columns 1+2 stack into the left column and 3+4 into the
+       right, so what's on the left at full screen stays on the left.
+     - At 1 column, all four columns stack in order.
+   - Not chosen: sticky auto-balancing, which is still unpredictable;
+     fill-to-height pools; a separate layout per width.
+
+   **Built, 2026-09-16** (`web/app.js`, `web/index.html`).
+   - `#board` is a flex row of `.column` elements.
+   - Each panel carries `data-col`, its layout column. `arrangeColumns()`
+     moves panels (never rebuilds them) into the on-screen columns using
+     `FOLDS`.
+   - `saveLayout()` reads the columns back in document order.
+   - A drop lands in the column under the pointer, before the first panel
+     whose middle is below it, and takes that neighbour's `data-col`. So a drop
+     at half screen saves the right layout column, and the gaps and the space
+     under a short column are drop spots too.
+   - The column count is `floor((board + gap) / (--g-col-width + gap))`,
+     capped at 4: 1920 → 4, 1280 → 3, 960 → 2.
+   - The board has `class="loading"` (`visibility: hidden`) until every live
+     panel's first load resolves, or 2.5 s passes.
+   - `Scripts/newtab/check_layout.py` passes all 6 sections.
+
+   **Aside, same day.** The old GitHub page was open in Chrome again: the
+   `testing_testing` context matched its URL at 12:58 and several times after.
+   `RepointNewTabPinnedTab` moved it (URL verified) at 16:42. Two stale pointers
+   were also fixed:
+   - `INIDATA/VoiceChoices/sites.json` "testing testing" pointed at GitHub. It
+     now points at `http://127.0.0.1:8293/`, which Caster picks up on its next
+     reload.
+   - `INIDATA/Contexts/testing_testing.json` had `url_contains` set to the
+     GitHub host. It is now `127.0.0.1:8293`, applied by `ReloadWithNotice`.
 
 ## Quotes panel review, 2026-09-15: what she kept, and what it says
 
 **Approved (12):**
 
-- **Moved into `reminders` from her store**, reworded as approved:
+- **Moved into `reminders` (now `remember`) from her store**, reworded as approved:
   - *You cannot bully a seed into growing.*
   - *Your brain doesn't even have arms…*
   - *Whatever I am, let it be enough.*
@@ -228,7 +318,7 @@ the last.
 ## Quotes panel review, round 2, 2026-09-15
 
 She asked for more in the kept style plus some variety. 32 drafts, 26 approved,
-all added to `reminders` as manual quotes (42 lines in total).
+all added to `reminders` (now `remember`) as manual quotes (42 lines in total).
 
 **Approved by style:**
 

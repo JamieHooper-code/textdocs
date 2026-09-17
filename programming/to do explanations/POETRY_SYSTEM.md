@@ -187,8 +187,13 @@ Jamie picked the phrases (her reply replaced the recommended `read ...` / `see .
   up / 8 and up / 7 and up), Status, Special, Year written, People, Tags. Scraps get Kind of
   scrap instead of rank / status / special / people, and switching source drops filters the
   new source doesn't have. Boxes in a group are OR, groups AND; each count is what ticking
-  that box gives (a group is counted with every OTHER group's filters). The open flag is
-  server-held like `toc` (`/api/filters`, AHK `ToggleReaderFilters`); `/api/facets`
+  that box gives (a group is counted with every OTHER group's filters). Jamie
+  (2026-09-16): "any of" everywhere unless a group is inherently exclusive, and those are
+  ONE toggle -- Favorites and Special render as Any / yes / no chips (`kind: "toggle"`);
+  every other group (`kind: "multi"`) has a master box in its header that ticks the whole
+  section, unticks it when all are on, and shows a dash when some are. The open flag is
+  server-held like `toc` (`/api/filters`, AHK `ToggleReaderFilters`, spoken "show filters"
+  in the reading room -- generic store row); `/api/facets`
   describes the pane, `/api/refine` applies the page's whole selection, and a combination
   with nothing in it is refused with the view kept. A type opts in through
   `reader_collection._REFINERS` (options / spec / resort) and the page never learns what a

@@ -368,6 +368,30 @@ Two of the ten merges also went the wrong way round — `Jacob Fiala` and
 ones, so the surviving id is the import's. No damage: clog relinked the catalog
 items, and all 74 journal people-links still resolve.
 
+## IFS parts (2026-09-17)
+
+Her IFS parts are records here too: `roles: ["part"]` plus a **`tagline`** —
+most are named for Greek figures, so the name is what she says and writes
+letters to and the tagline is what she reads: *Artemis · male gaze part*,
+*Nate · inner child*. Built with [[REMINDERS_SYSTEM]], which is where parts are
+mostly made (a reminder's *Add part*).
+
+- **Create with `people_sync.create_part`** (or `people_sync.py part-add <name>
+  --tagline …`), never `people.add`: `add` returns an existing HUMAN when the
+  names match, and a part called Nate is not the person Nate (it becomes
+  `person:nate_part`). `create_part` also rebuilds `letter_people.json` and bumps
+  `journal_commands.py`'s reload marker, so `journal letter artemis` works.
+- **Kept out of the recommender grammar and menus:** `read <person>`
+  (`_recommender_ids`), `clog person-list` (default; `--with-parts` for letter
+  name lookups), `rec-rank`, and the store report's merge/"not a person" checks.
+- **People hub:** a *Parts* branch; *Everyone* leaves parts out.
+- **Auto-linking is the same as for people** — Jamie decided a mis-link is not a
+  big deal. An entry written from a reminder about one part is linked to that
+  part explicitly (source kind `part`).
+- Not done: the name-fallback writers (mailwatch / GV import /
+  `add_voice_choice.py`) have no part guard; journal "By person" lists parts
+  beside people; no guard against merging a part into a human.
+
 ## Next
 
 - Addresses: nobody has one yet. The `spit` slots still hold them
