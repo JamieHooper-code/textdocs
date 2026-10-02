@@ -258,6 +258,33 @@ window-handle-timing error, a pre-existing GuiTestSendKeys flake unrelated to
 these changes, not a logic assertion failure), full-repo `ahk.py validate --repo`,
 `ahk_include_closure.py`, `ahk_warnings.py check` — all clean.
 
+## Part 3 — "open read" (Reading Miller), 2026-09-24
+
+Jamie: `open read` takes 5-10 seconds. `Mcp/perf/first_render` for `Reading`
+measured **1.6-4.0s** for an 8-row root (the rest of the felt delay is Dragon +
+GuiHost spawn). The root was not loading data at all — it was printing COUNTS in
+each row's detail column, and each count was its own `clog.py` spawn:
+`book-current`, `genre-list`, `book-query` x2, `book-recent`, `person-list`.
+Six Python start-ups (~180ms each) plus `person-list` ranking people by
+recommendation count (~450ms of catalog reads) just to print "164 people".
+
+Fix: `clog reading-counts` — ONE spawn that runs the same listing commands
+in-process and counts their rows (so a count can never disagree with its list),
+and counts people directly without the ranking. 280ms. `first_render` went
+**1.6s -> 0.5s** (the remaining 0.5s is the eager preview of Current reads).
+
+Same day, one level down: "Recently added" made two spawns per render
+(`book-sessions` + `book-recent`) -> one (`clog reading-recent-page`),
+**438-812ms -> 359ms**. Also caught: a node BUILDER runs for every PREVIEW
+(each arrow press), so a spawn added inside a builder is paid per keypress,
+not per drill. Keep builders spawn-free where the row data already has the
+answer.
+
+**The pattern to look for elsewhere:** a root/hub level whose rows carry counts
+("23 books", "164 people") is paying for every child listing up front. Either
+batch the counts into one call, or drop them. Grep for several
+`_XxxRows(...).Length` in a row in a `*RootNodes` function.
+
 ## Related open items (not fixed here — flag if they resurface)
 
 - **`OpenRegistryEditor()` ("open registry") still pays the full ~10.5s on every

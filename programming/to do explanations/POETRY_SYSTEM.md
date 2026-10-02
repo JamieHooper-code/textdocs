@@ -156,6 +156,62 @@ COPY, verify, repoint `OpenPoetryMenuAt` and `~\.claude\scripts\printer.ps1`
 (`$PoemPosterRoot`), then archive the old folder. `poems\*.txt` becomes an export from
 the store keeping the old `NNNN-slug` stems that `completed/` and `out/` are keyed by.
 
+### The writing box + brace markers (built 2026-09-23)
+
+`AddPoem` / `EditPoem` / `AddScrap` open a standard `WritingBox("page")` -- full
+screen, the same surface as "journal classic" -- in their OWN process (the old box
+lived in the MAINFUN dispatcher, so any voice command closed it). The box is one
+text: the poem plus brace markers that can sit anywhere and add up --
+`{title X}` `{rank 9}` `{needs editing}` / `{nearing completion}` / `{finished}`
+`{in progress}` `{special}` `{favorite}` `{tags grief, Charli}`. Editing opens with
+the current values as markers, so deleting one clears it. `poems.py box-text` builds
+that text; `poems.py save-box` reads it with the shared `Scripts/journal/markup.py`
+and applies everything in ONE locked write (the old box made up to seven). Old
+`title:` / `rank:` header lines at the very top are still read, for drafts.
+
+Voice, only in front of a "Writing box": `tag <words>` (tags and people), `title <words>`
+(title-cased on save by `markup.title_case`, the twin of AHK `TitleCaseText`; a title
+she already has is never recased; the last one said wins), `rate <n>`,
+and `mark ten`..`mark one`, `mark editing` / `nearing` / `finished`, `mark progress`,
+`mark special`, `mark favorite` (the Google Doc's own "Mark ..." words, so her mouth
+already knows them). Tests: `test_markup.py`, `test_poems_store.py` (box section).
+
+### In progress + the `poetry` namespace (built 2026-09-23)
+
+**In progress** is a boolean `in_progress` on the record, beside `special` -- NOT a
+fourth status. Jamie: an in-progress poem is still a needs-editing one, it just
+must not drown among the ~50 NE poems (some untouched for years). So turning it
+ON also sets status `NE` (`poems.set_in_progress`); turning it OFF leaves the
+status alone. It shows under both "In progress" and "Needs editing".
+
+- Store: `poems.py set-progress <id> on|off`, filter `--in-progress`, `add --in-progress`.
+  Viewer TSV column 18 (appended -- PoemsMenu reads columns by position).
+- Miller: "In progress" is ROW 2 (right under All poems), last-edited first; each
+  poem has an "In progress: yes/no" line (Enter switches).
+- Writing box: a `progress: yes|no` header line in EditPoem and AddPoem.
+- Reader: spec word `poems:progress`, an Any/yes/no toggle in the filter pane,
+  "in progress" in the footer line. `OpenProgressPoems()` = `poems:progress;sort=edited`.
+- Tests: 4 in `test_poems_store.py`, 1 in `test_reader_poetry.py`.
+
+**Voice moved to `poetry ___`** (domain-first, like the practice commands):
+
+| Phrase | Does |
+|---|---|
+| `open poetry` | `OpenPoems` (the Miller) |
+| `poetry progress` | `OpenProgressPoems` -- in-progress poems in the reader |
+| `poetry show [filter] [sort]` | `ShowPoems` -- filter words now include "in progress" |
+| `poetry all [filter] [sort]` | `ShowAllPoems` |
+| `poetry scraps [sort]` | `ShowScraps` |
+| `poetry new` / `poetry new scrap` | `AddPoem` / `AddScrap` |
+| `poetry random` | `OpenRandomPoem` |
+| `poetry poster` | `OpenPoetryMenuAt` (the poem-poster menu) |
+| `edit this` (reading room) | `ReaderShowThis`, same as "show this" |
+
+The old `open poetry` was a DIRECTORY entry (`poem_poster` folder in Claude
+desktop); it was renamed to `poem poster` ("open poem poster") to free the phrase.
+The older phrases (`open poems`, `show poems ...`, `add/make poem`, `add/make scrap`)
+still work during the switch; retire them once the new ones are habit.
+
 ### Voice + sorting (built 2026-09-14)
 
 Jamie picked the phrases (her reply replaced the recommended `read ...` / `see ...` set):

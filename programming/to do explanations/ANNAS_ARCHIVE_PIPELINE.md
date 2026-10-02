@@ -849,3 +849,15 @@ That inversion is silent and would flip the entire pipeline's error handling.
   server's countdown never completes, that book fails and the next one simply
   gets the next server. A retry against the following server would cost another
   full countdown, which is why it is not automatic.
+
+## Re-downloading a book you already have a record for (2026-09-30)
+
+Most of the library predates keeping EPUBs: a Kindle-read book has a record (quotes, journal entries, reader history all keyed by its id) but no `file`. Downloading it used to create a SECOND record, and `book-merge` could not fix that safely — it never took `file`/`annas` onto a keeper, and never repointed quotes/journal, so either direction lost something (No Bad Parts: 22 quotes on the old id, the EPUB on the new).
+
+Three pieces now:
+
+- **Attach on import** — `kindle_import.find_attach_target`: a download that is one of those fileless books attaches to it (same id, file added, auto tags merged, `file_attached_at`). Found by the pending marker first, else exactly ONE fileless record with the same short title (`short_title_key`: subtitle cut, punctuation + leading article dropped) and the same author. Two candidates = import as new and log it; a wrong attach is worse than a duplicate.
+- **"Get the EPUB"** — row 1 on a Reading book page when the book has no file (`book-current` col 10 `has_file`). `AnnaFindEpubFor(bookId)` writes `INIDATA/book_attach_pending.json` (book id + time; 2h expiry, the partner-link lifetime; consumed by the attach; ignored if the landed title doesn't broadly match) and opens the Anna's search filtered to EPUB. Takes the id ALONE from MAINFUN because MAINFUN.bat splits args on commas ("Rowling, J. K." arrives as three).
+- **Opens in the reader** -- an attach also sets `read_surface: reader` (fetching the EPUB is choosing the reader), WITHOUT stamping last_opened so a download does not jump the book to the top of Current reads.
+- **No second Kindle copy** — an attach onto a record with Kindle history (`kindle_asin`/`kindle_title`) sets `send_skip_reason`; `anna_download_watch.py` then skips the send and calls `send_books_to_kindle.py --skip-files-from` (manifest entry + `send_status: skipped`, so a bulk read-load never sends it either). A to-read record has no Kindle history, so it still gets sent.
+- **`book-merge` repair** — a keeper with no file ADOPTS the duplicate's (file, annas, isbn, md5, read_surface, newer last_opened; moved into the keeper's folder if needed), and `_repoint_book_refs` rewrites the duplicate's id everywhere it is referenced: quote.json, journal.json, collection.json (under their catalog locks), reader_positions.json (`read:<id>`), gui_layouts.json. Matches the id whole, before `#` (reader item refs) or after `prefix:`. Append-only logs (capture_log.jsonl) are left as history.

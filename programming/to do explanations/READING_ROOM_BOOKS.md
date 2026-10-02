@@ -88,7 +88,7 @@ actually in the middle of — the only question that level answers.
 
 `book-current` now sorts newest-opened first (never-opened last, alphabetically
 among themselves) and ships `last_opened` as col 8. The **recent / older split**
-is drawn in the Miller, at `reading.recent_days` (default 7), with the house
+is drawn in the Miller, at `reading.recent_count` (default 5 books; was `recent_days` until 2026-09-28), with the house
 divider between the groups — and only when both groups have something in them,
 because a lone `— OLDER —` above a shelf that is entirely older says nothing.
 The recent group has no header of its own: the line marks where recency ends,

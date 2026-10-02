@@ -830,6 +830,22 @@ the full closure for free and keeps viewer startup fast.
 
 ## Inline markup — tagging by writing it into the entry
 
+**Brace markers since 2026-09-23** -- `{tags Charli grief}` `{rate 7}`
+`{type insight}` -- are the canonical form; every voice command writes them. A
+marker can sit anywhere (its own line, the end of a line) and they ADD UP: "tag
+charli queer" then later "tag depression love" is four tags; rank / status take
+the last one said. The bare-line form below is still read (the Google Doc is full
+of it), but it has to guess whether a short line is metadata or prose, and it
+guessed wrong on lines like "About time." The same parser reads poems
+(`poems.py save-box`, keys incl. `{rank 9}` `{needs editing}` `{in progress}`
+`{special}` `{favorite}` `{title X}`), where the bare lines are OFF because a poem
+line starting "about" is verse. A marker a box does not use is left visible,
+never dropped. Tests: `test_markup.py`. Voice: `tag` / `title` / `rate` / `type`
+(`journal_markup_commands.py`) and `mark ten` / `mark progress` / `mark editing`
+(`writing_box_mark_commands.py`), both scoped to windows titled `Writing box:`.
+
+The older bare-line form:
+
 `Scripts\journal\markup.py`. She tags entries by writing the metadata into the
 text itself, at the top or bottom (or both), and the same notation works whether
 she typed it into the journal box or into the Google Doc that later gets
