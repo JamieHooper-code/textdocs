@@ -1146,3 +1146,9 @@ Lesson: when a Dragonfly rule throws "Malformed recognition data", check mapping
 ORDER first (specifics before the `<textnv>` catch-all) -- it is the documented,
 precedented cause, not an exotic Natlink bug. Cost of not checking the docs
 first: three failed iterations.
+
+### "grab music" in the reading room (2026-10-02)
+
+Same phrase, same function (`GrabAmbientForBook`), now branching on the foreground: the reading room in front (`IsForegroundContext("reading_room")`) means the reader's book (`_AmbientReaderBook` reads `/api/state` `item.book_id`; an exercise item links to the book it came from), anything else means Kindle's. Voice: a second literal in `rules/reader_commands.py` (scoped to the ReadingRoom title) beside the Kindle-scoped one in `kindle_commands.py`.
+
+Both halves are Chrome TABS, so it selects the audible tab, reads the URL, then re-selects the reader with `FocusChromeTab("ReadingRoom")`. No front-tab fallback in this branch: with nothing playing the front tab IS the reader. **Fullscreen trap:** Chrome removes the entire tab strip from the UIA tree while fullscreen (the reader window returned zero TabItems), so the first live run reported "nothing is playing" with music on. It now does an F11 peek, gated on the reader actually being fullscreen, and restores it on every exit path. Same shape as the Kindle location peek in `JournalSources.ahk`.

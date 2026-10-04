@@ -2,7 +2,7 @@
 tags: [programming, poetry, writing, media-system, reader, ahk, caster, tagging, design]
 created: 2026-09-14
 status: design-agreed-not-built
-related: ["[[QUOTES_SYSTEM]]", "[[JOURNAL_SYSTEM]]", "[[JOURNAL_SOURCES]]", "[[READING_ROOM_BOOKS]]", "[[MEDIA_SYSTEM]]", "[[PEOPLE_SYSTEM]]", "[[SETTINGS_SYSTEM]]"]
+related: ["[[QUOTES_SYSTEM]]", "[[STORIES_SYSTEM]]", "[[JOURNAL_SYSTEM]]", "[[JOURNAL_SOURCES]]", "[[READING_ROOM_BOOKS]]", "[[MEDIA_SYSTEM]]", "[[PEOPLE_SYSTEM]]", "[[SETTINGS_SYSTEM]]"]
 ---
 
 # Poetry System
