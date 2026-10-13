@@ -1,8 +1,8 @@
 ---
 tags: [programming, new-tab, dashboard, local-viewer, quotes, completion-log, projects, mindfulness]
 created: 2026-03-25
-updated: 2026-09-16
-related: ["[[COMPLETION_LOG]]", "[[QUOTES_SYSTEM]]", "[[Personal]]"]
+updated: 2026-10-07
+related: ["[[COMPLETION_LOG]]", "[[QUOTES_SYSTEM]]", "[[Personal]]", "[[SPECIAL_TODAY]]"]
 ---
 
 # New Tab Page
@@ -50,6 +50,10 @@ data**, served by `AutoHotkey/Scripts/newtab/newtab_server.py` on `127.0.0.1:829
 | Voice | Deferred to the very end |
 
 ## Content rules
+
+> The full, cross-surface version of these rules (wait gates, bell, gathas,
+> pacing, IFS prompts) plus the review workflow lives in the `gentle-lines`
+> skill: `~/.claude/skills/gentle-lines/SKILL.md`. Add new principles there.
 
 **Check-ins: somatic and inspiring, never judgmental or managerial.** A check-in
 invites a sensation or offers permission (*let your jaw soften*, *rest is how you
@@ -361,3 +365,16 @@ they point at rest (animals need rest) more than at treats or fun.
 - [x] Recurring event/task panel with reset-on-check → Rotation panel
 - [x] Portable to-do list sourced from elsewhere → projects.json
 - [ ] Nested checklists (click one to reveal sub-tasks) → projects.json already nests; the page shows one level
+
+## The hub header (2026-10-06)
+
+The page carries the shared hub header PINNED open (`data-header="pinned"`): a bar linking every local page, which starts a page's server if it is down. See [[LOCAL_APP_HUB]].
+
+## Special Today (2026-10-07)
+
+A live `links` panel (`source: special_today`) of what makes today unique --
+album release anniversaries, first-play anniversaries, artist birthdays from her
+Last.fm history, ranked so a favourite beats a round number. Engine, store,
+scoring and the data audit: [[SPECIAL_TODAY]]. Its rows are `external` plain
+links (no AHK action), which is why `buildLinks` checks `row.external` rather
+than `row.href` -- Watching rows have an href too.

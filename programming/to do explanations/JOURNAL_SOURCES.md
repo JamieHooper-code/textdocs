@@ -279,6 +279,25 @@ entry records the reminder's check-in. The form comes from the reminder's sectio
 (`journal_types`), passed explicitly — a `part` source does not imply forms the
 way an exercise does.
 
+## Her own poems (2026-10-10)
+
+Source kind `poem` with `poem_id` (the poem store's id, `E:\Media\catalog\poem.json`),
+numbered PER POEM, stem `Poem: Thumbprint #2: ` (kind-aware like letters; excluded
+from the series-rename row). Three ways in, one source builder
+(`JournalPoemSource` in `JournalSources.ahk`):
+
+- **"journal this" in the reading room** on a poem: `JournalSourceReader` checks the
+  item id's `poem:` PREFIX first (a collection can mix stores -- same test
+  `ReaderEditItem` makes), otherwise it would have been filed as an exercise.
+- **"journal poem"** (generic store): a numpad pick list of the 15 newest poems,
+  newest first and selected -- Enter = "the one I just wrote", as the original
+  requirement asked.
+- **Poems Miller** row "Journal about this poem", via MAINFUN (`JournalPoem(id)`) --
+  the viewer must not include the journal stack.
+
+`poem_id` had to be added to `_JSourceArgs` (JournalCapture.ahk) -- the silent-drop
+trap -- and to all three `--source-*` argument blocks in journal.py.
+
 ## Files
 
 | Layer | File |

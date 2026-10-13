@@ -1078,6 +1078,133 @@ into, per `gui-conventions.md`. What it buys:
   `display_ok` and quietly undo a manual display lock. `set-text` gained
   `--text-file` so a multi-line edit survives (a CLI arg can't carry newlines).
 
+## "grab quote" — the quote fills itself in from what's on screen (2026-10-09)
+
+**Two commands, one form.** `add quote` = the selection, else a blank box (as it
+always was). `grab quote` (`GrabQuote`) asks the front window what it is first,
+falling back to the selection, then the box. (For an hour on 2026-10-09 plain
+"add quote" did the context lookup; Jamie wanted the two kept apart.)
+
+In the add form, **Quote ✎** opens the text in the house writing box for free
+editing (`_QAddEditText`, then `MillerActiveRefresh`), and **Speaker** (when the
+source is a show/film) picks who said it → `source.speaker` (`quotes.py add
+--speaker`, `set-speaker <id>`). Author stays the SHOW, so quotes still group by
+show; the speaker is who said it.
+
+`grab quote` uses the **same data-driven
+pattern as "journal this"**: a context JSON carries
+`"quote": {"source_fn": "QuoteSourcePlex"}`, and `QuoteSourceForContext`
+(`Helpers/QuoteSources.ahk`) walks the context chain for it. A selection still
+wins over everything; no source in the chain = the plain box.
+
+**Two halves, two processes.** `source_fn` runs in the MAINFUN dispatcher (the
+window must still be in front: read it, pause it) and returns `{kind, flow,
+done, …}`. That Map goes to the GuiHost as JSON, where `flow` does the slow part
+and returns a prefill (`text, creator, source_kind, source_title, ref`),
+`"cancel"`, or `""` (fall back to the box). `done` runs however the form ended.
+The add-quote box itself now lives in the GuiHost: in the dispatcher, a
+mail-watch toast arriving mid-quote (`ShowToastFile` is a MAINFUN call, and
+MAINFUNCTIONS is `#SingleInstance Force`) silently closed it.
+
+### Plex (first source)
+`plex.json` → `QuoteSourcePlex`: asks `Scripts/quotes/plex_dialogue.py state`;
+if playing, presses Space (pausing also makes Plex report the exact position).
+It is NOT resumed afterwards — Jamie resumes it herself (an auto-resume was
+built and removed at her request, 2026-10-09).
+The flow runs `plex_dialogue.py now --fetch`: this server's session → the
+file → a TEXT subtitle track (the one she has on, else her language, else
+English, ranked by `subtitles.sub_rank` so JJK's signs-only track never wins)
+→ the cue at the playhead ± `quotes.plex_lines_before/after` (settings).
+- Embedded tracks: Plex won't serve them (`/library/streams/<id>` = 501), so
+  ffmpeg extracts the whole track (~12–20s off the HDD; a windowed `-ss` read
+  was SLOWER) and caches it in `%LOCALAPPDATA%\AHK\subtitle_cache`. Later
+  quotes from that episode: ~0.2s.
+- PGS/VOBSUB only (Peaky Blinders): `--fetch` downloads one OpenSubtitles
+  match for that episode via `subtitles.fetch()` → `<video>.en.srt` sidecar.
+  **fetch() also SELECTS the track in Plex** — on an English show she watches
+  without subs, that switched subtitles on. `restore_selection` puts the old
+  selection back straight after.
+- Only JAMIE's own server: a shared-server stream has no session here → tooltip
+  + plain box.
+- Saved as `source_kind` tv/movie, author = show, `source_title` = "Show — S03E02
+  · Title", `ref` = "S03E02 12:28". The form shows a `From:` row.
+- **Speakers.** ASS tracks (anime) carry the speaker in each line's `Name`
+  field and mark signs by `Style` — so ASS is read AS ASS (`-c copy` remux,
+  ~0.4s, `parse_ass`), never converted to SRT (which drops both, and let a
+  full-screen "Culling Game rules" sign through as dialogue). Short names are
+  expanded against Plex's SHOW cast ("Okkotsu" → "Yuta Okkotsu", only when one
+  cast name has that word); episode-level cast is ignored (JJK's was a Chinese
+  drama's). SRT has no speakers, so the picker offers the show cast instead.
+  One voice picked → speaker set, text plain. An exchange → `Name:` at each
+  change of speaker (the show's own short name) and speaker = "A & B".
+
+### AI chats — ChatGPT / Claude (2026-10-10)
+`chatgpt.json` / `claude_web.json` → `QuoteSourceChat` (the context's `quote`
+block also carries `"author"`; a `source_fn` that takes a parameter is handed
+that block). The **add form opens already filled in**, so she can change tags
+etc. before saving. (For the first day it saved with no form; Jamie wanted the
+form, 2026-10-13.)
+- Text selected → the source returns `prefill` (instead of `flow`) and
+  `GrabQuote` takes it to the GuiHost's add form.
+- Nothing selected → `GrabMakeChatQuote` numbers the reply (the generic grab
+  engine, dest `chatquote`); the following "grab N to M" opens the form in the
+  grab host (`_GTDestChatQuote` → `QuoteAddFormPrefilled`). The source returns
+  `handled: true`, which tells `GrabQuote` to stop there.
+- Prefilled as `source_kind ai`, author = the AI, `source_title` = the chat's
+  name, group = the **special** store's group (`grab_stores.json` → `remember`,
+  the new tab's Quotes panel; `QuoteSpecialGroup`), so it is also a favourite.
+- Two MAINFUN calls, so the first leaves what the save needs in
+  `%TEMP%\grabtext_quote_meta.json` (`QuoteGrabMetaWrite/Read`). It holds the
+  context ITSELF, not a path, so two "grab N" off one "make grab" both carry it.
+
+## Special quotes are favourites (2026-10-13)
+A grab-store row with `"favorite": true` (`special` has it) makes every quote
+in its group a favourite (affinity 1), however it got there: the reader's
+"special 9 to 23", "grab quote" in a chat, or picking `remember` in the add form
+/ `set-group`. Enforced in quotes.py (`favorite_groups`, `ensure_group_favorite`)
+on the way into the store, so no capture path can forget it. It never lowers a
+score or touches a buried one. `favorite-groups-backfill [--dry-run]` applies it
+to quotes already in the store (63 were changed on 2026-10-13).
+
+## Capture context — `captured` on every quote (2026-10-10)
+Every AHK save path (add quote, grab quote, make grab quote, Kindle grab and
+auto-save, the AI-chat saves) passes `quotes.py add --context-file`; the quote
+gets `captured`: `at, exe, window_title, url, contexts [deepest..root], via`.
+Nothing reads it yet. It is recorded because it can't be rebuilt later, and
+because *where* a quote was grabbed carries meaning.
+- **Journal link.** If the url is an AI conversation, `capture_context` resolves
+  it to the journal entries filed under that conversation (`chat_conversation_id`
+  from `set-chat-url`, or a grabbed chat segment's url) and stores
+  `chat_conversation_id` + `journal_ids`. Resolved at save time, while the id
+  still names the conversation.
+- Taken while HER window is in front (`QuoteContextFile`, in the dispatcher or
+  before a grab host's form opens), never in the form. The context chain and url
+  are looked up by name, so grab hosts without that stack still record the
+  window.
+- Best-effort: a bad file costs the context, never the quote. quotes.py deletes
+  the file once read. Only a NEW quote gets it; a recapture keeps the original.
+- **Journal side:** an entry with linked quotes gets a "❝ Quotes from this chat
+  (N)" row (`JournalMenu.ahk` `_JournalChatQuoteNodes`, `journal.py
+  chat-quotes`; the count rides on `chat-info`). The link lives only on the
+  quote; the journal reads it, never copies it.
+- Not on reading-room grabs: the server saves those, and their `source` already
+  records the book and exact position.
+
+### Marking both ends — `_RangePickGui`
+`Gui/PersistentLoopGui.ahk`. `N Enter` marks one end (▶), `M Enter` the other,
+either order. Bare Enter: first step = the highlighted row; second = `bare_end`
+(GV: "through the newest") or the marked row alone. `0` unmarks. **Google Voice
+grab chat uses it too** (it could only take "the newest N"); `gv_thread.py
+render --skip-newest` takes a stretch from the middle.
+**By voice:** "grab 3 to 7" / "grab 5" — the global `GrabRange` checks
+`RangePickVoice` first (title ends `· mark both ends`). It sets the filter box
+and sends Enter at **SendLevel 1**: the picker's Enter is a hotkey in another
+AHK process, and AHK hotkeys ignore other scripts' keys at level 0 (tested: the
+digits landed, the Enters did nothing).
+**Trap fixed alongside:** a numpad handler that closes the picker was followed
+by a refresh of the destroyed window ("The control is destroyed" ×N, OnError
+storm). `_refreshAfterDispatch`/`_clearFilterEdit` now bail on `!IsWindow(hwnd)`.
+
 ## `open exercises` — browsing practices, not quotes
 
 A quote is something you re-read; a practice is something you DO. So exercises

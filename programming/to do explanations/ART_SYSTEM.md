@@ -145,6 +145,8 @@ An explicit request beats a default: `pictures_only` is not applied when the que
 
 ## Traps
 
+- **A command that STARTS the server must not be overwritten by the server's own startup (fixed 2026-10-09).** `cmd_serve` listens first and loads "everything" on a background thread (minutes, cold). A voice command that started the server ("show zine", "show art monet", opening a comic) loaded its gallery a second later and the startup load finished LAST and replaced it -- "show zine" opened on the whole art library, and a zine's favourite scored a random artwork. Now the startup load passes `yield_after` and gives way to any API load since it began. Second half of the same fix: a PAGE route (`/art/...`, `/collection/...`) defers to an API load in the last 15s, because Chrome auto-reloads a dead tab the moment the port answers; and a collection's address bar is `/collection/<folder>`, so reloading a comic/zine reopens it instead of running its title as a tag query. Pinned in `test_art_server_startup_yield.py`.
+
 - **A hang in one art command means all of them are broken.** They share `iter_works()`. Do not debug the command; check the chokepoint.
 - **`art_server.py` holds `art_gallery` in memory from when it started.** Editing the module changes nothing until the server restarts — silently, since the old code keeps answering. Kill the `pythonw` on port 8288 and let `_ArtEnsureServer` bring it back.
 - **The library is small files, not big ones.** Any new per-work disk pass re-creates the 2026-08-24 bug. Read through `iter_works()`.

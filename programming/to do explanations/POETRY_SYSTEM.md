@@ -2,7 +2,7 @@
 tags: [programming, poetry, writing, media-system, reader, ahk, caster, tagging, design]
 created: 2026-09-14
 status: design-agreed-not-built
-related: ["[[QUOTES_SYSTEM]]", "[[STORIES_SYSTEM]]", "[[JOURNAL_SYSTEM]]", "[[JOURNAL_SOURCES]]", "[[READING_ROOM_BOOKS]]", "[[MEDIA_SYSTEM]]", "[[PEOPLE_SYSTEM]]", "[[SETTINGS_SYSTEM]]"]
+related: ["[[QUOTES_SYSTEM]]", "[[STORIES_SYSTEM]]", "[[JOURNAL_SYSTEM]]", "[[JOURNAL_SOURCES]]", "[[READING_ROOM_BOOKS]]", "[[MEDIA_SYSTEM]]", "[[PEOPLE_SYSTEM]]", "[[SETTINGS_SYSTEM]]", "[[POEM_PRINT_AND_DESIGN]]"]
 ---
 
 # Poetry System
@@ -18,6 +18,13 @@ reader has a `poetry` type, "show this" edits a poem, new poems and scraps can b
 written straight into the store, and the `open poems` Miller is done. Not yet: voice
 phrases (she picks from options), the poem-poster move, journal-a-poem, reader-wide
 "tag X", Doc sync (v2).
+
+**Doc sync + GitHub backup (2026-10-10): BUILT** -- see § "Doc sync" and § "Backup
+to GitHub" below. The Doc is now reached through the Google APIs, both ways.
+
+**Print / Instagram / poster (2026-10-05):** the poem-poster pipeline is being
+replaced -- see [[POEM_PRINT_AND_DESIGN]]. Print is built (Miller rows "Print
+preview" / "Print" on every poem).
 
 ### What exists
 
@@ -156,6 +163,121 @@ COPY, verify, repoint `OpenPoetryMenuAt` and `~\.claude\scripts\printer.ps1`
 (`$PoemPosterRoot`), then archive the old folder. `poems\*.txt` becomes an export from
 the store keeping the old `NNNN-slug` stems that `completed/` and `out/` are keyed by.
 
+### Doc sync (built 2026-10-10)
+
+Jamie kept writing in the Doc instead of the store because the Doc is reachable from
+anywhere. So the store and the Doc now stay in step, both directions, with no
+browser and no paste.
+
+| Piece | Where | Does |
+|---|---|---|
+| Google access | `Scripts\poems\gdoc.py` | `fetch` (HTML zip + txt snapshot via Drive export), `paragraphs` / `insert_block` / `replace_range` (Docs API), `auth` |
+| Doc -> store | `poem_import.py sync` | three-way merge per field against `doc.baseline` |
+| Both, orchestrated | `Scripts\poems\poem_doc_sync.py` | `pull`, `push <id>`, `push-pending`, `auto <id>` |
+| AHK | `PoemsFunctions.ahk` | `PoetryDocSync`, `PoetryDocPush(id)`, `PoetryDocPushPending`; Miller rows "Sync with the Google Doc" (root) + "Send to the Google Doc" (each poem) |
+| Setting | `poems.doc_push` | `all` (default) / `finished` (NC/C or F only) / `off` |
+| Logs | `INIDATA\poem_doc_sync.log` (+ `.out.log` for the detached runs) | |
+| Snapshots | `E:\Media\Poetry\doc_snapshots\<stamp>\` | last 60 kept; outside the repo allowlist |
+| Tests | `test_poem_doc_sync.py` | |
+
+**Auth.** OAuth client `claude-workspace` (same one as the workspace MCP), consented
+as natehoop@gmail.com, token `~\.claude\secrets\google\poems_doc_token.json`.
+**TRAP: while the OAuth app is in "Testing", Google expires refresh tokens after 7
+days** -- the MCP's token had died that way (expiry April). Every failure raises
+`GDOC_AUTH_EXPIRED`; the auto push toasts it. Fix for good = publish the consent
+screen app to "In production" (personal use, no verification needed for 1 user;
+Google shows an "unverified app" screen once). Re-auth: `py gdoc.py auth`.
+
+**Pull (Doc -> store)** = fetch + `sync`. Matching is one-to-one, strongest first:
+heading id -> unit key -> title+date -> text similarity >= 0.75. Then per field
+(text, title, rank, status, special, written, header, notes): Doc == baseline ->
+nothing; store == baseline -> take the Doc's (old text kept as a revision, `why:
+doc`); both moved -> CONFLICT (store kept, `doc.conflicts`, reported). Tags/people
+merge by provenance (only `src: doc` rows move). Never deletes: gone from the Doc =
+`doc.missing`. A no-op sync writes nothing (no backup copy, no commit). Moves count.
+
+**Push (store -> Doc)**, called detached after every `save-box` of a poem:
+- not in the Doc -> inserted ABOVE THE NEWEST POEM (first Heading-2), never at
+  index 1: the Doc opens with its Title paragraph + 4 smart-chip links, and a poem
+  above them would swallow them on the next read. Shape: Heading-2 header line, one
+  empty paragraph per stanza (two empties END a heading-era poem), `{tags}` line,
+  4 empty paragraphs after. A poem using any lone `-` gets `-` for EVERY stanza
+  break (dash-era rule: one empty paragraph ends it).
+- already in the Doc -> its block (bounded exactly as the importer bounds it,
+  dash era per container, stopping after `{tags}` so notes are never touched) is
+  replaced -- ONLY if the Doc's copy still reads like the last sync. Edited in the
+  Doc too -> nothing written, toast. Her own header line and `{tags}` line are KEPT
+  verbatim when their values didn't change (her headers vary -- `(8) (NE)`, times,
+  a date on the next line, `(edited on ...)` notes -- and her tags are her words:
+  `{Death}` where the store keeps `mortality`). Measured: 238 of 240 heading poems
+  round-trip as a no-op; the other 2 are correct refusals.
+- every push is followed by a pull, so the record learns its heading id at once.
+- **Scraps** live under her `POETRY SCRAPS` Heading-2 (above POETRY COVER LETTER,
+  framed by `====` bars; she moved them there 2026-10-10). The importer reads that
+  section like the old top of the Doc: everything is a scrap, ONE empty paragraph
+  separates them, bold means nothing (most are bold -- the bold-title rule would
+  have split them into "poems"), bars are furniture (a bar alone is never a
+  record). Push: a new scrap goes to the TOP of the section, under the bar; a
+  blank line inside a scrap is written `-` (an empty paragraph would split it);
+  an edited scrap is found by its baseline text among the section's runs and
+  replaced, refused if the Doc's copy changed too. Verified on a Doc copy: insert,
+  replace, refusal, read-back as one scrap, and the rearranged real Doc matched
+  all 991 pieces (moved, none new/missing).
+- A scrap edited HEAVILY in the Doc (similarity < 0.75, e.g. a one-liner that
+  doubles) can't be matched: it comes in as new and the old record is flagged
+  `doc.missing` -- never deleted, visible in the sync report.
+- **`sync poems`** (voice, generic store) = `PoetryDocSync` = `poem_doc_sync.py
+  sync`: push everything pending (refusals reported, not fatal), then pull. So a
+  push missed while the login was expired or offline goes up on the next sync.
+
+**Bugs the real Doc caught (pinned):** the Drive API export INLINES styles
+(`<span style="font-weight:700">`) where File > Download uses CSS classes -- the old
+parser lost every bold-era title (126) silently; the Doc gained a Title-styled
+"Lyrical nonsense" paragraph that became a scrap; a Shift+Enter soft break is `<br>`
+in HTML but a space in the API's text export (cross-check now tolerates it).
+
+**First run (2026-10-10):** 15 new poems (Sept 18 - Oct 10) + 4 scraps imported,
+Thumbprint updated (text + rank 7 -> 8), 0 conflicts, 0 missing.
+
+### Never out of step without saying so (built 2026-10-10)
+
+Jamie's rule: the store and the Doc must not drift apart unnoticed.
+- **Health** (`poem_doc_sync.health`, no network): the login's age (`authed_at` in
+  the token file, written by `gdoc.py auth`; Testing-mode tokens die after 7 days),
+  the last Google round-trip's outcome (`INIDATA\poem_doc_sync_state.json`, written
+  by every auto push / sync / reauth) and the attention count. Rides on the Miller's
+  counts feed as row `dochealth` (no extra process).
+- **Where it shows:** the TOP row of `open poetry` ("⚠ Doc NOT syncing - Google login
+  expired" / "...expires in N hours"; Enter fixes it), and the new-poem / new-scrap
+  writing box's headline + a tooltip (`_PoemBoxDocWarning`). The failure toast is
+  clickable: `PoetryDocReauth` -> `poem_doc_sync.py reauth --notify` in its own
+  process (browser consent, then a full sync, then a tooltip with what went up).
+- **Needs attention** (row 1-2 of the Miller when non-empty; `poems.doc_attention`,
+  TSV column 19): `conflict` (edited both sides -- NEVER auto-pushed, `push`
+  refuses), `missing` (gone from the Doc), `not sent` (no Doc copy 10 min after its
+  last save), `behind` (Doc has an older copy -- includes Miller rank/status edits,
+  which don't push on their own). Each poem then shows its fixes FIRST: keep this
+  version / take the Doc's / put it back / it left on purpose / send now
+  (`poem_doc_sync.py resolve <id> here|doc|reinsert|dismiss`, AHK
+  `PoetryDocResolve`). `sync poems` also re-sends everything `behind`.
+
+### Journaling about a poem (built 2026-10-10)
+
+`journal poem` (pick list, newest first), "journal this" on a poem in the reading
+room, and the Miller's "Journal about this poem". Source kind `poem`, numbered per
+poem: `Poem: Thumbprint #2: `. Details in [[JOURNAL_SOURCES]] § "Her own poems".
+
+### Backup to GitHub (built 2026-10-10)
+
+`Scripts\writing_backup\writing_backup.py`. `media_catalog.write_media_type` (the one
+writer every store uses) calls `schedule(path)`; for `poem.json`, `journal.json`,
+`story.json`, `practice.json` it spawns a detached windowless worker that waits for
+20 s of quiet, commits ONLY those files (`git commit -- <paths>`) in `E:\Media`
+(private repo JamieHooper-code/media-catalog) and pushes. Offline = committed
+locally, pushed next time. Log `INIDATA\writing_backup.log`; `py writing_backup.py
+status|now`. `WRITING_BACKUP_OFF=1` disables (tests). `catalog/*.backup-*.json`
+are now gitignored (git history is the backup).
+
 ### The writing box + brace markers (built 2026-09-23)
 
 `AddPoem` / `EditPoem` / `AddScrap` open a standard `WritingBox("page")` -- full
@@ -263,6 +385,50 @@ Jamie picked the phrases (her reply replaced the recommended `read ...` / `see .
 
 ---
 
+## Doc sync fixes (2026-10-13)
+
+- **Menu edits push too.** `set-rank/-status/-special/-progress/-title/-text/-kind/add-tags/remove-tags`
+  schedule the same detached `auto` push as a box save (`_simple(..., push=True)`). Before this a rank or
+  status set from the Miller never reached the Doc and the poem sat under Needs attention as "behind".
+- **One Doc writer at a time.** Every `poem_doc_sync.py` command except `health` takes
+  `INIDATA/poem_doc_sync.lock`. Two quick saves used to run side by side; the second read the store before
+  the first had pulled the new heading id back and refused ("no Doc heading id yet").
+- **A new heading id alone is saved.** A replace gives the heading a new id; the no-op sync used to drop
+  it, so the next push could not find the poem. `merge_from_doc` reports `relinked`.
+- **Kind change moves sections.** `set_kind` records `doc.kind_in_doc` (the kind the Doc still has);
+  the next push deletes the old copy -- only if the Doc text still equals the last-synced text, and for a
+  heading-less scrap only if that text appears exactly once -- then inserts it at the top of the right
+  section. Location alone never triggers a move: ~480 scraps live among the older poems on purpose.
+  `doc.in_scraps` records where each piece sits.
+- **"type poem" / "type scrap" in the writing box** (the journal markup rule's `type <words>`, live in
+  every writing box) sets the kind on save: a scrap box saved with `{type poem}` is born a poem, never
+  a scrap. Any other `{type ...}` stays visible in the text. `KIND_MARK_RE` in poems.py.
+- **Grow vs. make it a poem.** "Grow" makes a NEW poem and keeps the scrap (both end up in the Doc).
+  To turn a scrap into a poem, use the Miller's "Kind: scrap - make it a poem" or say "type poem".
+
+## Version numbers (2026-10-10)
+
+Every saved change to a poem's text or title is a new version: `1`, `1.1`, `1.2` ... (her
+rule). An edit that leaves the poem at least 90% the same (word-level difflib ratio,
+`MINOR_SIMILARITY` in poems.py) bumps the minor number; below that the major number goes
+up. The comparison is against the text the current MAJOR version started from, not the
+last save, so small edits that add up to a rewrite still become the next major version.
+A title-only change is a minor bump; a notes-only change is no bump.
+
+**A writing session is one version** (Jamie, 2026-10-10). The writing box autosaves a
+draft file every ~2s (nothing lost) but writes the store once, when she saves and closes
+it; that save is one version even when it changes the title AND the text, via
+`poems.one_version(rec)` (holds the number, stamps in-between revisions with the
+pre-save version, bumps once on exit). One Doc edit pulled by sync, and a "take the
+Doc's version" resolve, are wrapped the same way.
+
+Stored, not recomputed: `version_no` on the record and `version` on each revision
+(stamped by `push_revision`), so changing the rule can never renumber a page already on
+paper. Records from before numbering were backfilled by `poems.py refresh` (989 at v1,
+Thumbprint v2). `poems.py revisions <id>` lists every version. Unrelated to
+`version_label`, which is a "v3" she typed into a title. Printed in the page corner --
+POEM_PRINT_AND_DESIGN.md § Version mark.
+
 ## Decisions (Jamie, 2026-09-14)
 
 Reply was `5.` + prose + `0.00` (= yes to all remaining recommendations, Claude's
@@ -284,7 +450,7 @@ call on the rest, prose overrides). Numbers refer to the 50-item design list.
 | 16 | Coverage guard (journal's): every non-blank doc line lands in exactly one poem / scrap / known furniture line. `import --expect N`. |
 | 17 | Tag provenance `src`: `doc` (her `{tags}` line) / `manual` / `auto`. Re-import rewrites only `doc` rows. |
 | 18 | Every import: dry-run report (new / changed / edited-here / conflict / missing) + dated backup before commit. |
-| 19-22 | **Ongoing sync + write-back to the Google Doc = v2.** Plan: write in the new system, update the doc by hand afterward. Still store each poem's doc text as it was at import (cheap), so the v2 three-way merge has a baseline. |
+| 19-22 | **BUILT 2026-10-10 -- see § Doc sync.** Originally: **Ongoing sync + write-back to the Google Doc = v2.** Plan: write in the new system, update the doc by hand afterward. Still store each poem's doc text as it was at import (cheap), so the v2 three-way merge has a baseline. |
 | **dates** | **Keep the date each poem was WRITTEN (from its header) AND every date it was EDITED** (revision timestamps + `modified`). |
 | 23 | Keep the header line verbatim alongside the parsed fields. |
 | 24 | Keep her lone `-` stanza marks verbatim in stored text; reader + poster render them as stanza gaps. |
@@ -316,7 +482,7 @@ call on the rest, prose overrides). Numbers refer to the 50-item design list.
 | 49 | Repoint `OpenPoetryMenuAt` (`Helpers\OpeningAndClosingFunctions.ahk:747`), `printer poster` (`~/.claude/scripts/printer`), project docs. Archive (not delete) the old folder after verification. **No printmaking work** beyond making it run from the new home. |
 | 50 | Build order: store + importer (dry-run) → review queue → commit → reader → Miller → voice (Jamie picks phrases) → poster move → (v2) sync. |
 
-### New requirement: journaling about a poem
+### New requirement: journaling about a poem (BUILT 2026-10-10, see above)
 
 `journal poem` → journal about a specific poem; defaults to ASKING whether it is
 the newest poem. `journal this` from the reader journals about the poem on screen.

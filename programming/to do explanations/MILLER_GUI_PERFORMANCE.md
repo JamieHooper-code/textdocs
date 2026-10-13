@@ -285,6 +285,79 @@ answer.
 batch the counts into one call, or drop them. Grep for several
 `_XxxRows(...).Length` in a row in a `*RootNodes` function.
 
+## Part 4 — searching the Reading Miller, 2026-10-06
+
+Jamie: searching "laziness" in `open read` said "Search capped (budget) — refine
+the filter", found nothing, and the longer "laziness does not exist" seemed to
+hang. The log said exactly why:
+
+```
+Mcp/perf/search_index/slow  dur_ms=20750  items=3000 truncated=1
+Mcp/perf/filter             dur_ms=16     filterLen=23 rows=0
+```
+
+**Root cause — no search plan.** The Reading Miller had no `search_index` and no
+`search_skip`, so the engine LIVE-WALKED the tree to build the search universe:
+every book page, each with a Tags list as long as the tag vocabulary, a live
+journal count, a meditation-style page, a recommended-by list — several clog
+spawns per book. ~2s a book (the `Mcp/build_err` from the meditation-style page,
+below, fired once per book, ~2s apart, which is how the per-book cost showed up
+in the log). The walk was **depth-first** with a 3000-node budget, so it spent the
+whole budget about ten books into the FIRST section, Current reads. The book was
+not a current read (status empty — in the library, never marked), so it was
+never seen. Since the universe is built once per window, the second search was
+instant (16ms) and still empty — and "refine the filter" could never help.
+History: the same thing had happened five times since 2026-09-14 (11-24s each,
+always capped); no other Miller came close.
+
+**Fix, menu side (`Helpers/ReadingMenu.ahk`):**
+- `clog reading-search-index` — ONE spawn (~0.2s) listing every book (any
+  status), every person, every genre.
+- `_ReadingSearchIndex` turns it into index entries pathed into sections that can
+  always open them: books → **All books** (new root row, last so existing numbers
+  hold; the only section containing EVERY book), people → Recommended by, genres
+  → Genres. Hits are branches with no `do`, so Enter lands inside the book page.
+  Mounted opts-level for `open read` AND node-level in `_ReadingAsNode`, so the
+  Media hub's search gets it too.
+- `search_skip` on the six listing sections + on every book/person page node.
+- A book page opened from All books shows "Add to current reads" instead of a
+  "Remove from current reads" that would do nothing (`_ReadingBookNodes` status).
+
+Measured with the real library through a headless probe (the engine's own
+`_Mcp_GetSearchUniverse` + `_Mcp_NavigateToPath`): **20.8s / capped / 0 hits →
+0.56s / complete (641 items) / found, and the hit navigates into the book.**
+
+**Fix, engine side (`Helpers/Gui/MillerColumnPickGui.ahk`) — for every Miller:**
+- The live walk is **breadth-first** (`_Mcp_WalkTree` queue; `_Mcp_WalkNode` now
+  emits one node and returns its children). A budget cut drops the DEEPEST rows,
+  never whole top-level sections.
+- A **wall-clock budget**, `search_max_ms` (default 1500), beside the node and
+  depth caps. A menu that forgets its search plan now costs a pause, not 20s.
+- The `search_index` perf line names the truncation reason and the top-level
+  sections by build cost: `... truncated=1 (time budget 1500ms)
+  sections=current=900ms, recent=400ms`. The next slow menu identifies itself.
+- The hint is honest: "Search only covered part of this menu — some matches may
+  be missing." (Refining can't reach what was never walked.)
+- Pinned by pure tests in `Helpers/Tests/test_miller_engine.ahk`
+  (`miller_search_walk_is_breadth_first`, `_time_budget`, `_skip_and_index`).
+
+**Found on the way:** `_ReadingMeditationStyles` sorted with `>` on two strings.
+AHK v2's relational operators are numeric and THROW on non-numeric strings
+("Expected a Number but got a String"), so the Meditation style page had been
+erroring on every open. Now `StrCompare(...) > 0`. Grep for this shape when a
+sort "does nothing".
+
+**Guard:** `miller_convention_check.py` (Stop hook) WARNS — never fails — when a
+NEW Miller shells out in its builders with no `search_index`/`search_skip`. The 22
+existing ones are grandfathered in `NO_SEARCH_PLAN_GRANDFATHERED`; the engine's
+budgets bound them. If one of them is ever reported slow to search, give it a
+plan the Reading way and drop it from the set.
+
+**Other cap hits in the log:** "set macro" capped once (2026-09-14, 12.9s, before
+this fix) — now bounded to 1.5s by the engine; re-check its `sections=` line if
+it is reported. A Downloads attribution in the old log was a misread; its
+searches are 89 items / 0ms.
+
 ## Related open items (not fixed here — flag if they resurface)
 
 - **`OpenRegistryEditor()` ("open registry") still pays the full ~10.5s on every

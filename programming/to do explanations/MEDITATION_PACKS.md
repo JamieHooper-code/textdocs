@@ -1,16 +1,19 @@
 ---
 tags: [design, meditation, lockout, media, scraping, architecture]
-related: ["[[EXCEPTION_LOCKOUTS]]", "[[COMPLETION_LOG]]", "[[MEDIA_SYSTEM]]", "[[SETTINGS_SYSTEM]]", "[[TIMER_OVERLAY]]", "[[VOICE_COMMAND_SYSTEM]]"]
+related: ["[[MEDITATION_PAGE]]", "[[EXCEPTION_LOCKOUTS]]", "[[COMPLETION_LOG]]", "[[MEDIA_SYSTEM]]", "[[SETTINGS_SYSTEM]]", "[[TIMER_OVERLAY]]", "[[VOICE_COMMAND_SYSTEM]]"]
 status: built (v1) — 2026-08-26
 updated: 2026-08-26
 ---
 
 # Guided-meditation packs
 
-**Status: BUILT.** Voice: **"meditate guided"**, **"meditate short"**,
-**"meditate loving"**, **"meditate watts"**, **"meditate flowers"**,
-**"open meditate"**. The `L` key inside a meditation lockout opens the same
-Miller.
+**Status: BUILT.** Voice: **"lockout meditate guided"** / **short** / **loving**
+/ **watts** / **flowers** start a lockout sit. The `L` key inside a meditation
+lockout opens the Miller.
+
+> **2026-10-06:** plain **"meditate \<pack\>"** and **"open meditate"** now open
+> the meditation PAGE (no lockout). See [[MEDITATION_PAGE]]. Everything below
+> still describes the lockout sit, which is unchanged.
 
 This is the thing [[EXCEPTION_LOCKOUTS]] left open — *"Guided meditation pack.
 The backend is built and logs a style; the audio pack doesn't exist yet. When it
@@ -224,6 +227,25 @@ once with `--force-overwrites` on a mismatch. A second failure is marked
 `failed` loudly rather than accepted. `med_download.py --verify [--repair]` runs
 the same check over the whole corpus, which is the thing to reach for after any
 interrupted run.
+
+### Titles are not unique (2026-10-06)
+
+Files are named from the video **title**, and the `loving` playlist holds
+seven different talks all titled "Lovingkindness with Sharon Salzberg" (plus
+two called "Sharon Salzberg on Loving Kindness"). Each download overwrote the
+last, so seven manifest rows pointed at one 719s file. `--verify` called six
+of them TRUNCATED, and a plain `--repair` would just have deleted the one good
+copy and re-collided.
+
+The rule now: a video whose title a **different** video in the same pack also
+carries is saved as `<title> [<video id>].mp3`. A unique title keeps its plain
+name, because favourites files and `url_tags.json` key on the filename. Same-id
+rows are not a collision, since a playlist can list one video twice (`guided`
+does). A backstop catches two different titles that sanitise to the same name:
+`--no-overwrites` leaves the other video's file untouched, so the downloader
+re-runs under the id name before the length check can delete it. `--verify`
+reports a file several videos claim as **SHARED**, keeps it for the one whose
+length matches, and requeues the rest without deleting the file.
 
 The same kill also left a **41 MB `.webm`** behind. Intermediates
 (`.webm/.m4a/.opus/.part/.ytdl/.temp`) are now swept at run start — safe there

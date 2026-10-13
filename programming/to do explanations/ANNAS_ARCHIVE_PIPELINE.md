@@ -861,3 +861,16 @@ Three pieces now:
 - **Opens in the reader** -- an attach also sets `read_surface: reader` (fetching the EPUB is choosing the reader), WITHOUT stamping last_opened so a download does not jump the book to the top of Current reads.
 - **No second Kindle copy** — an attach onto a record with Kindle history (`kindle_asin`/`kindle_title`) sets `send_skip_reason`; `anna_download_watch.py` then skips the send and calls `send_books_to_kindle.py --skip-files-from` (manifest entry + `send_status: skipped`, so a bulk read-load never sends it either). A to-read record has no Kindle history, so it still gets sent.
 - **`book-merge` repair** — a keeper with no file ADOPTS the duplicate's (file, annas, isbn, md5, read_surface, newer last_opened; moved into the keeper's folder if needed), and `_repoint_book_refs` rewrites the duplicate's id everywhere it is referenced: quote.json, journal.json, collection.json (under their catalog locks), reader_positions.json (`read:<id>`), gui_layouts.json. Matches the id whole, before `#` (reader item refs) or after `prefix:`. Append-only logs (capture_log.jsonl) are left as history.
+
+## Grabbing a book you already HAVE the file for (2026-10-06)
+
+The sibling of the section above: here the library holds the actual EPUB, not just a record. "Laziness Does Not Exist" (in the library and on the Kindle since July) was grabbed again; `kindle_import.py` skipped it as already seen (name|size sig), the copy stayed in `E:\Downloads`, and the watcher, which judges an import by "did the file leave Downloads?", showed **"Import FAILED"**. Nothing had failed.
+
+One module, `Scripts/anna_library_copy.py`, used at two points:
+
+- **Before downloading** (`anna_fetch.py add` → `already_owned`): if the library holds a **verified** copy (the file exists AND hashes to the md5 in its own filename), it does not download. Instead it bumps the book to the top of Recently added and shows the tooltip `Already in your library: X (sent to Kindle Jul 18) - moved to top of Recently added`. The download manager records it as `skipped`. Skipped for `--no-import` grabs.
+- **After the importer leaves a file** (`anna_download_watch._handled_as_duplicate`): if the file is byte-identical to a verified library copy, it bumps the book, sends the spare to the **Recycle Bin**, and shows the same tooltip. Anything short of byte-identical still takes the failure path.
+- **Verified, not just present.** A truncated library copy must not block the re-download that repairs it, so an unverifiable copy counts as absent.
+- **Bumping ≠ rewriting `added`.** `clog book-readded --id` stamps `readded`. `book-recent` and `book-sessions` sort on `_book_arrived(b)` = `readded or added`, so `added` keeps the true first-import date.
+
+Check by hand: `py Scripts\anna_library_copy.py find <md5>`.

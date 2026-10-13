@@ -1665,3 +1665,8 @@ paths await Jamie at the keyboard.
   `Get-Process AutoHotkey64 | Stop-Process` — it kills Jamie's ~5 always-on scripts (her whole macro system)
   and she has to restart everything.** `ahk.py sweep` is only for #32770 error popups. (Full rule:
   `~/.claude/skills/ahk-functions/references/gui-testing.md`; deeper tooling: [[AHK_SCREENSHOT_CLOSE_TOOLING]].)
+
+
+## 18. The voice browser ("show voice") — BUILT 2026-10-07
+
+The browse/discover surface for everything above now lives in [[VOICE_BROWSER]]: context-first (what works in this window), ranked by what Jamie actually says (matched from the utterance log), ~15 hand-curated categories that Claude maintains, and literal + meaning search. It replaced the tag-browser GUI; the tag catalogs themselves are unchanged.
