@@ -291,3 +291,29 @@ Feels instant; not a resource hog.
 - **Which Chrome contexts get their own deck?** Only `youtube`/`google_voice`/`chrome`(default) wired so far. Others (Instagram/Plex/Reddit/Gmail/…) each need a Deck A profile built first — wire per-context on demand.
 - **Switcher paging** — single-page only today (contiguity invariant). Revisit only if >~31 profiles ever need decks.
 - Poll interval: **120ms**; trivially tunable since the gate makes it cheap.
+
+---
+
+## Update 2026-10-15 — event mode (polling replaced by window events)
+
+The "gated poll, NO WinEvent hook" decision above was reversed. Its reason (a foreground hook misses in-Chrome title changes) is answered by `EVENT_OBJECT_NAMECHANGE`, which fires when the foreground window's title changes.
+
+- **What drives it now:** `Helpers/WinEventHub.ahk` (`WinEvents_On`). The detector subscribes to foreground, title change on the foreground window, show/hide (the Choice Box overlay), minimize/restore and cloak/uncloak (desktop switches). Each event runs the **same gated tick** as before, so detection logic is shared, not forked. Bursts coalesce into one tick.
+- **Self-announce** still writes the dirty flag, and now also posts a registered message (`AHK_CtxDetector_Wake`) to Parent's hidden window, so a notify lands at once.
+- **Backup poll:** `context.backup_poll_ms` (2s). It runs the same gate; if it finds a change no event announced it logs `ContextDetector/missed`. That log is the evidence for whether events are enough. It also paces the per-tick observers (Claude chat tracker, context log idle sample).
+- **Stream Deck dwell:** unchanged at 250ms. `VsdTick` asks for one extra tick when the dwell ends (`CtxDetector_TickIn`).
+- **Wispr layer:** no per-tick registry read. AHK's two Flow start paths call `WisprWatch_Arm()`, which arms a 60ms watch in Parent that switches itself off 10s after recording stops (that also catches an Escape cancel).
+- **Revert:** `settings.py set context.detector_events false` + `ReloadWithNotice` runs the original 60ms poll. That code path is untouched. Pre-change copies of every file are in `AutoHotkey/Archive/2026-10-15_poll_to_events/`.
+- **First-day result:** every live context change logged `(winchange)`, zero `missed` lines.
+
+Siblings converted the same day: monitor sleeper (`monitor.sleeper_events`), toasts (`toast.event_driven`), mode change log (`modes.event_driven`, setters call `ModeChangeLog_Announce`), mail watcher (IMAP IDLE, `use_idle` in MailWatchConfig.ini), and the default mic follows the Loop 120 headset (`Helpers/MicAutoSwitch.ahk`, WM_DEVICECHANGE).
+
+### Measured cost (2026-10-15)
+
+Parent.ahk CPU, idle, back-to-back A/B via the revert settings: **old 60ms poll 4.55% of one core -> event mode 0.66%** (~7x less). Per-event work timed in the real window set (`Diagnostics/parent_cost_bench.ahk`): monitor-sleeper sweep 0.18ms, detector gate 0.24ms, full DetectContextChain 6.9ms (only on a real change). Raw window events run ~12/s (mostly moves and window closes) and are filtered to whole windows before any work; `MAINFUN.bat ShowWinEventStats` logs per-kind counts from every hooked process. While dictating, the Wispr watch (60ms) used ~3.5% until `WisprFlowIsRecording` was changed to read only the running Flow exe's consent key instead of all 28 accumulated ones (200 calls: <1ms vs 78ms); it now adds well under 1%.
+
+### Wispr detection moved to audio sessions (2026-10-16)
+
+A Windows update (KB5127648 / KB5127690, installed overnight 10-15 -> 10-16) stopped the CapabilityAccessManager consent store recording mic use for every app (Dragon included), and `WisprFlowIsRecording` had always read those timestamps. The morning after, every handoff showed `Wispr/watch armed` then `disarmed (not recording for 10s)`, so the wispr:recording layer never turned on and the dictation-only hotkeys (RWin submit, Delete reclaim) did nothing. Fix: the primary signal is now the live audio session list (`AudioCaptureFindActive` in AudioDeviceFunctions.ahk, the volume mixer's own view), holding Flow's active session so each tick is one `GetState` call; the registry reader is only the fallback when the session API fails. Lesson: don't depend on a record Windows *may* write; ask for the live state.
+
+**Follow-up the same day:** there were FOUR readers of that dead consent-store record, not one: `WisprFlowIsRecording`, the paste-wait take length (`_WisprLastTakeMs`, which made every take read as ~0ms so submits only waited 400ms and Enter beat the transcript ~25% of the time), MicDuck's private copy (`Scripts/MicDuck.ahk`: the music un-ducked the moment the 20s handoff hold expired, mid-dictation), and the mindfulness bell's on-a-call check (`_MB_OnCall`). All now go through `Helpers/AudioSessions.ahk` (dependency-free, so MicDuck can include it): `AudioCaptureActiveCached` holds Flow's active session (0.026ms per poll), `AudioCaptureActiveExes` lists every app with a live mic stream. Take length is timed by AHK itself (`%TEMP%\wispr_take.txt`, stamped by `WisprRecordingChanged`). Each old registry reader survives only as a fallback, and a registry take that ended >2 min ago counts as unknown, not short.

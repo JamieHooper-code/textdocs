@@ -1141,18 +1141,72 @@ English, ranked by `subtitles.sub_rank` so JJK's signs-only track never wins)
 ### AI chats — ChatGPT / Claude (2026-10-10)
 `chatgpt.json` / `claude_web.json` → `QuoteSourceChat` (the context's `quote`
 block also carries `"author"`; a `source_fn` that takes a parameter is handed
-that block). The **add form opens already filled in**, so she can change tags
-etc. before saving. (For the first day it saved with no form; Jamie wanted the
-form, 2026-10-13.)
+that block). **Saved in the background, or the filled-in add form, is a
+per-source setting**: `quotes.chatgpt_capture_mode` / `quotes.claude_capture_mode`
+(`save` | `form`, default `save`; "open settings" → Quotes → On grab), read in
+`QuoteChatOpts` and carried in the grab meta as `capture_mode`. A background
+save (`QuoteSaveAndSay`) is auto-tagged and says what it saved in a tooltip; on
+failure the text goes to the clipboard. (History: shipped with no form, Jamie
+asked for the form, then for background save as a per-source setting, all
+2026-10-13.)
 - Text selected → the source returns `prefill` (instead of `flow`) and
   `GrabQuote` takes it to the GuiHost's add form.
 - Nothing selected → `GrabMakeChatQuote` numbers the reply (the generic grab
-  engine, dest `chatquote`); the following "grab N to M" opens the form in the
-  grab host (`_GTDestChatQuote` → `QuoteAddFormPrefilled`). The source returns
+  engine, dest `quoteform`); the following "grab N to M" opens the form in the
+  grab host (`_GTDestQuoteForm` → `QuoteAddFormPrefilled`). The source returns
   `handled: true`, which tells `GrabQuote` to stop there.
 - Prefilled as `source_kind ai`, author = the AI, `source_title` = the chat's
-  name, group = the **special** store's group (`grab_stores.json` → `remember`,
-  the new tab's Quotes panel; `QuoteSpecialGroup`), so it is also a favourite.
+  name, and NO group: **"grab quote" is a plain quote** (2026-10-15 — until
+  then it was filed in the special group, so every chat grab became a
+  new-tab favourite). "special N" / "special <words>" is how a chat quote
+  becomes special. Same split in the reading room: "grab N" = plain,
+  "special N" = special.
+- **Reading room, saved chats ("grab read")** (2026-10-15): a grab that IS one
+  of the chat's questions (already in the journal entry) also stars it in the
+  question store (`read_server.star_chat_question` → `journal.py star-question
+  --text-file`; matcher `journal_questions.find_by_text`). A grab of the
+  question PLUS paragraphs around it asks "Add context to question N?" and Yes
+  keeps them on the question record (`questions.py add-context`; shown in the
+  journal-prompt header). Taking the highlight off unstars. **"special" over a
+  passage already saved plain MOVES that quote into the store**
+  (`promote_to_store`: group, store colour, display_ok) instead of asking to
+  remove it; "special" over one already in the store is still the toggle.
+- **"special 41" after a plain "make grab"** (any window but Kindle; 2026-10-13):
+  `GrabRangeToStore` outside the reading room writes the meta
+  (`QuoteStoreGrabOpts`: the AI as author in a chat, else the page title) and
+  runs the generic engine with dest `quoteform`, so the same filled-in form
+  opens, filed in the store's group. The voice rule is live while the reader's
+  numbers are up OR for 10 min after the generic engine numbered a page
+  (`grabtext_units.tsv` mtime). Plain "make grab" + "grab 41" stays a
+  clipboard grab on purpose.
+- **"special <start words> to <end words>"** (2026-10-13): trims AT grab time,
+  no numbers. `GrabPhraseToStore` → generic host `phrase` action →
+  `GTGrabPhrase`: OCR the window, `_GTFindPhrase` the start words then the end
+  words at or after them, drag-select that span, same save as "special 41"
+  (background or form, per the source's capture mode). Matcher in
+  `Helpers/GrabText/GrabPhrase.ahk` (character runs; a hit starts on a word
+  boundary and prefers to END on one, so "a" can't match the front of
+  "about"), pinned by `Helpers/Tests/test_grab_phrase.ahk`. Splits on the LAST
+  " to ". A dictated "41 to 45 [colour]" is routed to the number path. Voice:
+  `<store> <phrase>` declared after the number specs; the rule is also live
+  whenever an AI chat is in front (reads the context detector's
+  `_state.json` open chain), so in ChatGPT/Claude no "make grab" is needed.
+  Not in Kindle or the reading room (they keep their own number grabs).
+- **"miller quotes"** (generic store → `OpenQuotes`): the quotes Miller's first
+  row is now **Recent quotes**, the newest `quotes.recent_count` (setting,
+  default 40) with capture-day dividers (`viewer --mode quotes --limit N`).
+- **"show quote"** (`ShowLastQuote`): opens that Miller ON the newest quote's own
+  page (copy / tags / group / author / display / re-tag / delete), via
+  `openArg "quote:<id>"` → `initial_path ["recent", "q_<id>"]`, so Left walks
+  back out through Recent quotes. Newest = latest `added`, whatever saved it.
+- **Editing a saved quote's words** (2026-10-13): row 1 of every quote's page
+  is **Edit text ✎** → `EditQuoteText(id)` (dispatched via `_QMainfun`, since
+  the viewer process has no WritingBox; runs in the GuiHost) →
+  `_QEditQuoteText`: the "window" writing box, `set-text` only if changed, and
+  the before/after logged as a correction. **"edit quote"** (`EditLastQuote`)
+  opens that box on the newest quote directly, the fast path for trimming a
+  grab that took a whole sentence. The Miller does not refresh itself after an
+  edit made from it (different process); drill out and back in.
 - Two MAINFUN calls, so the first leaves what the save needs in
   `%TEMP%\grabtext_quote_meta.json` (`QuoteGrabMetaWrite/Read`). It holds the
   context ITSELF, not a path, so two "grab N" off one "make grab" both carry it.

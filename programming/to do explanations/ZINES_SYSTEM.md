@@ -1,8 +1,8 @@
 ---
 tags: [programming, zines, media, design-doc, scraping, art-viewer, affinity, new-tab]
 created: 2026-10-08
-updated: 2026-10-08
-related: ["[[ART_SYSTEM]]", "[[MEDIA_SYSTEM]]", "[[SPECIAL_TODAY]]", "[[DOWNLOAD_MANAGER]]", "[[ANNAS_ARCHIVE_PIPELINE]]"]
+updated: 2026-10-16
+related: ["[[DOCUMENT_TEXT]]", "[[ART_SYSTEM]]", "[[MEDIA_SYSTEM]]", "[[SPECIAL_TODAY]]", "[[DOWNLOAD_MANAGER]]", "[[ANNAS_ARCHIVE_PIPELINE]]"]
 ---
 
 # Zine library — design doc
@@ -84,6 +84,10 @@ Many distro PDFs are laid out for printing: two pages per landscape sheet in **s
 ## Zine of the Day (original note)
 
 `zine_library.py today --json` — deterministic per date (hash of the date), drawn from the library weighted by impact × taste, skipping buried and recently-shown zines. A row in `newtab_server.fetch_special`; clicking it opens that zine in the viewer.
+
+## Text versions (2026-10-16)
+
+Text-heavy zines can be read as TEXT in the reading room: say **`grab read`** in the viewer (`ReadZineText`; no key -- letter keys are Vimium's) opens the zine on screen there, on the same page. Pages stay the default. Built on the generic document-to-text engine -- see [[DOCUMENT_TEXT]] for how editions are made, the offer rule, the EPUB-first source order and the survey numbers.
 
 ## Voice (live 2026-10-08, generic store)
 

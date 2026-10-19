@@ -155,5 +155,7 @@ source is wired but silent until they are added (`people_sync.py set <id> birthd
   a birthday always outranks music, nearer first.
 - Nightly upkeep (Last.fm delta sync + `release_dates.py sync`) is not scheduled.
 - Catalog albums she has never played are not resolved.
+- **Poem of the day (built 2026-10-14):** two rows -- a stranger's poem and one of
+  hers -- see [[POEM_OF_THE_DAY]].
 - Future sources for the panel: journal entries / quotes from N years ago today,
   book finish dates from the completion log.

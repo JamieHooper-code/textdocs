@@ -385,6 +385,41 @@ Jamie picked the phrases (her reply replaced the recommended `read ...` / `see .
 
 ---
 
+## How the Doc sync works -- the plain version (written for Jamie, 2026-10-13)
+
+Two copies: the **store** (this computer, every version kept, backed up to GitHub on every save)
+and the **Google Doc**.
+
+**Saving here** (writing box, or a change in the poems menu):
+1. It goes into the store first, at once. Nothing on the Doc side can lose it.
+2. A few seconds later a background job opens the Doc through Google's API and finds the poem by its
+   heading (one job at a time).
+3. It checks the Doc still has exactly the text from the last sync. If she edited that poem in the Doc
+   since, it stops and flags it (Needs attention) instead of overwriting.
+4. It replaces the poem in place, or puts a new one at the top (new scraps: top of POETRY SCRAPS).
+5. It reads the whole Doc back and compares it with the store -- the proof the write landed. A
+   mismatch is flagged. A copy of the Doc is kept every time (`E:\Media\Poetry\doc_snapshots`, last 60).
+
+**Editing in the Doc:** comes into the store whenever the Doc is read -- after any send, on "sync
+poems", and every time the poems menu opens (background `check`, skipped if it ran in the last minute).
+Changed in BOTH places between reads = a conflict: the store keeps its version, nothing is pushed, she
+picks under Needs attention.
+
+**Never:** overwrites a Doc edit; deletes anything from the Doc except moving a piece whose kind she
+changed (exact text, found once); throws away a version.
+
+**How she knows:** the TOP ROW of the poems menu is always about the Doc --
+"✓ Doc in step · checked 9:53 AM" when all is well, "… Checking the Google Doc" while the
+open-menu check runs (the menu redraws itself when it finishes), or a ⚠ warning (login expired, sync
+failing, login expiring within a day) whose Enter fixes it. "⚠ Needs attention (N)" lists every piece
+out of step. A failed send also raises a clickable notification; the new-poem box repeats any warning.
+
+Implementation: `poem_doc_sync.py check` (records `checking` / `checked` in
+`INIDATA/poem_doc_sync_state.json`), `poems.py` counts row `docstatus`, `PoemsMenu.ahk`
+`_PmStartDocCheck` (launches it with pyw, polls the state file each second, `MillerActiveRefresh` on
+change). The script redirects stdout to `poem_doc_sync.out.log` BEFORE its imports when started without
+a console -- under pyw stdout is None and an import-time print killed the run with exit 1, silently.
+
 ## Doc sync fixes (2026-10-13)
 
 - **Menu edits push too.** `set-rank/-status/-special/-progress/-title/-text/-kind/add-tags/remove-tags`

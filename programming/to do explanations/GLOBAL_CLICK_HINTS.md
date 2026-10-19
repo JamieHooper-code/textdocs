@@ -1,11 +1,485 @@
 ---
-tags: [todo, ahk, uia, caster, voice, accessibility, hints, design-doc, overlay, numpad]
-related: ["[[GRAB_TEXT_ENGINE]]", "[[ALWAYS_ON_CONTEXT_DETECTOR]]", "[[VOICE_COMMAND_SYSTEM]]", "[[ANNAS_ARCHIVE_PIPELINE]]"]
-status: BUILT + in use 2026-07-27. Jamie confirms it works well (Signal "perfectly"). v1.1 adds prefix-dimming, Backspace-quit, and the Plex box fix (unconfirmed on Plex)
+tags: [todo, ahk, uia, caster, voice, accessibility, hints, design-doc, overlay, numpad, chrome-extension, dom]
+related: ["[[CHROME_VIDEO_CONTROL]]", "[[CHROME_BRIDGE_EVENTS]]", "[[GRAB_TEXT_ENGINE]]", "[[ALWAYS_ON_CONTEXT_DETECTOR]]", "[[VOICE_COMMAND_SYSTEM]]", "[[ANNAS_ARCHIVE_PIPELINE]]", "[[UIA_RECORDER_AND_CODEGEN]]", "[[LOCAL_APP_HUB]]"]
+status: REBUILT 2026-10-15 -- sayable stable numbers, voice/keys modes, always-on click journal, make record = a marked stretch of it. Chrome now numbers from the DOM via the AHK Macro Bridge extension (built 2026-10-15). Recording -> macro codegen built 2026-10-15 (recorded_macro.py + RecordedMacroStep). v1 (2026-07-27) history below.
 created: 2026-07-27
 ---
 
 # Global Click Hints — "make click"
+
+## 2026-10-15 rebuild — read this first
+
+Jamie never used v1: the numbers were ugly and high. v1 labels were prefix-free
+one-handed pairs (11-15, 21-25 ... 66-60), then triples like `155`. They were
+built for typing on the split keyboard and were terrible to SAY. The local pages'
+jump labels (kit.js, 1-30 in reading order) showed what she actually wants.
+Speech is atomic, so voice never needed prefix-freeness.
+
+**Numbers.** Plain 1..N in reading order. Typed digits COMMIT ON ENTER (voice
+sends digits + Enter, see `click_hints_active_commands.py`). `0` still never
+starts a number, so the 00-05 control codes are unchanged. Not capped (Jamie:
+no hiding past 40).
+
+**Stable** (`_CHAssignNumbers`, pinned by `Helpers/Tests/test_click_hints_numbers.ahk`).
+Fingerprint = type|name|AutomationId; a coarse 40px position is used only when
+name and AID are both blank, and duplicates get `#2`, `#3` in reading order.
+Three passes:
+1. Session memo: anything still on screen keeps its number.
+2. Remembered: an element clicked at least twice in this exe gets its old number
+   (`click_numbers.json`).
+3. Fill: everything else takes the lowest free number.
+
+The CURRENT holder of a number owns it: when something else takes a vanished
+element's number, the vanished element's memo entry is dropped, so it can never
+come back and steal the number.
+
+**Runs until dismissed; follows her** (fixed the same evening). In the Claude app
+the overlay quit after every first click, because the click left focus in the
+chat box and v1 exited whenever focus landed in a text field. Now:
+- There's no exit on a text field and no inactivity timeout. Only Esc, Backspace
+  or Delete end it.
+- The keyboard digit/Enter hotkeys step aside while a text field has focus, so
+  typing still works. They're gated on a cached `CH_IN_TEXT` flag, kept off the
+  keyboard hook because a UIA call there could stall typing.
+- Voice picks arrive by window message instead of keystrokes:
+  `PostMessage(0x8001, n, action)` to the ClickHintsBar window, handled by
+  `_CHOnVoiceMsg`. A number said mid-rescan waits for the scan to finish rather
+  than being dropped.
+- A 300ms watcher (`_CHWatch`) rescans when the foreground window changes, so
+  the numbers follow her across apps. It stands down while a click is running.
+- Verified live: pick by message, click into a text box (overlay stays, typed
+  "42" lands in the box), switch windows (rescans and keeps going), quit by message.
+
+**Two modes.**
+- `make click` = voice: numbers only. No letter hotkeys are registered, so typing
+  still works.
+- `make click keys` = a number plus two letters on each badge ("12 SD"). Say the
+  number or type the letters. Letters are DERIVED from the number (the Nth pair
+  of the left-hand alphabet), so they're just as stable, and they fire immediately.
+
+Parked: two-character labels like "6 Bravo" for very high numbers (Jamie: revisit
+if needed).
+
+**Look.** Same badge as kit.js `.kit-jl`: a dark pill (16161C) with a faint warm
+edge and cream semibold text. The font is Segoe UI because Atkinson isn't
+installed system-wide. The typed exact match turns amber (`.kit-hit`); badges
+that can no longer match dim.
+
+**Click journal — always on.** Code: `Helpers/ClickHints/ClickJournal.ahk`.
+Store: `Cfg.MacroData\click_journal\`, on the SSD on purpose because it writes
+on every click. Each session's `events.jsonl` has two kinds of line:
+- `scan`: every numbered element (n, letters, fp, type, name, aid, rect), plus a
+  JPEG of the window WITH the badges. The status bar is hidden for the capture.
+- `pick`: read BEFORE the click. It holds:
+  - the element's properties and its parent path (live, up to 12 levels);
+  - `selector_matches`: how many raw elements share its Type+Name+AID (1 = safe);
+  - up to 8 lookalikes (same name or AID), each with its own path;
+  - a clean, badge-free close-up.
+
+  Measured cost: about 16ms per pick.
+
+`Scripts/click_journal/click_journal.py` is the ONLY reader:
+- `stats`: what she clicks most.
+- `prune`: deletes journal shots older than 7 days. It runs once a day, detached,
+  from the first overlay of the day.
+- `list`, `payload`, `selftest`.
+
+Only overlay activity is journaled. There's no global keylogging outside "make record".
+
+**make record** (`Helpers/UIAClickRecorder.ahk`) is now a MARKED STRETCH of the
+journal.
+- First "make record": `record-start` writes `click_journal\recording.json` (the
+  bar shows ● REC). It then starts `UIAClickRecorderHost.ahk embedded` to catch
+  keys, typing, taps and macros outside the overlay, and opens click hints.
+- Second "make record": stops that host and closes the overlay. `record-stop`
+  copies the steps and pictures into `MacroData\recordings\<id>\` (recording.json
+  schema 1, `payload.md`, and `step_NN_before.jpg / _target.png / _after.jpg`).
+  The payload goes on the clipboard and into the Claude slot.
+
+For each step the payload gives:
+- the selector, marked "unique" or "!! NOT UNIQUE -- N on screen";
+- the parent path and lookalikes;
+- what appeared, what disappeared, and any title change.
+
+Verified live: a Spotify "Fleet Foxes" link reported 13 matches, plus the
+`complementary "Now playing bar"` anchor that tells them apart. That is exactly
+the data whose absence caused the account-switch trial-and-error.
+
+**Recording -> macro (built 2026-10-15).**
+`py Scripts/click_journal/recorded_macro.py build last <Name>` does a dry run;
+add `--write` to save. It writes the steps to `INIDATA/recorded_macros/<Name>.json`
+and makes a Key Action whose steps all call ONE runner, `RecordedMacroStep`
+(`Helpers/RecordedMacroRunner.ahk`). Each step:
+- finds the element by its selector;
+- uses the path anchor when the step was NOT UNIQUE;
+- waits for the elements that appeared as its result check;
+- logs every signal.
+
+A Chrome DOM pick becomes a `dom_click` step that carries the CSS selector. When
+a step fails, the runner writes a dump shaped like a recording step and puts it
+on the clipboard and in the Claude slot. The macro is a normal function, and
+voice phrases are only offered. Full design: [[UIA_RECORDER_AND_CODEGEN]]
+§ "Stage 5".
+
+Two journal facts the codegen depends on:
+- A recorded UIA name can be a BORROWED label. `_CHDeriveNames` writes a
+  heading's text onto an unnamed card, and the journal records that label. The
+  runner falls back to "an unnamed element of that type containing that heading".
+- `other_activity` rows now carry `kind` + `value`, the exact typed text and key
+  combo. The `text` line is truncated, so it can't be replayed.
+
+## Chrome extension — DOM hints (built 2026-10-15)
+
+In Chrome, "make click" numbers the page from the **DOM** instead of UIA. The
+DOM knows what UIA guesses at: what is really on top, the URL, hrefs, aria
+labels, and a CSS selector that can be checked unique. Everything outside
+Chrome, and Chrome's own tabs/toolbar ("00 wider"), still uses UIA unchanged.
+
+**Pieces.**
+- Extension: `AutoHotkey/ChromeExtensions/macro-bridge/` ("AHK Macro Bridge",
+  MV3, unpacked). `content.js` does the page work; `background.js` routes.
+  The `key` in `manifest.json` pins the id to `kajmlamcgkjcifcmmnajgmfnnckcnoea`
+  wherever the folder is loaded from.
+- Native host: `Scripts/chrome_bridge/bridge_host.py`, registered by
+  `install_bridge.py` (HKCU NativeMessagingHosts `com.jamie.ahk_bridge`;
+  `install_bridge.py check` verifies).
+- AHK client: `Helpers/ChromeBridge.ahk` (`ChromeBridge_Call(op, args, title)`,
+  diagnostic `MAINFUN.bat ShowChromeBridgeStatus`).
+- Click-hints DOM mode: `Helpers/ClickHints/ClickHintsDom.ahk`, loaded by the
+  host next to the engine. `CHRescan` asks `_CHDomWanted` first, and anything
+  that doesn't fit falls through to UIA.
+
+**Transport: a native-messaging host that also listens on 127.0.0.1:8299.**
+```
+AHK --POST /cmd--> bridge_host.py --stdio--> background.js --tabs.sendMessage--> content.js
+```
+Why not a plain localhost server like the viewers: an MV3 service worker
+can't accept an inbound connection, and it SLEEPS after about 30s idle. A
+server would need the worker to poll or hold a socket open, and nothing wakes
+it when AHK asks.
+- `connectNative()` solves both. Chrome launches the host with a private stdio
+  pipe, and an open native port keeps the worker alive (Chrome 105+).
+- Chrome starts and stops the host with the browser, so there's no daemon to
+  start, babysit or restart. A once-a-minute alarm, and every page load,
+  reconnect it if it dies.
+- The host's HTTP side follows `local_viewer.py`'s rules exactly. `POST /cmd`
+  is served only with the server's own Origin, which AHK names itself, the
+  same as `LocalViewer_Post`. `GET /status` is the only read. Any website can
+  reach localhost, but none can forge Origin.
+
+The host knows nothing about click hints. It forwards `{op, args, title}` and
+returns the answer. **A new DOM feature is a new op in content.js plus an AHK
+caller, never a host change.** That's what makes this "the extension space"
+for macros, not a one-off.
+
+**Second feature: video control** (2026-10-18). Play, pause, seek, speed,
+volume, mute and captions on whatever video is playing, with Chrome in the
+background, via ops `media.state` / `media.do` sent to the AUDIBLE tab. Its
+own doc: [[CHROME_VIDEO_CONTROL]].
+
+**What stays in AHK, on purpose.**
+- The keyboard. The global digit / Enter / Esc hotkeys mean neither the page
+  nor Vimium ever sees a digit, so kit's Ctrl+Alt+Shift+F9 off-screen-input
+  trick isn't needed here.
+- The ClickHintsBar, so the Caster scope
+  `window_exists(title="ClickHintsBar")` is untouched. Voice works with no rule
+  change: bare "N", plus right / double / hover / middle.
+- The numbering. DOM hints go through the same `_CHAssignNumbers`: same
+  fingerprint (type|name|AutomationId, where AutomationId = the DOM id), same
+  session memo, same "current holder owns it" rule. Remembered numbers are
+  keyed **per site** (`chrome:<host>` in `click_numbers.json`), not per
+  chrome.exe.
+- The real mouse click and the journal.
+
+The extension only scans, draws and describes. Ops: `scan`, `draw`, `prefix`,
+`state`, `pick`, `pointer`, `domclick`, `hide`, `clear`, `ping`, and for recorded-macro replay `query` (match count through `host >> inner`) and `selectorclick` (click exactly one match; a middle click on a link opens a background tab via the service worker).
+
+**Scan rules (content.js).**
+- Candidates:
+  - real controls: links, buttons, inputs, select, summary, `label[for]`;
+  - ARIA roles (button, link, tab, menuitem, option, checkbox, …);
+  - `[onclick]`, `tabindex >= 0` and contenteditable;
+  - the outermost `cursor:pointer` element, for JS-bound divs.
+- Open shadow roots are searched too.
+- Dropped:
+  - disabled or invisible elements (`checkVisibility`);
+  - anything off screen;
+  - anything inside a stronger control;
+  - a wrapper the same size as its child;
+  - anything NOT ON TOP: `elementFromPoint` at the centre and two corners must
+    land on it, which drops things under sticky headers and modals.
+- Order is kit.js `readingOrder`: rows by top with half a row of tolerance,
+  then left to right.
+- "Name" approximates UIA's Name: aria-label → aria-labelledby → label /
+  placeholder → innerText → img alt → title.
+
+**Look.** The badges are the kit `.kit-jl` CSS verbatim (amber `.hit` for the
+exact typed match, plus a dim `.dead`).
+- They live in a closed shadow root, so page CSS can't restyle them, on a
+  `pointer-events:none` layer, so they never eat a click.
+- They straddle the top-left corner on short controls and sit inside tall ones.
+- Dense rows slide right out of a collision.
+- They follow their elements on scroll.
+- On a local page, kit's own jump labels are hidden while the hints are up.
+
+**Re-renders.**
+- content.js marks itself dirty after a DOM mutation, scroll or resize, once
+  the page has been quiet for 150ms.
+- The host polls `state` every 400ms (`_CHDomPoll`) and rescans when dirty.
+  Survivors keep their numbers, and new things take the lowest free ones.
+- An identical signature skips the redraw, so a ticking clock doesn't make the
+  badges flicker.
+- After a click, the same stability rule as UIA applies: two identical scans
+  in a row, and different from before the click.
+
+**Aiming: verified, never trusted.** The page reports CSS-px rects. The
+viewport's screen origin is worked out from the window rect plus
+innerWidth×devicePixelRatio (dpr includes zoom; the viewport sits at the
+bottom between equal side borders). That is pure and tested
+(`_CHDomOriginFrom`).
+- On every pick the real pointer moves there and content.js reports what the
+  `pointermove` landed on.
+- On a miss, the offset is learned from where it actually landed, and the
+  pointer tries once more.
+- If it still misses, a left click falls back to `el.click()`, logged as
+  `ClickHints/dom`. A bad guess (docked devtools, odd frames) can't click the
+  wrong thing.
+- Chrome's `Chrome_RenderWidgetHostHWND` children were checked as a source for
+  the origin, and rejected: on Chrome 155 every one of them is invisible with
+  stale coordinates.
+
+**Journal: the same event shape, plus DOM fields.** `scan` lines gain
+`source: "dom"` and `url`, and each hint gains `tag` / `href` / `text` /
+`aria_label` / `role`. A DOM `pick` line (`_CJPickDom`) has the same keys as a
+UIA pick, plus:
+- `url`;
+- `element.selector`: a robust CSS selector built at pick time. It tries
+  stable `#id`, data-testid / name / aria-label / title / placeholder, then
+  `a[href]`, then walks up adding tag + stable classes + `:nth-of-type` until
+  it's unique. Machine-made classes (`css-1x9q2zd`, `sc-…`, hashes) and
+  generated ids are never used.
+- `selector_matches`: `querySelectorAll` count at that moment, 1 = unique;
+- `name_matches`: how many clickables share its type+name;
+- `element.text` / `href` / `aria_label` / `outer` (outerHTML, 300 chars);
+- `path`: DOM ancestors as tag / id / stable classes / landmark role;
+- lookalikes: same name+type or same href, each with its own selector, href
+  and path.
+
+Shadow-DOM elements get `host >> inner` (Playwright notation). `click_journal.py`
+renders all of it: `css: … -> unique`, url, href, aria-label, html, a CSS-ish
+path, lookalike selectors, and `url -> …` as a result. Its `selftest` covers
+it.
+
+**Setup (once, done 2026-10-18).**
+1. `py Scripts/chrome_bridge/install_bridge.py` registers the host and checks
+   it the way Chrome sees it (see the packaged-app trap below).
+2. chrome://extensions → Developer mode → Load unpacked →
+   `AutoHotkey\ChromeExtensions\macro-bridge`. Chrome 137+ ignores
+   `--load-extension`, so this first load is the one manual step.
+3. Check it with `MAINFUN.bat ShowChromeBridgeStatus`.
+
+**Managing it without touching chrome://extensions** (`Helpers/ChromeBridgeManage.ahk`):
+- `MAINFUN.bat ChromeBridgeReloadExtension`: after ANY edit to the extension.
+  It asks the extension to reload itself (`ext.reload`, answered by the service
+  worker). If the bridge is down, it real-clicks the extension's own Reload
+  button (`#dev-reload-button`; matched by AutomationId because Chrome's
+  toolbar Reload has the same name). Either way it waits for a NEW host pid,
+  and returns true when one connects.
+- `MAINFUN.bat ChromeBridgeReloadTab`: reloads the front tab so it gets the new
+  content.js.
+- `MAINFUN.bat ChromeBridgeStatusPage`: opens `status.html` (the extension's own
+  diagnostics page) and reads it through UIA into
+  `%TEMP%\chrome_bridge_status.txt`. It shows connected or not and **the last
+  error Chrome gave for the native host**. It works when the bridge is down,
+  which is when it's needed.
+- `MAINFUN.bat ChromeBridgeExtensionErrors`: copies the extension's error list
+  into `%TEMP%\chrome_bridge_errors.txt`.
+
+**Traps.**
+- **The packaged-app registry trap (cost the first live run, 2026-10-18).**
+  `install_bridge.py` was run from a shell inside the Claude desktop app, an
+  MSIX package. Its `winreg` write to HKCU landed in the package's PRIVATE
+  registry. Reading it back from the same shell said it was there, but Chrome
+  couldn't see it, and the extension looped on "Specified native messaging
+  host not found" (71 reconnects).
+  - That is also why Anthropic's own host manifest lives under
+    `Packages\Claude_…\LocalCache`.
+  - The installer now writes and checks the key with a .bat launched through
+    `explorer.exe`, which runs outside any package. Never go back to `winreg`
+    there.
+  - The same applies to ANY HKCU write meant for another program, made from a
+    Claude desktop shell.
+- **"Connected" means the host answered.** The service worker used to mark
+  itself connected as soon as `connectNative()` didn't throw. A missing host
+  fails asynchronously, so the host now sends `hello-ack`, and only that sets
+  connected and resets the reconnect backoff.
+- **A FocusChromeTab URL match is a substring match.** The status page is
+  matched on `status.html`, never the extension id: the chrome://extensions
+  details tab has the id in its URL too, and got "focused" instead.
+- **Stale code.** Chrome holds `bridge_host.py` and the service worker for
+  the life of the extension. Run `ChromeBridgeReloadExtension` after editing
+  anything here, then `ChromeBridgeReloadTab`. The content.js guard lets a
+  fresh copy replace an orphaned one after a reload.
+- **chrome:// pages, the Web Store and PDFs can't be scripted.** The bridge
+  answers "restricted page" and UIA takes over.
+- **Iframes aren't numbered yet** (top frame only).
+- **Two Chrome profiles** each start a host. The first one to bind :8299
+  serves AHK, and the other idles (logged).
+- If the bridge doesn't answer, DOM mode backs off for 20s
+  (`CH_DOM_DOWN_AT`), so a closed Chrome never makes "make click" wait on it.
+- **New page, numbering.** On a URL change, `_CHDomForgetPositional` drops
+  session numbers that only meant "the 2nd 'edit' link" or "whatever was at
+  this spot". Kept, they scattered the new page's numbers: a Talk page's
+  section "edit" links came up as 36 / 81 / 92 instead of following reading
+  order. Uniquely named things (Search, Article, Talk) keep their numbers
+  across pages.
+
+**Live test (2026-10-18, Chrome 155, portrait right monitor).**
+- Wikipedia "AutoHotkey": 102 hints, DOM scan in 78ms.
+- Picking 7 ("Talk") by the voice channel: the real pointer hit on the first
+  try, with no aim correction and no DOM-click fallback. The page changed and
+  was renumbered (64 → 67 hints as it settled), and Article / Talk / Read /
+  Edit kept 6 / 7 / 8 / 9.
+- A `make record` of one pick on section "edit" #81 produced:
+  - `css: a[title="Edit section: Error in script?"] -> unique`;
+  - "3 clickables share its type+name";
+  - two lookalikes with their own selectors and hrefs;
+  - a CSS-ish path;
+  - `url ->` the edit page;
+  - a target crop exactly on the link.
+- Quit through the voice channel cleared the badges (`state.hasBadges = false`).
+
+**Replay ops for recorded macros** (asked for by the recording→macro session):
+- `query {selector}` → `{ok:1, count}` (+ name / type / rect when count is 1).
+  `host >> inner` pierces shadow roots.
+- `selectorclick {selector, action}` clicks only when exactly one element
+  matches, and otherwise returns `{ok:0, count, error}`. A middle click on a
+  link opens a background tab through the service worker.
+- Caller: `Helpers/RecordedMacroRunner.ahk`.
+
+**Testing.**
+- Pure: `Helpers/Tests/test_click_hints_dom.ahk` covers the origin math,
+  CSS→screen scaling, numbers staying stable across a rescan with a new
+  element above, remembered numbers being per site, and the new-page forget.
+- Page: `ChromeExtensions/macro-bridge/test/fixture.html` has every awkward
+  shape (3× "Reply", a fixed header, a cursor:pointer div, a shadow-DOM
+  button, generated classes, disabled, off-screen).
+- Host: `bridge_host.py --selftest` (framing + origin rule).
+
+### Tab facts and URL events (built 2026-10-18)
+
+This replaces three UIA workarounds for reading Chrome. UIA shows every tab's
+NAME, but a URL only for the SELECTED tab, and only through the address bar.
+A fullscreen video has no address bar, so the old fallback was Ctrl+L, which
+flashes and drops her out of fullscreen. Reading the audible tab's URL meant
+selecting it first. The extension sees every tab's url, title and audible
+state directly.
+
+**Service-worker ops** (answered in background.js; no content script, so they
+work on any page, chrome:// included):
+- `ext.active {title}`: the active tab of the window AHK names, matched the
+  same way as every other op (`pickTab`).
+- `ext.tabs`: every tab, plus the focused window id.
+- `ext.focus {url, title, focusWindow}`: select the first tab whose url (else
+  title) contains the text, case-insensitive, in ANY window. It does not raise
+  the window: AHK does that (below).
+
+**AHK side, callers unchanged** (`Helpers/ChromeBridge.ahk` holds the client
+functions and the pure pickers):
+- `ChromeCurrentUrl()`: bridge (`ChromeBridgeActiveUrl`), then
+  `ChromeActiveAddress`, then Ctrl+L. It targets the foreground Chrome window
+  by its title.
+- `ChromeActiveAddress()`: the pushed snapshot (a FileRead), then UIA. It still
+  uses raw `WinActive`, and the snapshot reader calls nothing context-related,
+  so the DetectContextChain no-recursion rule holds.
+- `FocusChromeTab()`: `ext.focus` selects the tab, then
+  `_CBChromeHwndForTabTitle` finds its window by title across desktops and
+  `_FocusChromeWindow` raises it. That keeps the virtual-desktop pull, which
+  Chrome's own `windows.update({focused})` can't do. That call is only the
+  fallback when no hwnd matches. If the bridge doesn't answer or finds no match,
+  the old UIA passes run, so tabs in incognito or another profile are still found.
+- `ChromeAudibleTab()`: the soundtrack tab's url without selecting it. Same
+  rule as before: audible and not muted, and an ambience-titled tab wins.
+  "grab music" in Kindle and the reading room now leaves focus where it was.
+  `ChromeSelectAudibleTab` is the no-bridge fallback.
+
+> **Superseded 2026-10-18 by the generic event layer:** this push is now topic
+> `tabs`, the snapshot lives in `MacroData\chrome_events\state\tabs.json` and
+> the detector subscribes with `ChromeBridge_On("tabs")`. The reasoning below
+> still holds. See "Events" just after this section and [[CHROME_BRIDGE_EVENTS]].
+
+**URL events: pushed snapshot + a posted window message.** On
+`tabs.onActivated` / `onUpdated` (url, title, audible, load complete) /
+`onRemoved` / `windows.onFocusChanged`, the extension sends `{kind:"tabs"}`,
+debounced to 40 ms. The snapshot holds each window's active tab, the audible
+tabs and the focused window. bridge_host.py:
+1. writes it atomically to `%TEMP%\chrome_bridge_tabs.json` with its own pid;
+2. when the focused window's (windowId, tabId, url) changed, PostMessages
+   `AHK_ChromeBridge_TabChange` to Parent.ahk's hidden window. Parent hosts the
+   detector.
+
+The detector (`_CtxDetector_OnChromeUrl`) schedules a tick that re-detects
+WITHOUT force. Observers only hear about a real chain change (logged as reason
+`chrome-url`), and the url comes from the snapshot rather than UIA.
+
+Why this delivery:
+- **A message is the event and the file is for reads.** A flag file nobody
+  is woken to read is a poll by another name (process-traps.md "Prefer events
+  over polling").
+- **The existing `CtxDetector_Notify` was not reused:** a notify FORCES a
+  fan-out, which would rebind passthrough on every YouTube navigation.
+- **What this adds:** the title-change WinEvent already caught tab switches.
+  What it missed was a url change under an unchanged title (SPA routes,
+  same-title pages).
+
+Guards:
+- The snapshot is ignored when its host pid is dead, so a stale file can't
+  pin a context.
+- It is matched to the foreground window by title: an exact match, or the tab
+  title followed by `" - "`, with the longest title winning. A miss (the title
+  changed before the snapshot did) falls through to UIA.
+- The 2 s backup poll and the UIA read are unchanged.
+
+**Verified live 2026-10-18:**
+- A fullscreen YouTube tab returned its URL with fullscreen still on before
+  and after (`ShowChromeTabFacts`).
+- A background audible tab's URL was read without selecting it.
+- `FocusChromeTab` worked across two Chrome windows: an already-selected tab,
+  a background tab in the other window (selected and raised), and the
+  no-match fallback to UIA.
+- example.org → `#bridgetest` → `#other` (same title "Example Domain") flipped
+  a temporary url context both ways with reason `chrome-url`.
+- Not tested live: a Chrome cloaked on another virtual desktop. That path is
+  the unchanged `_FocusChromeWindow`.
+
+**Tests:**
+- `Helpers/Tests/test_chrome_bridge_tabs.ahk`: title matching, longest/tie
+  pick, and the audible pick (mute, ambience).
+- `bridge_host.py --selftest`: focus key and atomic snapshot.
+
+**Diagnostic:** `MAINFUN.bat ShowChromeTabFacts` → `%TEMP%\chrome_tab_facts.txt`.
+
+### Events: listening to Chrome (built 2026-10-18)
+
+Everything the extension pushes goes through ONE generic layer: the shape
+`{topic, data, at, tab}`, a day log
+`MacroData\chrome_events\<date>.jsonl`, the latest event per topic, and live
+delivery to AHK (`ChromeBridge_On(topic, fn)`) and Python
+(`GET /events?since=`).
+
+Topics:
+- `tabs` (the push above, migrated);
+- `page.ready` (load + SPA routes, once the DOM settles);
+- `media` (play / pause / ended / rate / seek);
+- `download` (feeds the download manager);
+- `input.focus` (click hints uses it instead of the UIA text-field guess).
+
+Rule: new data = a new topic, never a bespoke push. Full design, data shapes
+and tests: [[CHROME_BRIDGE_EVENTS]].
+
+---
+
+## v1 (2026-07-27) — original design, kept for history
 
 Say **"make click"** (or hit a hotkey). Every clickable thing on screen gets a number
 badge. Type the number — no Enter — and it clicks, then re-scans and re-labels. Loops

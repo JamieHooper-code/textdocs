@@ -1,7 +1,7 @@
 ---
 tags: [programming, journal, caster, ahk, chatgpt, writing, media-system]
 created: 2026-09-03
-related: ["[[JOURNAL_SYSTEM]]", "[[QUOTES_SYSTEM]]", "[[EXPORT_SYSTEM]]", "[[MEDIA_SYSTEM]]", "[[JOURNAL_SOURCES]]"]
+related: ["[[QUESTIONS_SYSTEM]]", "[[NEW_TAB_PAGE]]", "[[JOURNAL_SYSTEM]]", "[[QUOTES_SYSTEM]]", "[[EXPORT_SYSTEM]]", "[[MEDIA_SYSTEM]]", "[[JOURNAL_SOURCES]]"]
 ---
 
 # The journal question loop
@@ -359,8 +359,12 @@ regressed was the two commands drifting into two implementations.
 | `grab questions` | newest reply's questions → clipboard + the entry it came from + the writing box |
 | `grab questions here` | same, into the NEWEST entry, no matching — the escape hatch |
 | `see questions` | clipboard only, nothing written |
-| `make answers` | newest round + her answers → back into the conversation, staged not sent |
+| `grab answers` (also `make answers`) | every answered, not-yet-sent question + answer → back into the entry's own conversation, staged not sent |
+| `journal prompt` | today's unanswered question, opened in the writing box |
 | `add prompt` | the selection / the reply's questions / an entry's rounds → the quote store as prompts |
+| `star question <n>` (also `star <n>`, `mark question <n>`) | question n's affinity +1 (shown as stars on its line). In the writing box or on the entry's chat |
+| `unstar question <n>` (also `unstar <n>`) | affinity −1 (through zero = buried) |
+| `open special questions` (also `show special questions`) | the journal opened on every question at affinity 1+ |
 
 All four live in `journal_commands.py` with the `grab chat` family — same engine,
 same store, same global scope. `make answers` rather than `send answers` because
@@ -388,7 +392,11 @@ gets this; for a single-line prefill the two are identical.
 
 - `journal.ask_recall_hours` (12) — how long after "ask an AI about this" a
   grabbed round still assumes it belongs to that entry.
+- `journal.ask_auto_read` (on) — grab read by itself once the reply is finished.
+- `journal.ask_reply_wait_minutes` (8) — how long that waits for the reply.
 - `journal.questions_open_editor` (on) — land in the writing box after grabbing.
+- `questions.affinity_weight` (1.5) and `questions.rest_days` (7) — how
+  starred questions are favoured by the daily prompt. See [[QUESTIONS_SYSTEM]].
 
 ## Files
 
@@ -478,3 +486,265 @@ Tests: `Helpers\Tests\test_prompt_capture.ahk` (pure) pins the split rules,
 because every row becomes a separate quote and both failure modes are silent —
 one paragraph arriving as eight prompts, or eight questions arriving as one wall
 of text. Both look plausible in the tooltip.
+
+
+## Answers as data, the daily prompt, and linking at the source (2026-10-13)
+
+Jamie asked for three things in one go, and they share one idea: **the questions
+and her answers are data now, read back out of the entry bodies.**
+
+### The question bank — `Scripts\journal\journal_questions.py`
+
+Her answers were never stored as answers. She types them under each question in
+the writing box: sometimes `A: …`, sometimes just paragraphs, sometimes nothing.
+The body stays the source of truth (she edits it like any other entry), and the
+parser reads it back into question / answer pairs **on every read**. Nothing is
+stored, so nothing can drift. That's the same reasoning as the check-in answers
+(`checkin_refresh`), and it's how "convert the Q&A to the check-in system" was
+done: the same *derived* model, not the same text format.
+
+Rules, measured against all 15 entries with rounds (160 questions, 13 answered):
+
+| Shape | Read as |
+|---|---|
+| `A:` / `Answer:` at the start | dropped, it's furniture |
+| paragraphs under a question | its answer, however many |
+| a numbered line in her answer (`1. meditate`) | still her answer. A question needs the NEXT number AND a `?` |
+| `### Afterward` | ends the answer, labels the questions after it (`section`) |
+| text after `---` | her reply to the whole round, NOT the last question's answer |
+| `CHATGPT QUESTIONS:` (hand-pasted, pre-rounds) | a round; takes the next free round number |
+
+A question's id is `<entry id>#r<round>q<n>`. Its **importance is its entry's**
+(`importance`, set by `rate: N`), so a question from a 10/10 entry is a 10/10
+question. `journal.py questions [--unanswered] [--entry X] [--json]` is the
+backend anything else can read.
+
+**Answered** = her writing under it is non-empty, OR an entry written from it as
+a journal prompt (below) has writing in it.
+
+### "grab answers"
+
+Replaces what "make answers" did (that phrase is kept and now does the same):
+
+- **Only answered questions, each sent once.** `answers_sent` on the entry holds
+  `{question key: hash of the answer}`. Saying it again sends only what's new or
+  rewritten (the hash ignores whitespace). Unanswered questions are never sent.
+- **The whole question and the whole answer**, `**Round 2, question 3: …**` then
+  the answer. The chat may be days old, and "#3" alone would make it scroll back.
+- **From the writing box, unsaved.** If the edit box is in front on an entry
+  (proved the way "remind this" proves it: the box's state file + the foreground
+  process), its live text is read from the Edit control. Answer, then send, with
+  no save in between.
+- **Into THAT conversation.** `chat_conversation_id` → focus its tab (or open
+  it), and wait until the front ChatGPT window's address really shows that id
+  before typing anything. Not linked and no ChatGPT in front = clipboard only.
+- Staged, never submitted. `answers-to-send` / `answers-mark-sent` in journal.py;
+  marked sent only after the paste lands.
+
+### Linking the chat when it's created
+
+`AskAIAboutEntry` now ends with `JQWatchForChatLink(id, prompt)`. A new chat has
+no id until the first message is sent; the moment she presses Enter, ChatGPT
+moves the tab to `chatgpt.com/c/<id>`. The watcher polls that window's address
+bar by UIA (never Ctrl+L) every 1.5s for up to `journal.ask_link_wait_seconds`
+(540, under the 10-minute reaper), then calls `set-chat-url`.
+
+**A candidate is verified, not assumed.** She can switch tabs before sending, so
+the conversation's first message is fetched (`ChatGptApiFetch`) and has to start
+with the standing prompt. With no API, an id is accepted only if no entry owns it
+yet. Rejected ids are skipped, not re-checked. `Journal/asklink` lines in
+`ahk_event.log` say what it did. A second "ask an AI" replaces the watcher
+(`MainfunClaim("askai")`).
+
+**The link has to be VISIBLE, not just stored** (fixed the same evening). The
+first live run linked correctly, and the log said so, but `set-chat-url` only wrote
+`chat_conversation_id`, which shows nowhere. The link a reader sees (`links`)
+and the `ai-conversation` form had only ever come from a captured chat's
+segments, so the entry looked unlinked. `set-chat-url` now also stores
+`chat_url` (which `collect_links` includes, so it survives every later write)
+and ADDS `ai-conversation` to the forms, keeping a manual form like `ifs`.
+The chat's TEXT still arrives only with "grab chat".
+
+Everything later (grab questions, grab chat, grab answers) resolves by this id,
+so the "which entry was this?" guessing is gone for any chat started this way.
+
+### The automatic grab read once the reply is finished (2026-10-18)
+
+Jamie: after "ask an AI about this", once ChatGPT has finished, do a grab read
+on its own. So once the link lands, the same dispatch goes on to
+`_JQAutoGrabRead(id, cid)` (JournalQuestions.ahk):
+
+- **It waits for FINISHED, not started.** `JQWaitForFinishedReply(cid, maxMs)`
+  polls `ChatGptApiFetch` every 3s and returns only when the last message is the
+  assistant's, its status is `finished_successfully`, and the whole transcript is
+  identical on two polls in a row. The same test `ReaderChatReplyWait` uses.
+  Grabbing early stores half a reply, and append-chat (which matches turns on
+  text) would later add the full one as a SECOND turn. Reusable for anything
+  else that must not grab early.
+- **It reads the API, not the screen.** She may switch tabs or desktops while
+  it writes, and `GrabChatTranscript` reads whatever chat is in front.
+  `JQApiCapture` puts the API result into GrabChatTranscript's shape.
+- **Then it does exactly what "grab read" does to an entry's own chat.**
+  `_JGrabChatIntoEntry(src, res, read)` (JournalCapture.ahk) was split out of
+  `GrabChatToJournal` so both share it: attach the chat, add every question round
+  (no prompt, see below), open the entry, open the chat in the reading room.
+- `MainfunKeepAlive` keeps the reaper off the wait. Never finished =
+  `Journal/autoread` "gave up" in `ahk_event.log` and a tooltip saying to "grab
+  read" by hand. A second "ask an AI" still replaces it (`MainfunClaim("askai")`).
+- Settings: `journal.ask_auto_read` (on) turns it off; `journal.ask_reply_wait_minutes`
+  (8) is how long to wait after the link.
+- Verified as a dry run, no message sent: the wait returned "" on a bogus
+  conversation and the finished result in ~4s on a real finished one; the grab into
+  a scratch entry attached 2 turns, added the 7 questions as round 1 and opened
+  the reader on the reply. The scratch entry was then removed.
+
+### The daily journal prompt (new tab)
+
+[[NEW_TAB_PAGE]] has a **Journal Prompt** panel (`journal_prompt` source):
+
+- `journal.py question-daily`: one **unanswered** question a day, a weighted draw
+  (`1 + max(0, importance − 5)`, so unrated = 1 and a 10 = 6), preferring ones
+  never offered before. It's the same question all day, including after she
+  answers it, so the row can show `answered ✓`. State lives in
+  `INIDATA\journal_prompt_daily.json` (which question each day + swaps); the draw
+  is seeded by the date, so losing the file still gives the same question.
+- **Click** → `OpenJournalPrompt <id>` → the writing box opens with
+  `Prompt: <question>` / `From: <entry> (<date>)` at the top. The entry carries
+  source `{kind: "question", question_id}`, and **saving it IS answering it**:
+  there's nothing to tick. Those two header lines are not counted as the answer.
+- **↻ a different question** is a panel *write* (`op: reroll`), so the panel
+  redraws from the server's re-read straight away. A swapped-out question is
+  remembered and not offered again that day.
+- Voice: **"journal prompt"** opens today's.
+
+Tests: `Scripts\codebase_tools\tests\test_journal_questions.py`.
+
+### Question / answer pairs, walked with "go next" (2026-10-13)
+
+A round used to land as a list of questions with one blank line between them,
+and she had to move between them by hand. Every question now gets an answer
+blank, the check-in convention:
+
+```
+1. What am I afraid of?
+
+A: 
+
+2. ...
+```
+
+**"go next" (`GuiGoToNextBlank`) is the navigation**, the same command she
+uses in check-ins. It stops at a line ending in a bare colon, which a question
+(ending in `?`) never is, so it lands right after `A: ` under the next
+UNANSWERED question and skips answered ones (their line no longer ends in a
+colon). It wraps at the bottom. The parser drops the `A:`; an `A:` with nothing
+after it is unanswered; writing on the lines under the blank also counts.
+
+"grab questions" opens the edit box with the caret on the new round's **first**
+blank, not at the end of the entry: `EditJournalEntry(id, roundNo)` passes a
+`caret_after` regex to the shared box (`SingleFieldSkipableInputGui`'s new
+option; it matches against the control's CRLF text so the offset is right).
+
+**"go next" also stops on a `Label? ` line** (`GuiIsUnansweredBlank`, GuiPrimitives.ahk).
+Check-ins render a QUESTION-shaped label with no colon (`?:` reads as a typo), which had
+silently made every such blank unreachable; the Weekly check-in is nothing but those. The
+trailing space is the signal: an AI question line (`1. ...?`) and her own sentences ending
+in `?` have none, so they never become stops. Pinned in `test_journal_checkin.ahk`.
+
+`append-body` now trims only trailing NEWLINES, so the last blank keeps its
+space. Rounds grabbed before this were given their blanks the same day by
+`journal.py questions-add-blanks` (dry run unless `--commit`; additive, idempotent,
+refuses any entry whose questions/answers would read back differently): 155
+blanks in 16 entries, backup `journal.json.bak_before_answer_blanks_20261013`.
+Re-run it any time. Pinned in
+`test_journal_questions.py` (including the go-next regex).
+
+## Special questions and numbering across the whole chat (2026-10-14)
+
+She wanted to say "star question 3" — on the ChatGPT page or in the writing box —
+and have that question kept aside to come back to, answered or not.
+
+**The number problem came first.** Each reply used to number its questions from
+1, so after two rounds there were two question 1s and "star question 1" meant
+nothing. Fixed at both ends:
+
+- **The standing prompt** now asks the AI to keep numbering across the whole
+  conversation (both copies: the send body and the fallback literal, pinned
+  together by `test_journal_standing_prompt.py`).
+- **"grab answers"** appends one line to every message it pastes: *if you ask
+  more questions, number them starting at N*. The prompt only goes out with
+  the first message, and models drift back to "1." within a few replies.
+  `--no-numbering-note` leaves it off.
+- **The entry keeps the chat's numbers.** `numbered_recap_at` finds a recap
+  starting at any number; `render_round(..., start)` writes it with those
+  numbers; `parse_section` accepts any number for a section's FIRST question
+  (every one after it must still be next-in-line, which is what keeps her own
+  lists out). No recap → the round continues from the entry's highest number.
+- `render_answers` names the round only when numbers actually repeat
+  (`numbers_repeat`), since "Question 7" is unambiguous now.
+
+**Older chats** (each round restarted at 1): `find_by_number` takes the NEWEST
+round with that number. She said not to worry about these beyond that.
+
+**Affinity, not a yes/no star.** Within the hour this became the unified
+question store: see [[QUESTIONS_SYSTEM]]. "star question 7" is +1 and "unstar" is −1 on the
+shared affinity scale, held in `E:\Media\catalog\question.json`. The stars on
+the question's line are a MIRROR of the score (one per point, up to 5), written
+by `set_stars`, which touches that one line, keeps a CRLF line's carriage return,
+and round-trips byte for byte. `journal.py star-question --n N --by ±1` (or
+`--qid`) either edits the stored entry under the lock (`--id`), or scores from
+a text file (`--body-file/--out-file`, plus `--id`) and leaves the journal alone.
+
+**Where the star goes** (`_JQStar`, JournalQuestions.ahk):
+1. Writing box in front → its live text, via `_JQStarInBox`: the differing span
+   is replaced with EM_SETSEL + EM_REPLACESEL (undoable, the draft autosave
+   sees it), and her selection and scroll are restored.
+2. Else the conversation's entry (`_JQAnswersEntry`: the chat URL, then the
+   last-asked record). If that entry is open in a writing box BEHIND, the box
+   again (`_JQBoxOpenOn`, from the box's state file), because a store write
+   would be lost the moment the box saved.
+3. Else the stored entry.
+
+A writing box on a NEW, unsaved entry has no record behind it yet, so starring
+there says "save the entry first".
+
+**Phrases not used:** "special question <n>" — `special <phrase>` is the grab-store
+command and would save "question 3" as a quote. "mark special <n>" — the writing
+box's `mark <marking>` already has `special`.
+
+**The list** — "★ Special questions" in the journal Miller (root row, or
+`OpenSpecialQuestions` / "open special questions"). `journal.py
+special-questions` (TSV) lists every question at affinity 1+, highest first,
+with its stars. Each question previews with everything she has written to it.
+Drill in for:
+- **Write about it again** (`OpenJournalPrompt`): a NEW entry linked to the
+  question, which she chose over writing under the original. The earlier answers
+  are quoted as `> ` lines, which `prompt_answer` skips.
+- **Open the entry it came from.**
+- **Star it again** / **Unstar it** (`--qid`, `via: list`).
+
+**The daily prompt** weights by affinity (× 1 + affinity × `questions.affinity_weight`)
+and never offers a buried question. A starred question stays in the pool once
+answered, is never used up, and rests `questions.rest_days` after each showing.
+On the new tab it shows its stars and always opens to be answered again. Details
+in [[QUESTIONS_SYSTEM]].
+
+Tests: `Scripts\codebase_tools\tests\test_journal_special_questions.py`.
+
+## Rounds she never grabbed + reading a chat (2026-10-15)
+
+**The gap:** "grab questions" takes only the NEWEST reply. Send a follow-up before saying it and the earlier reply's numbered questions are buried in the transcript, never a round.
+
+- `chat_questions.py --pending` (`pending_rounds` / `render_pending`) checks EVERY reply. A reply counts as grabbed when half its numbered questions are already in the entry's rounds. Only numbered lists count, so a loose "Would you like me to...?" is never offered. Rounds get unique numbers in the entry (a reply nobody grabbed usually restarts at 1, which would make "star 1" ambiguous).
+- **"grab chat" / "grab read" / "grab questions" ADD them, no prompt** (changed 2026-10-18; Jamie: "stop asking about questions, just add them"). It was a confirm modal, and the answer was always yes. They are written before the Miller opens, so it lands on an entry that already has them, and the tooltip says how many ("1 round of questions added (7)", folded into the grab's own tooltip via `JQPendingLabel` and `JQAddPendingRounds(id, pend, quiet)`). Code: `JQPendingRounds` / `JQAddPendingRounds` in `JournalQuestions.ahk`; `JQAskPendingRounds` is gone.
+- **Miller → entry → "❓ Add questions you never grabbed"** (`JQAddMissedRounds`, `--pending --entry <id>`) does it from the SAVED chat, no ChatGPT tab needed.
+- **Adding a round is all there is to "saving" a question.** The question store is reconciled from the bodies. Before this it only synced when something READ it, so new rounds had no record, tags or special-list presence until then. Now `journal.py` spawns a detached `questions.py sync-journal` after every write (`_sync_question_store`, skipped under tests).
+
+**Reading a chat in the reader:** `grab read` / `grab chat read` (`GrabChatRead`) = grab chat, then open it in the reading room. Miller -> entry -> "📖 Read the chat in the reader" (`OpenJournalChatInReader`). Reader type `chat`, spec `chat:<entry id>`, URL `/chats/...`, resolver `reader_collection.resolve_chat`.
+- **Items:** HER ENTRY first (title + body, question rounds cut off), never the first prompt (the standing prompt plus the pasted entry). Then each follow-up she sent and each reply, every one its own item so it starts on a fresh page.
+- **Opens on page 1 of the NEWEST reply** (`index=9999` = targeted, which the server clamps), never a remembered page part-way through.
+- **Rich pages:** `chat_render` turns markdown into real HTML (strong/em, h2/h3/h4, ul/ol, blockquote, pre, rules) with data-b on every text block. `_md_inline` returns html AND plain together, so each block's text is exactly the element's textContent, and highlights, grabs and numbering line up (pinned in `test_reader_chat.py`). ChatGPT's layout widgets (`<box>`/`<row>`/`<icon>`) are dropped, and `<divider>` becomes a rule. A line that is all bold becomes an h4. CSS is `section.chat` in read_server.py, sized in em off the section so headings are LARGER than the text (the generic `h2.sec` came out smaller).
+- **Grab works** (numbers, mouse, `special N to M`). The quote is filed like a chat-tab "grab quote": source kind `ai`, creator = the model, title = the entry. The chat url goes in as `--context-file`, which links the quote to the journal entry (`captured.journal_ids`). The highlight is painted back via `chat_highlights`.
+- **Up favourites:** it saves the current selection into the favourite `special` store, or else bumps the newest quote grabbed on that page (`last_quote`).
+
+**Next (not built):** replying from the reader instead of jumping back to ChatGPT, e.g. sending through the ChatGPT backend `ChatGrab` already reaches.

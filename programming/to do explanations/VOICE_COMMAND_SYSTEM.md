@@ -377,6 +377,20 @@ The activator's own docstring: *"Rule reloading does not watch for new files."* 
 - **A brand-new rule file → invisible until a full reload** (which sometimes crashes Jamie's system).
 - **Deleting/renaming a file → also needs a reboot** ("Please reboot Caster to re-track").
 
+> **UPDATE 2026-10-13: new files can load live.** `GrammarManager.receive(path)` (what the
+> watcher calls on an edit) has nothing edit-specific in it. Caster only lacks *discovery*. And
+> `receive()` alone won't turn a new class on, because it checks the **in-memory** enabled list,
+> which `RulesConfig._validate_enabled` stripped of unknown classes at boot (editing rules.toml
+> mid-session can't fix that). `rules/rule_discovery_commands.py` fills the gap using Caster's
+> own calls: `ContentRequestGenerator` scan → `idem_import_module` → `register_rule` →
+> `load_is_allowed` → `_change_rule_enabled` (= "enable X"). It does no monkeypatching. It reads
+> private attributes off `control.nexus()` and fails closed if they're renamed. The trigger is
+> event-driven (the post-write hook bumps its marker while a rule is queued; voice: "load new
+> rules"), so there's no poller. CCR rules are deliberately excluded (enabling one re-merges all
+> CCR grammars). The risk is the same class as a normal edit hot-reload: same thread, same
+> `grammar.load()`. What's new is that a new file's import-time code runs mid-session. The
+> discovery file itself needed one reboot. Details: caster-voice skill → "Enabling a new rule".
+
 **Placement conventions (this is what avoids reboots, not just tidiness):**
 1. **Put new commands in the existing `<domain>_commands.py` whose domain matches** — by app/context,
    by topic (dev/maintenance → `programming_general_commands.py`; binding tooling → `macro_commands.py`),

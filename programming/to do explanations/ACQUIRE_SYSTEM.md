@@ -973,6 +973,38 @@ Enter on a track toggles it (✓/✗) and excluded tracks stay listed so they ca
 flipped back. Verified: 20-track album → exclude 13-20 → 12 tracks, 40:31, one
 disc, no split warning.
 
+### Burn with options — the disc-plan picker (2026-10-14)
+
+`AcqBurnWithOptions(path, label, why)` (AcquireMenu.ahk, runs in GuiHost) shows
+the track list with each length and the running album time, built on
+`_RangePickGui`, so **"grab 1 to 11"** works by voice exactly as it does for
+quotes and GV chats. Each range becomes the **next disc**; `M.2`–`M.4` targets a
+disc explicitly, `M.5` leaves tracks off, `0`/Esc goes to a review modal (Burn /
+Back / Cancel; no Burn button while any disc is over 79:57). Unmarked tracks are
+not burned, so "just the first 12" is one range. It writes a JSON plan and runs
+`burn.py burn-set` in the usual visible burn window. **Between discs the tray
+opens and it polls read-only until a blank is in**, so the only thing she does is
+swap the disc.
+
+Where it opens:
+- **On its own** only when an armed "download → file → BURN directly" album runs
+  past one CD (`pipeline._burn_album` → `_open_disc_picker`). Jamie's call: multi-disc
+  or "deluxe" in the title is *not* enough. Many CD1/CD2 sets are one album she
+  wants on one disc.
+- **On request**: the result-pane row "Download → file → burn with options"
+  (`arm --burn-options`), the Music hub album row/action 7, and Burn queue ▸
+  "Burn with options" (path "" = the queue).
+
+**Multi-disc filing kept the wrong order (fixed same day).** *songs and
+instrumentals* arrived as `CD1/` (11 songs) + `CD2/` (2 long instrumentals), each
+tagged as its own album ("CD1 - songs and instrumentals"). Filing flattened both
+into one folder named after CD1's tag, both discs numbered from 01, and a
+filename sort interleaved them, so the 21-minute instrumental burned as track 1.
+Now `library.strip_disc_marker` cleans the album tag before the majority vote,
+`disc_prefixes` renames folded disc tracks `1-01…`/`2-01…` (which also stops
+same-named tracks on two discs colliding), and `burn.expand_audio` sorts
+naturally. Pinned in `test_acquire_filing_and_burn.py`.
+
 Capacity is stored as **whole seconds** (`acquire.cd_max_seconds` = 4797). Storing
 79.95 minutes rendered in the Settings UI as `79.950000000000003`, because
 float64 cannot represent it exactly.

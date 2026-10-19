@@ -1,13 +1,21 @@
 ---
 tags: [autohotkey, uia, recorder, codegen, macro-system, caster, context-manager, design]
 created: 2026-07-09
-updated: 2026-07-09
-status: FULLY BUILT — recorder · primitives · normalizer · wrapper-reuse · codegen · auto-regen-hook
+updated: 2026-10-15
+status: FULLY BUILT — recorder · primitives · normalizer · wrapper-reuse · codegen · auto-regen-hook · Stage 5 recording->macro (click-hints recordings, step runner, failure dumps)
 owner: Jamie
 related: [KEY_ACTION_FUNCTIONS, ALWAYS_ON_CONTEXT_DETECTOR, STREAMDECK_WORKFLOW_OVERHAUL]
 ---
 
 # UIA Interaction Recorder → Normalizer → Codegen
+
+> **2026-10-15:** "make record" no longer uses this recorder as the main capture.
+> It now marks a stretch of the click-hints journal: the numbers she says are the
+> steps, each with selector uniqueness, path, lookalikes and pictures. This host
+> runs in `embedded` mode only, to catch keys, typing and taps. See
+> [[GLOBAL_CLICK_HINTS]] § "2026-10-15 rebuild". `uia_codegen.py` still reads the
+> OLD recording JSON. Codegen from the NEW `recordings/<id>/recording.json` is
+> **Stage 5** below (`recorded_macro.py` + the `RecordedMacroStep` runner).
 
 **Goal:** record a click/tap/type/voice-command walkthrough of any app, and turn it
 into a robust, context-scoped AHK function — ideally **fully automatically for simple
@@ -286,6 +294,286 @@ context. Multi-context recording → multiple grouped key-actions, or one orches
 context-switch steps between segments.
 
 Escaping element names with quotes/specials into step strings is the main impl detail.
+
+---
+
+## Stage 5 — recording -> macro  [BUILT 2026-10-15]
+
+This replaces the old loop where Claude guessed a selector from the summary,
+for click-hints recordings. Each step of a `make record` recording already
+carries what we used to guess:
+- the selector, and how many on-screen elements share it;
+- the parent path and the lookalikes;
+- what appeared after the click;
+- before, target and after pictures.
+
+Codegen reads that data instead of guessing.
+
+```
+recordings/<id>/recording.json ──► recorded_macro.py build ──► INIDATA/recorded_macros/<Name>.json   (the steps)
+                                                          └──► key_actions.json: <Name> = RecordedMacroStep("<Name>", 1..N)
+                                                                     │  gen_key_actions.generate()
+                                                                     ▼
+                                                     Helpers/Generated/KeyActions_<context>.ahk
+runtime:  <Name>() ─► RecordedMacroStep(name, n) ─► Helpers/RecordedMacroRunner.ahk
+          failure ─► MacroData/macro_failures/<Name>_<stamp>/ {failure.json, screen.png, payload.md}
+                     payload.md ─► clipboard + Claude slot, ShowTooltip
+```
+
+### Commands (`Scripts/click_journal/recorded_macro.py`)
+
+- `build <recording-id|last> <Name> [--group G] [--desc D]` does a dry run. It
+  prints the steps, anchors, result checks and warnings.
+- Add `--write` to save. That writes the spec, adds the Key Action, regenerates,
+  and prints **voice phrase options** from `voice_wizard.py options`. They are
+  only offered; nothing is ever assigned. Jamie picks one in voice assign.
+- `--force` replaces an existing macro of that name.
+- `failure-payload <dir>`: the runner calls this to render `payload.md`.
+- `phrases <Name>` and `list`.
+
+### Why a spec file and one runner, not inlined selectors
+
+The Key Action's steps are just `RecordedMacroStep("<Name>", N)`. That buys three
+things:
+- Names with quotes, slashes or newlines never pass through the key-action
+  string grammar, whose CLI splits on `/`.
+- A step can be fixed by editing JSON, with no regenerate.
+- Each step has a `kind` (`uia_click` / `dom_click` / `type` / `key` / `call` /
+  `sleep`). A new kind is a new branch in the runner, not a new format.
+
+The Key Action still makes the macro a normal function. Show fun, the set-macro
+wizard, Stream Deck (`MAINFUN.bat <Name>`), bindings and voice assign all see it
+at once.
+
+### Selector rules
+
+These live in `RecMacro_Pick`, pinned by `Helpers/Tests/test_recorded_macro_runner.ahk`.
+
+- **Candidates** are elements with the exact Type + Name + AutomationId. Name is
+  case-sensitive and never a substring match.
+- **Borrowed labels.** If nothing matches, the runner looks for an UNNAMED
+  element of the same type that contains a heading or text with that name. Click
+  hints records the label it BORROWED for unnamed cards (`_CHDeriveNames`), not
+  the element's real Name.
+- **Duplicates.** Near-identical rects collapse, and a container yields to the
+  control inside it (Chromium wrapper + inner pairs).
+- **NOT UNIQUE at record time gets an anchor.** The anchor is the nearest named
+  ancestor that none of the same-selector twins has in its own recorded path.
+  - AutomationIds and short names win over long names. A container's Name is
+    often all of its children's text joined, and that changes with the content.
+  - The anchor is checked even when only ONE candidate is on screen. "The only
+    Reply left" is often the wrong Reply.
+- **Still several** means the runner takes the one nearest the recorded spot
+  (window-relative), but only within 120px.
+- **Otherwise the step FAILS with a dump.** A guessed click is the old
+  trial-and-error; a dump is one paste.
+
+### Chrome DOM steps (`dom_click`)
+
+A pick made in click hints' Chrome DOM mode (the AHK Macro Bridge extension)
+becomes a `dom_click` step. It carries:
+- the CSS selector, checked unique at pick time;
+- the URL, and `url_after` when the click navigated;
+- the UIA-shaped target. DOM types use UIA-like names, and Chrome exposes the
+  DOM id as the AutomationId.
+
+The runner asks the page through the bridge (op `query`) how many elements the
+selector matches now. Pure logic in `RecMacro_DomDecide`:
+- **1** -> click it there (op `selectorclick`).
+- **0** -> keep polling until the find timeout, then fail.
+- **more than 1** -> fail with a dump.
+- **no answer** (extension not loaded, a restricted page, or an extension
+  without these ops) -> fall back to the UIA path, logged as `dom fallback to UIA`.
+
+DOM paths are tags and classes, not UIA chains, so they are never used as a UIA
+anchor.
+
+**Status 2026-10-15:** `query` and `selectorclick` are now in content.js, and
+were verified on `test/fixture.html` in the built-in browser:
+- counts 1, 3 and 0;
+- a shadow-DOM selector;
+- an ambiguous match refused;
+- left / double / right / middle each firing.
+
+They are not yet run end to end from a recorded macro in Jamie's Chrome, which
+needs the updated extension loaded at chrome://extensions. `selectorclick`
+behaviour per action:
+- **left:** focus, then `el.click()`.
+- **double:** two clicks, then a dblclick.
+- **right:** mousedown/up with button 2, then contextmenu.
+- **hover:** pointer/mouse events only.
+- **middle:** on a link, opens the href in a background tab (a synthetic middle
+  click can't open a tab); on anything else, fires auxclick.
+
+A `source:"dom"` pick's name is real page data (content.js `nameOf`), never a
+borrowed `_CHDeriveNames` label.
+
+### Result check
+
+The check is whatever appeared after the click in the recording, best first:
+1. The next step's target, when it appeared (the chain rule from Stage 1b).
+2. Form fields and menu items, over generic buttons.
+
+The runner keeps up to 3, and any ONE appearing passes. If nothing appeared in
+the recording, a title change is logged but never required. If the target is
+gone but its result is already on screen, the step is skipped as already done.
+
+### Window
+
+The runner looks for the step's window in this order:
+1. The window still carrying the recorded title, found across virtual desktops.
+2. The foreground window, if it belongs to the app.
+3. The app's largest window.
+
+The foreground beats the title match only when it IS that window or its popup:
+owned by it, or an untitled window of the same process (a menu).
+
+Two problems found live:
+- Matching on "same exe" alone picked another AutoHotkey GUI.
+- A plain `WinExist` missed the target once it was on another desktop.
+
+### Wrapper reuse is narrow on purpose
+
+A registry wrapper replaces a click only when all three hold:
+- the selector was unique;
+- the wrapper owns exactly ONE control;
+- it takes no arguments.
+
+The registry also lists whole flows under their first button
+(`Button|More options` -> `AddGoogleVoiceContact`). Calling one of those for a
+single click would run the whole flow.
+
+### Other activity
+
+Typing, keys and macros she fired during the recording come from the background
+recorder. They are interleaved with the clicks by time.
+- `other_activity` now keeps the exact `kind`/`value`.
+- An Enter right after real typing is kept. It used to be dropped as an overlay
+  key.
+- `make record` and the overlay's own dispatches are filtered out.
+- Taps outside the numbers can't be replayed. They are reported as warnings,
+  never guessed.
+
+### Abort
+
+A failed step marks the run aborted, so the remaining steps do nothing instead of
+typing into the wrong place. Saying the macro again starts a new run, and
+`MainfunClaim("recmacro:<Name>")` replaces a run still in flight.
+
+### Logging
+
+Every step writes `RecMacro` lines to `ahk_event.log`:
+- the window and raw element count;
+- matches, the deduped count, and the anchor;
+- which rule picked, and the click point;
+- which expected element appeared, and after how long.
+
+### The failure dump
+
+The dump is the recording-step picture for the moment the macro broke:
+- what it looked for: selector, anchor, expected elements;
+- the recorded path;
+- the app and title NOW;
+- current matches and lookalikes, with their paths;
+- other elements of that type, and every named element (in `failure.json`);
+- `screen.png` and the recording's own step pictures.
+
+`payload.md` goes on the clipboard and into `CopyPasteSlots/claude.txt`. Jamie
+gets a ShowTooltip, such as "stopped at step 2 of 4: couldn't find what to click".
+
+### Verified live 2026-10-15
+
+This ran against a scratch AHK window through `MAINFUN.bat`. All 4 steps were OK:
+1. A click whose expected element appeared in 15ms.
+2. A click with a title change.
+3. The SECOND of two "Reply" buttons.
+4. A key.
+
+The window's own event log confirmed that the right buttons fired. A
+deliberately broken step then produced the dump described above. Its
+same-AutomationId lookalike pointed straight at the fix.
+
+The anchor and nearest rules were not exercised live, because Win32 buttons have
+unique AutomationIds. The pure tests cover them.
+
+### Tests
+
+- `Scripts/codebase_tools/tests/test_recorded_macro.py`: 14 tests. The fixture is
+  the Spotify "Fleet Foxes" NOT UNIQUE case.
+- `Helpers/Tests/test_recorded_macro_runner.ahk`: 11 tests, run by
+  `_run_unit_tests.ahk`.
+
+### Known limits
+
+- `other_activity` times come from the background recorder's start time, which
+  is in whole seconds. A key pressed within about 1s of a pick could sort before
+  it. Typing is stamped when it is flushed (after the typing), so the usual
+  click-then-type order holds.
+- Recordings made before `kind`/`value` were journaled keep only their clicks.
+- The runner's scan duplicates click hints' cached tree walk (`_RmScan` vs
+  `_CHScanWindow`), because the click-hints engine lives in its own host process.
+
+### "make macro" — the front end  [BUILT 2026-10-18]
+
+Say **"make macro"** after a "make record". A Miller opens on the newest
+recording (`Helpers/MakeMacroMenu.ahk`, own process `Scripts/MakeMacroViewer.ahk`,
+`OpenMakeMacro [recording-id]`). One root level that grows as she goes:
+
+1. **Steps** — every step with its warnings, short in the list (NOT UNIQUE, no
+   anchor · no result check · anchor unchecked) and in full beside it, with the
+   recording's own target picture. Taps that can't replay are listed below.
+2. **Name** — suggestions built from what she clicked, each with a sayable alias
+   ("ShowOptions" → "show options"), or **Say or type a name…** (dictated words are
+   PascalCased: "follow artist" → `FollowArtist`). A name that is already a
+   function is refused; an older recording of the same macro is offered as a
+   rebuild (`--force`).
+3. **Group** — the context list: the recording's context, its parents, General,
+   then the rest.
+4. **Build it** — drilling shows the plan; **Yes, build** runs `build --write`.
+
+Once built the root shows **Voice phrase** and **Stream Deck** in their place:
+- **Voice phrase** — the `voice_wizard.py options` candidates as a numbered list.
+  The ~12s brain call starts DETACHED the moment the macro is built
+  (`recorded_macro.py phrases --out`), so the level reads a file; Enter re-checks.
+  Only the row she picks is assigned (`voice_wizard.py assign`, tagged
+  `recorded-macro`). Never auto-assigned. Scoped to the recording's nearest context
+  that has a `caster_scope`, with a row to switch to everywhere
+  (setting `makemacro.voice_scope`).
+- **Stream Deck** — this app's linked profile first (`context-link get`), then
+  every Deck A profile; then a free key, preferred-zone order, with an 8×4 grid
+  preview. `streamdeck.py add` (which restarts Stream Deck).
+- **Try it now** runs it.
+
+Backend: `recorded_macro.py review <id|last>` returns everything the Miller shows
+as ONE JSON (steps + per-step warnings, name options, ordered contexts, phrase
+scope, recent recordings), so the Miller never re-derives a rule. `build --write
+--json` prints one result object. `name-status <Name>`.
+
+**Context resolution was silently broken for every click-hints recording**, found
+building this. Three faults in `uia_recording_report.score_context`, all ending as
+"no context" or the wrong one:
+- a LIST `title_regex` (anna_s_archive_results) raised TypeError, and
+  `recorded_macro.resolve_context` swallowed it, so EVERY recording got no context;
+- click-hints steps carry no window class, and chrome's match names one, so the base
+  `chrome` context was disqualified and an unconfirmed url context won — a Wikipedia
+  tab came out as `amazon` (first alphabetically);
+- `url_regex` was ignored.
+Now: a list is any-of; an absent class is skipped except for the generic popup
+classes (`#32770`, tooltips), where the class IS the context; a real URL (DOM picks
+carry one) confirms or rules out `url_contains`/`url_regex`; an unconfirmed url
+context loses to its exe-only parent. Pinned in `test_recorded_macro.py`.
+
+Verified live 2026-10-18 on a scratch AutoHotkey window: a real make-record
+recording (2 picks + 2 replay warnings) → the Miller → typed name → General →
+build → picked phrase 1 → `dragon_mimic "make pad test"` ran both steps and both
+buttons fired. Stream Deck: the profile and free-key levels were exercised; the
+actual `add` was not run against her deck. The test macro was removed afterwards.
+Tests: `test_make_macro_menu.ahk` (deep tree validate on the pytest fixture,
+isolated via `MACRODATA_DIR`), 9 new pytest cases.
+
+### Next
+
+- A live `dom_click` run in Jamie's Chrome once the updated extension is loaded.
 
 ---
 

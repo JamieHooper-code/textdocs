@@ -177,6 +177,42 @@ saved per poem (`UNSAVED_KEYS` in poem_print.py), so hiding it once can't leave 
 poem's later working prints unnumbered. It is drawn outside the layout and never moves
 or shrinks the text. Numbering rule: POETRY_SYSTEM.md § Version numbers.
 
+## Small print + using more of the page (2026-10-13)
+
+Her report after printing "Repercussions": the Doc prints the title higher and the
+poem closer to it (so the text comes out bigger), Arial printed small looks "thin and
+ragged", and the print should use more of the page.
+
+- **Margins 0.6in** (was 1.0; `poems.print_margin_in`). Repercussions 10.5 → 11.6pt.
+- **Space under the title** `titleGap` 0.6 lines (was a fixed 1.1). Studio: "Space
+  under the title" −/+.
+- **Small-text font** — when the AUTO size lands below `poems.print_small_below_pt`
+  (12) the poem is laid out again in `poems.print_small_font`. **Default: none** — she
+  tried Verdana on paper and prefers Arial (2026-10-13); the control stays in the studio
+  and in Settings for every poem, off unless she picks a font. Never on a fixed size;
+  choosing a font in the studio turns it off for that poem (her pick wins); "Keep this
+  font" / "Sturdier font" toggle it (`smallSwap`). `R.fontSwapped` = {from, to,
+  wouldBe}; the status line says it happened; the PDF result reports `font` +
+  `smallFontFrom`.
+- **Why x-height, not width:** a long poem is limited by its LINE COUNT, not line
+  width, so every candidate lands at the same pt (Repercussions: 11.5–11.6 in all 13)
+  — the font only changes how big that pt READS. Sample sheet of the candidates at the
+  size Repercussions gets: `E:\Media\Poetry\print\_font_samples_small_print.pdf`
+  (Arial, Verdana, Tahoma, Segoe UI, Segoe UI Semibold, Franklin Gothic Book, Lucida
+  Sans, Georgia, Century Schoolbook, Sitka Text, Cambria, Bookman, Palatino). Those
+  fonts were also added to the font list.
+- Panel: the plain −/+ sections are INLINE (control on the header line), fonts are a
+  3-column grid and the panel is 55vw on wide screens, sections reordered so the three
+  columns balance — everything open fits 2000×990 exactly.
+
+## Pure black text (2026-10-13)
+
+Her prints looked lighter than the same poem from Google Docs. Cause: the text was
+`#111` (near-black). A mono laser can't print gray, so it HALFTONES it — a near-black
+becomes a dot screen and reads light and soft. Text is now `#000` (`INK` in
+poem_layout.js); the PDF test asserts it. The version mark went from 5pt `#c4c4c4`
+(printed invisible) to 7pt `#8c8c8c` — readable, still quiet.
+
 ## Instagram carousel (designed)
 
 - 1080×1350 (4:5) slides, minimal background (flat colour / subtle paper texture).
@@ -190,6 +226,49 @@ or shrinks the text. Numbering rule: POETRY_SYSTEM.md § Version numbers.
   never touch the text size.
 - Output: `E:\Media\Poetry\instagram\<slug>\01.png…`, opened as a folder.
 - Shares the print engine's measure/paginate JS (factor it out when building).
+
+### Page shapes in the engine (BUILT 2026-10-18 -- step 2 below, done first)
+
+`poem_layout.js` takes the page as options, so print and the carousel are one engine:
+`shape` = `letter` (default) | `instagram` (1080x1350) from `PoemLayout.SHAPES`, plus
+overrides `pageW/pageH` (px), `ink` (default `#000`), `paper`, `folio` (`center` "1 / 3"
+under the text | `corner` small "2/4" bottom-right | `none`), `folioPt/folioColor`,
+`bylineAt` (`top` under the title | `end` after the last stanza -- its space is part of
+the layout, and it gets its own slide rather than being squeezed). Results carry
+`R.pageW/R.pageH`; the studio reads those, never the Letter constants.
+**Checked:** all 481 poems with their saved settings render BYTE-IDENTICAL HTML before
+and after the refactor; 4 new tests (21 total) pin the shapes.
+
+### Carousel backgrounds (2026-10-18)
+
+Her ask: a REALLY subtle paper texture; the old poster backgrounds weren't subtle enough.
+Measured: their brightness spread (sd) is 14-36 where paper that reads as "just paper"
+is ~2-5. So a background is never the photo itself: **paper colour + grain tile x
+strength**. `Scripts\poems\studio\paper_textures.py` (store `E:\Media\Poetry\backgrounds\`
+= sources/ + tiles/ + backgrounds.json) reduces each photo to its grain (lighting and
+blotches blurred out, contrast normalised so every tile is equally strong), white at
+the paper's bright end; the page draws it with `mix-blend-mode: multiply` at opacity =
+strength. Overlay over a mid-gray tile was tried first and was invisible on near-white
+paper even at 30%. 12 in the library: the 7 old poster ones + ambientCG CC0 Paper001/002/
+003/006 + Cardboard002. Option sheet: 20% = quiet, 45% = clearly paper.
+
+### Bottom gaps (2026-10-18)
+
+"Assemblage" on two slides left ~1/3 of each slide empty -- it "almost looks like the
+poem ends". The size is set by the LONGEST LINE, not the height, so the fixes are:
+centre up-and-down (each slide, or the same top on every slide), narrower margins
+(0.75in: 26.1 -> 27.5pt), let the longest line(s) turn so the text grows (28.1pt, 2
+turned), looser line spacing, or all of them (30pt). Sample sheet rendered; her pick next.
+
+### What other poets do (research, 2026-10-18)
+
+Little poetry-specific guidance exists; what there is: white/near-white backgrounds and
+black text dominate (Bilston, Drake, Kaur); Bilston = bold title, left-aligned, name in
+cursive below, text size varying by poem length -- i.e. our layout; Times New Roman is
+the common face, Gregson uses typewriter scans on tinted paper; long lines wrapping on
+phones is THE complaint about posting poems as text (Substack), which is why images;
+4:5 1080x1350 is the tallest Instagram allows; keep stanzas together, number slides;
+carousel guides put body text >= ~24pt equivalent on a 1080 slide.
 
 ## Clipart search + picker (v1 BUILT 2026-10-05)
 
@@ -312,13 +391,54 @@ value / + / Auto, ← → steps it. `R.titlePt`, `R.titleRows`.
 
 The panel is three columns at ≥1750px wide, so every section fits open at 2000×990.
 
-## Order
+## Where we are + next steps (2026-10-18) — START HERE in a new chat
+
+**Done:** the print studio (`OpenPoemPrintStudio` / Miller "Print studio…" / :8296) —
+auto sizing, phrase splits + manual splits, title size, autosave per poem, pure-black
+text, the clipart picker (suggest / ideas / favorites / CLIP search), images placed +
+dragged + resized, room for images, every-poem settings. Jamie's verdict on paper:
+"they look fantastic". Tests: `Scripts\codebase_tools	ests	est_poem_print.py`.
+
+**Next, in order:**
+
+1. **Instagram carousel** — a second page on the SAME studio server
+   (`/carousel/<slug>`), reusing poem_layout.js with a 1080×1350 page size instead of
+   Letter (make PAGE_W/H an option), the same sections/keyboard/autosave pattern, the
+   same picker. Slides break between stanzas, one size across all slides, title on
+   slide 1, byline last, `2/4` marker, optional image slide after the text. Export =
+   PNGs via Playwright screenshots (not PDF) to `E:\Media\Poetry\instagram\<slug>\`.
+   Decide: background (flat colour / paper texture?), Instagram margins, whether turned
+   lines use the same `/` convention on a phone.
+2. **Shared "page" engine refactor** — DONE 2026-10-18 (see § Page shapes). Before (1): pull page size, folio and ink
+   colour into options so print, carousel and poster are ONE engine with three page
+   shapes. Keep the PDF-matches-preview invariant (tests).
+3. **Art poster** — the drag editor already exists (images on the print page); the
+   poster is a page shape + background + bigger image freedom (bleed, opacity,
+   rotation, layering order). Optional layered export for Photopea/GIMP.
+4. **Picker improvements** — text flowing around an image (optional, never shrinks
+   text); per-image opacity/rotation/flip; "bury" (hide a picture forever); browse by
+   source/collection; more clipart (the old wishlist: hand-drawn line art, memento mori,
+   Doré) via `Scripts\poem_poster\ingest.py` then `clipart_index.py build` +
+   `clip_search.py build`.
+5. **Retire poem-poster** — once the carousel + poster replace it: archive
+   `Scripts\poem_poster\` render code (keep `sources/` ingest + `_process.py` modes,
+   which the clipart pipeline still uses), update POETRY_SYSTEM.md, `printer poster`.
+6. **Small polish** — voice phrases ("print this poem", "poem studio"), Stream Deck
+   button, chord-line auto mono (low priority — she doesn't print songs), untitled
+   poems: no title vs date written.
+
+**Known facts to not re-learn:** stale-code — the studio server holds poems.py /
+poem_print.py / clipart_index.py / clip_search.py in memory: `poem_studio_server.py
+restart` after editing them (page + engine are read per request). CLIP warms ~25 s
+after a restart. Saved per-poem settings: `E:\Media\Poetry\print\print_settings.json`;
+picker prefs: `E:\Media\Poetry\poster\clipart_prefs.json`.
+
+## Old order (superseded by the list above)
 
 1. Print — built.
 2. Instagram carousel, text slides.
-3. Clipart index + search + picker.
+3. Clipart index + search + picker — built.
 4. Carousel image slide + art poster editor.
-
 Old `Scripts\poem_poster\` stays until the new system covers it, then archives.
 
 ## Open questions

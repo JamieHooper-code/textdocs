@@ -1152,3 +1152,208 @@ first: three failed iterations.
 Same phrase, same function (`GrabAmbientForBook`), now branching on the foreground: the reading room in front (`IsForegroundContext("reading_room")`) means the reader's book (`_AmbientReaderBook` reads `/api/state` `item.book_id`; an exercise item links to the book it came from), anything else means Kindle's. Voice: a second literal in `rules/reader_commands.py` (scoped to the ReadingRoom title) beside the Kindle-scoped one in `kindle_commands.py`.
 
 Both halves are Chrome TABS, so it selects the audible tab, reads the URL, then re-selects the reader with `FocusChromeTab("ReadingRoom")`. No front-tab fallback in this branch: with nothing playing the front tab IS the reader. **Fullscreen trap:** Chrome removes the entire tab strip from the UIA tree while fullscreen (the reader window returned zero TabItems), so the first live run reported "nothing is playing" with music on. It now does an F11 peek, gated on the reader actually being fullscreen, and restores it on every exit path. Same shape as the Kindle location peek in `JournalSources.ahk`.
+
+---
+
+## The log as a record of the day (2026-10-16 revamp)
+
+Why: Jamie is often so busy doing that she can't remember how much she did. The
+log is there to show her the day, so it now fills itself in from what she does,
+and there's a page and a new tab panel for looking at it.
+
+### What logs itself (`source: "auto"`): one entry per thing per day
+
+| What | Where it's hooked | Entry |
+|---|---|---|
+| Opening a book, on any surface | `clog book-opened` (every opener already calls it via `RecordBookOpened`) | `reading` template, `Read <book>` |
+| An exercise / meditation in the reading room | `read_server.py` `note_reading` (on load + every goto) | `Exercise: <title>` |
+| Poetry in the reading room (poem, poetry, potd, webpoem) | same | `Read poetry: <collection>` |
+| A story in the reading room | same | `Read a story: <title>` |
+| Saving a new poem / editing one | `poems.py` `cmd_add`, `cmd_save_box` | `Wrote a poem: X` / `Worked on a poem: X` |
+| A writing practice session | `practices.py` `cmd_add` | `Writing practice: <type> (<prompt>)` |
+| A new journal entry | `journal.py` `cmd_add` | `Journaled: X` / `Saved a conversation: X` |
+| Writing / working on a story or idea sheet | `stories.py` `cmd_add`, `cmd_save_box` | `Wrote a new story: X` |
+
+**Dedupe.** Every auto entry carries an `auto_key` (`book:<id>`, `exercise:<quote
+id>`, `poem:<id>`, ...). A second hit on the same key the same day bumps `count`
+and `last_ts` on the existing line (shown as `×3`) instead of appending. The
+read-check-append runs under `log.jsonl.lock`. Before this, "read <book>"
+logged every time it was said; Oct 7 held The Farthest Shore five times.
+
+**A book inside a collection logs as the collection.** `part_of` on the book
+(`clog book-set-part-of <id> --of <collection id>`). The Farthest Shore is set
+to The Books of Earthsea: The Complete Illustrated Edition.
+
+**One engine.** `clog auto --key K (--template T | --name N)` and, for the Python
+stores, `Scripts/completion_log/autolog.py` (`autolog.log(key, name, ...)`),
+which calls it in-process. It **never raises and never prints**: those CLIs'
+stdout is parsed by AHK, so a stray "logged:" line would break the save.
+`LogReadingBook` ("log read") is now `clog book-log`, the same deduped path,
+so saying it after opening the book adds nothing.
+
+**Tests never write the real log.** `CLOG_AUTOLOG_OFF=1` turns off autolog.py
+and the reader hook; `codebase_tools/tests/conftest.py` sets it autouse. The
+reader tests leaked three "Read poetry" lines before that existed.
+
+Reading is no longer dimmed: `muted: false` on the reading template (an explicit
+`muted` now overrides the daily default).
+
+### Claude logs what it finishes (`source: "claude"`)
+
+Rule in `~/.claude/CLAUDE.md` § "Completion log": after a decent-sized task or a
+real milestone, `py .../clog.py claude "<short line>"`. Session ids come from
+Claude Code's environment (`CLAUDE_CODE_SESSION_ID`, plus the app's
+`CLAUDE_CODE_HOST_SESSION_ID` as `host_session`); the same words twice in one
+session fold. On 2026-10-16, 44 entries for Oct 13–16 were backfilled from chat
+titles (note: "backfilled ... from the chat's title"). Those weren't checked
+against the transcripts.
+
+### Voice
+
+| Phrase | Function |
+|---|---|
+| `log activity` / `log activity <activity>` | `LogActivity` (picker, or straight in) |
+| `log friend <person>` / `log friend <person> <activity>` | `LogFriendActivity`, e.g. "Skating with Cody", tagged friends |
+| `log words` / `log words <words>` | `LogWords`, a one-line box to confirm or edit |
+
+Activities: `INIDATA/VoiceChoices/completion_activities.json` (key = what you
+say, `name`, `tags`); the old friends `_shared` list is still read. Typing a new
+activity in the picker offers to remember it (`clog add-activity`). People are
+the same names "text <name>" knows (`gv_contacts.json` + `gv_people.json`,
+individuals only), so a new friend needs no setup. The old `log cedar` style now
+runs the same flow.
+
+### Seeing it
+
+- **New tab, "Done Lately"** (`done` source → `clog feed`): a "Today: N things"
+  row plus the five newest entries, with a pill for `auto` / `claude`. Every row
+  opens the log page.
+- **Log page** `http://127.0.0.1:8293/log` (`Scripts/newtab/web/log.html`,
+  served by the new tab server): every entry grouped by day, filters (everything
+  / you / automatic / Claude), an add box (`POST /api/log/add` → `clog addfree
+  --source newtab`), and × to delete (`POST /api/log/delete`).
+- `clog feed [--limit N] [--days N]` is the JSON both read, sorted newest
+  activity first.
+
+Restart `newtab_server.py` and `read_server.py` after editing either (stale
+code). Tests: `codebase_tools/tests/test_clog_auto.py`.
+
+### More sources, voice and colour (2026-10-16, second pass)
+
+**Voice is just `log` + what you say.** One slot after "log" holds five lists:
+templates, activities (`log skating`), current books, people (`log Cody`, or
+`log Cody skating`) and, LAST, a dictation catch-all, `log <words>` (`log fixing
+lava lamp` opens the one-line confirm box). A spoken key in two of those lists
+is a Dragon GrammarError that silently kills the whole rule, so
+`_log_choice_sets()` in `rules/log_commands.py` makes them disjoint (literals >
+templates > activities > books > people; drops print to caster_messages.log).
+The catch-all must stay the last mapping entry, because Dragonfly prefers the
+earlier sibling. `log words` and `log friend` / `log activity` are gone.
+
+**Three kinds of automatic entry:**
+- *one per thing per day* (`clog auto --key`): books, exercises, poems, to-dos...
+- *a count on the reading line* (`clog.bump_book` / `autolog.book_extra`):
+  quotes saved and sentences translated show as a subline,
+  "No Bad Parts · 4 quotes saved". No reading line yet = one is made.
+- *one grouped line per day* (`clog group` / `autolog.group`): "Bird lookups",
+  "Zines read", "Check-ins", "Tarot", "Printed poem posters",
+  "Answered journal questions", with the items underneath.
+
+| New source | Hook |
+|---|---|
+| To-do ticked (never a stack item; unticking the same day takes it back) | `projects.py` `cmd_set` / `cmd_finish` → `_log_todo` |
+| Quotes saved from a book | `quotes.py` `cmd_add` → `book_extra(quotes=1)` |
+| Spanish translation grabs | `translations.record` → `book_extra(translated, new_words)` |
+| Spanish vs English reading | a book tagged `spanish` reads "Read in Spanish: X" and gets the spanish colour |
+| Anki reviews (real counts, per top-level deck) | `clog anki-sync`: reads `collection.anki2` read-only (needs Anki's `unicase` collation); the Spanish deck is the `spanish_flashcards` template so it ticks the daily |
+| Bird page lookups | `bird_server.py` `/api/touch` |
+| Health check-ins | `HealthFunctions.ahk` `_HcClose` (only if something was answered) |
+| Reminder / IFS part check-ins | `reminders.visit` (named by the part) |
+| Journal answers sent back | `journal.py answers-mark-sent` |
+| Tarot readings | `tarot_sessions.record` |
+| Poem posters printed | `~/.claude/scripts/printer.ps1` `Cmd-Poster` |
+| Toggl hours per project | `clog toggl-sync` (token from `TogglConfig.ini`) |
+| Zines opened | `zine_library.py opened` |
+| Spanish YouTube | `clog spanish-video-sync`: context-log spans whose TITLE reads as Spanish (`is_spanish_title`: Spanish function words outnumber English ones, or ñ ¿ ¡), 2-minute floor; the `spanish_videos` template, so it ticks that daily |
+
+The three syncs (Anki, Toggl, Spanish videos) have no moment that could push
+them, so the new tab server runs them before reading the log, at most every
+3 minutes (`pull_external`). Each sync SETS that day's numbers, so running it
+again only refreshes them.
+
+**Colour = kind** (`FEED_CATEGORIES` in clog.py, the one place): programming
+(every Claude entry), work, journal, check-in, exercise, meditation, spanish,
+learning, poetry, writing, reading, to-do, friends, activity. `clog feed` gives
+each row `cat`, `color` and `sub`; the panel shows the pill + subline, and the
+log page filters by kind.
+
+**The `log <words>` box (2026-10-16):** Enter logs it once as typed. **PgUp
+logs it AND keeps it as an activity**: what she SAID becomes the phrase and
+what the box SHOWS becomes the name ("log spanish game night" → "Game night"),
+via `clog add-activity "<name>" --phrase "<said>" --replace`, which bumps the
+log rule's reload marker so the phrase is sayable within seconds. PgUp is a
+window-scoped hotkey bound in `on_show` (`_LogWordsBindPgUp`); it must `Send`
+Enter, because a `ControlSend` to the Edit never reaches the dialog's default
+button. **Testing trap:** a hotkey ignores keys sent by ANOTHER AutoHotkey
+script unless that script sets `SendLevel 1`. Without it a test reports "PgUp
+does nothing" when the code is fine.
+
+*Revised the same day:* PgUp now opens a SECOND box, "Voice command", asking
+what to say (prefilled with what she said, all selected so typing replaces it;
+a leading "log" is dropped). The first box's text is the name, so the two are
+edited independently. Esc in the second box still logs the entry, just without
+keeping a phrase (`_LogWordsAskPhrase`).
+
+## Activities with questions (2026-10-16, third pass)
+
+**One activity store**, `INIDATA/activities.json`, written only by
+`Scripts/completion_log/activities.py`. It replaced TWO lists that disagreed:
+`INIDATA/VoiceChoices/completion_activities.json` (the log's) and the
+`activities` block of `INIDATA/health_questions.json` (the check-ins'; that block
+is now a `_activities` pointer). `activities.py migrate` folded both. The
+check-in keys became the ids (`skating`, `hangout`, `walk`...), because past
+check-in answers are stored under them. Everything reads this one file:
+
+| Reader | How |
+|---|---|
+| Voice `log <activity>` | `rules/log_commands.py` `load_log_activities` (phrase → id). `activities.py` bumps the rule's marker on any phrase change, so a new one is sayable in seconds |
+| Logging | `Helpers/ActivityFunctions.ahk` asks the questions, then `clog activity-log <id> --answer k=v ...` |
+| Check-ins | `health.py load_questions()` injects `checkin_activities()`: the `checkin: true` ones, with their questions and `logged_today` / `answered_today` |
+| Editor | `open activities` → `Helpers/ActivitiesMenu.ahk` (GuiHost Miller) |
+| Feed / log page | `clog _answers_sub`: the subline "intensity 7 · managing body 6 · elbow cost 3", labelled by each question's `short` |
+
+**A record:** id, name (how it reads), phrases (what she says after "log"),
+tags, checkin, checkin_label, people (ask who), questions. A **question** has a
+key, label, short (its word in the log line), kind (`scale` = 0 to 10, where 0
+is a real answer, or `text` = a short answer), and good (`high` / `low`: is 10
+good or bad). A phrase belongs to exactly one activity (`_claim_phrase`).
+
+**Asking** (`_AskActivityQuestions`): one box per question. A scale takes 0-10
+(anything else is re-asked), Enter on empty skips, Esc on the first question
+cancels the log (a misheard "log"), and later Esc stops asking but still logs.
+The numpad shortcuts are OFF in these boxes, since numpad digits are answers.
+
+**In the check-in window** (`HealthFunctions.ahk`): ticking an activity splices
+its questions in right after the activity list (`_HcSpliceActivityQs`, kinds
+`act_scale` / `act_text`, typed then Enter). Activities logged earlier today
+come up pre-ticked, and questions already answered today are not asked again.
+Answers go to the health inbox as `act.<id>.<key>`. On close,
+`_HcLogActivities` logs each ticked activity with `--once-today`, which MERGES
+into an entry already logged today instead of adding a second one. Hangout
+passes who was there as `--with`.
+
+**Making one:** `add activity` (or "+ Add activity" in the editor, or PgUp in
+the `log <words>` box, or typing a new one in the picker) runs name → voice
+command → questions. Questions are added in a loop: the wording, then the kind
+as a pick (1 = 0 to 10, 2 = short answer), then for a scale whether 10 is good.
+Empty wording finishes.
+
+Skating was seeded with Jamie's three: intensity, managing body, and elbow cost
+(10 is bad).
+
+Tests: `test_clog_auto.py` (answers on the entry, once-today merge, one phrase
+per activity). Verified live: `log skating` (a "12" is re-asked), the night
+check-in through `HEALTH_TEST_KEYS` + `HEALTH_STORE_DIR`, pre-ticking +
+no-re-ask, and `add activity` → `log <it>` end to end. Test trap: the
+`HEALTH_STORE_DIR` folder must EXIST, or the window's inbox appends fail
+(`Health/inbox append failed`) while everything else looks fine.

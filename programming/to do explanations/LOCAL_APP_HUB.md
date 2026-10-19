@@ -80,6 +80,51 @@ buttons, never a text box (pick-from-a-list rule). `settings.py`'s
 calls it from a `pythonw` server and a console child of a windowless parent
 gets its own console window.
 
+### Jump labels and the title marker (2026-10-14)
+
+Saying "jump 7", or just "7", clicks the control labelled 7 on any local page.
+
+- **A page opts controls in with `data-jump`.** That attribute is all a page
+  ever does. `data-jump="1"` pins a number. `data-jump-group` on a container
+  numbers its items together, so the new tab page reads panel by panel instead
+  of across columns. `data-jump-pos="corner|badge|left"` picks where the label
+  sits. Leave the "..." buttons and settings unmarked: Vimium covers those.
+- **Only what's on screen is numbered**, and numbers are recalculated once
+  scrolling stops, so a folder of 300 albums still reads 1-30.
+- **Labels:** dark rounded labels, 14px bold. They sit in a fixed overlay layer
+  below the hub header. The numbers are never added inside a page's own markup,
+  with one opt-in exception below.
+- **Inline numbers (2026-10-18):** `data-jump-pos="inline"` draws no floating
+  label. Kit writes `data-jump-n="7"` onto the element (and `data-jump-hit` for
+  450ms when it's said), and the page styles the number itself. The new tab page
+  uses it: each row's `›` turns into its number in the panel's accent colour, and
+  ↻ reads "↻ 22". `jump_labels` off removes the numbers and the `›` comes back.
+  Use it on any page that has a gutter of its own; the overlay stays the default.
+- **Settings:** the shared `pages` settings system (`jump_labels` on/off,
+  `jump_size` 12-20 px, `jump_opacity` 40-100 %). It is reached from the hub
+  bar's ⚙. `Kit.openSettings(<any system>)` also adds it as an "All pages"
+  section to the bottom of every page's own panel, and those rows save to
+  `pages`, not to the page's system.
+- **Which pages have numbers:** new tab, music folders, timers, reminders
+  (section nav + check-in buttons) and meditation. Meditation packs are pinned
+  to the number the card already shows. Its tracks are unmarked, because they
+  already show their series number. Health has no controls, so nothing is
+  numbered there.
+- **Title marker:** kit.js makes every title end " - Pages" and puts the suffix
+  back when a page retitles itself. Caster and the context detector tell "one of
+  my pages" apart by title alone. The shared Caster rule is
+  `rules/local_pages_commands.py` (bare `<n>`; the reader is left out because it
+  reads typed digits itself). The shared context is
+  `INIDATA/Contexts/local_pages.json`, and every page's context now has it as
+  its parent. A page's own rule still scopes on its own title.
+- **Delivery is keystrokes, not HTTP.** `LocalPageJump(n)`
+  (`Helpers/LocalViewer.ahk`) sends Ctrl+Alt+Shift+F9, the digits, then Enter.
+  It is reached from ListNav's `nth_click_function` and from the bare-number
+  rule. On the chord, kit parks focus in an off-screen input, because Vimium
+  would otherwise read the digits as a count. A window-capture listener also
+  hides the keys from the page. Going this way meant no server changes and no
+  restarts.
+
 ## Rules for the next page
 
 - Put `<script src="/kit/kit.js" defer></script>` in its `<head>`, and add a row
@@ -91,6 +136,9 @@ gets its own console window.
   extension. For the same reason there's **no shadow DOM** in the kit: hint
   extensions don't reliably reach inside one, so kit styles are plain and
   prefixed `kit-`.
+- **Mark its everyday controls with `data-jump`** (see Jump labels above). Give
+  its context `"parent": "local_pages"`. Never anchor a title regex at
+  `- Google Chrome$`: the marker comes before that.
 - **The pinned header is `position: fixed` plus body padding, never in flow.**
   In flow, it became a flex item beside the new tab page's columns, because that
   page's `<body>` is a flex row.

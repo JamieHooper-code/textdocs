@@ -102,6 +102,7 @@ Bell: Helpers/MindfulnessBellPoller   reads the `checkin` pool (see "The bell")
 | Reading | `clog book-current`, the same rows as `open read` | click → `ReadBookHere <id>` |
 | Watching | `watchlist.py recent`, the same list as `open watch` | click → `WatchShow <url> <service>`; open-in-new-tab opens the show itself |
 | Rotation | `clog last <template>` for each `ROTATION` row | log Outside or Stretches for today; Reading and Meditation are logged for her already, so they show "auto" |
+| Done Lately | `clog feed`: "Today: N things" + the 5 newest log entries, `auto`/`claude` pills | any row opens the log page, `/log` (add box, filters, delete). See [[COMPLETION_LOG]] § "The log as a record of the day" |
 | Check-In | pool `newtab_checkin` | ▲/▼; Edit: text, kind (body / breath / mind), add, delete |
 | Pacing (was "Brain / Productivity") | pool `newtab_pacing` | ▲/▼; Edit: text, add, delete |
 | Quotes to Remember | pool `newtab` (group `remember`) | ▲/▼; Edit: text, add, delete |
@@ -378,3 +379,33 @@ Last.fm history, ranked so a favourite beats a round number. Engine, store,
 scoring and the data audit: [[SPECIAL_TODAY]]. Its rows are `external` plain
 links (no AHK action), which is why `buildLinks` checks `row.external` rather
 than `row.href` -- Watching rows have an href too.
+
+**Sections (2026-10-14).** The panel is drawn in sections, in this order:
+birthdays · zines · poems of the day · the journal question · music
+anniversaries, with ONE thin grey rule where each section starts (never between
+rows). The server tags each row with `section` (`SPECIAL_SECTIONS` /
+`fetch_special` in newtab_server.py, sources fetched side by side), and the
+page's `sectionedItems` + `.section-start` draw it. The panel's row limit trims
+only the music (`capped` rows); every other section always shows. Poem rows and
+the journal question carry an inline **↻** button (`row.reroll` -> write op
+`reroll`, `_special_reroll`): "a different one today". See [[POEM_OF_THE_DAY]].
+
+## Journal Prompt (2026-10-13) -- folded into Special Today 2026-10-14
+
+**Now a row in Special Today** (section `journal`, key `journal:<id>`), with the
+swap as an inline ↻ button instead of its own row -- Jamie didn't like the
+separate row. The `journal_prompt` panel was removed from panels.js (a saved
+layout naming it simply drops it); its server source still exists. The rest of
+this section still describes how the question itself works.
+
+
+One question an AI asked in an earlier journal entry, **unanswered**, a day,
+weighted toward entries rated high (`journal.py question-daily`). Click it to
+answer it in the writing box; saving the entry is the answer, and the row then
+reads `answered ✓`. The **↻** row swaps it: a panel `write` (op `reroll`), so
+the panel redraws at once. Panel id `journal_prompt`, source `journal_prompt` in
+`newtab_server.py`; the click actions `OpenJournalPrompt` / `OpenJournalAtEntry`
+are in `ACTIONS`. A link row carrying `op` is a WRITE, not an AHK action
+(`buildLinks` in app.js). Full design: [[JOURNAL_QUESTION_LOOP]] § "The daily
+journal prompt".
+
