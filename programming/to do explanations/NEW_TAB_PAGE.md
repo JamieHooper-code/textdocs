@@ -409,3 +409,9 @@ are in `ACTIONS`. A link row carrying `op` is a WRITE, not an AHK action
 (`buildLinks` in app.js). Full design: [[JOURNAL_QUESTION_LOOP]] § "The daily
 journal prompt".
 
+
+## The Writing page (2026-10-19)
+
+A second board on this server at `/write`: the same page and app.js with
+`write_panels.js` and its own storage namespace (`write:` keys). Prompts, journal
+questions, her poems, constraint cards, letters. See [[WRITING_PAGE]].

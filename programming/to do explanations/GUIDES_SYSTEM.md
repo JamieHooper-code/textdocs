@@ -101,6 +101,27 @@ missing from that map is dropped in silence — the known trap).
 Opens are stamped on the guide (`open_count`, `last_opened`, `last_opened_via`),
 so the menu can show "opened 3 times".
 
+## Making guides: "send guide"
+
+Guides are built WITH an AI, iterating. The instructions for that are themselves
+a guide, **`guide:making_a_guide`** ("Making a guide", no states, so it is in
+All guides but never in the "I feel" list): what a guide is for (processing vs
+doing, about half check-in and half a way forward), gentle parts check-ins that
+never feel like a chore or a crowd to placate, the shape rules (the "pick one"
+bullet rule), the states, and how a round works (numbered questions PLUS ideas
+and sample wording, a full draft early, the whole guide again every revision).
+
+**Audience sections:** a heading starting **"For ChatGPT"** goes only to ChatGPT
+(the one-code-block-every-time rule); **"For Claude"** only to Claude (the store,
+save-box, states file, how to check and open it). The reader shows both.
+
+**The send:** send `guide` (INIDATA\ClaudePrompts\guide.txt, contexts `*`,
+auto_send off so she can add "I want a guide about eating") has the body
+`{guide:making_a_guide}`. `_SendExpandPlaceholders` (ClaudeFunctions.ahk) expands
+any `{guide:<id or say word>}` through `guides.py send-text --for chatgpt|claude`,
+chosen by `IsForegroundContext("chatgpt")`, so the send is always the guide's
+CURRENT text. Any other send can embed a guide the same way.
+
 ## Commands
 
 | voice | AHK |

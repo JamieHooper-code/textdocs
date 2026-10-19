@@ -267,6 +267,24 @@ The probe also gets contenteditable editors right (the ChatGPT composer),
 which the UIA "edit" check misses. Coordinated with the click-hints session
 before editing `ClickHintsEngine.ahk`.
 
+### `pins` (content.js)
+
+Which PINNED click numbers ("stay 13", see [[GLOBAL_CLICK_HINTS]] § Pinned
+numbers) this tab answers to. Only tabs that have (or just lost) pins speak;
+every other page stays quiet.
+
+```
+data: {url, title, visible, numbers: [13, 14, ...], names: [...]}
+```
+
+- Sent when the matched set changes (pins pushed, SPA route, the page
+  re-rendering), and on every visibility change, so `visible: false` follows
+  a tab switch away.
+- **Caster reads the state file directly**: `rules\click_pins_commands.py`
+  `_pins_here` stats `state\pins.json` per utterance (mtime-cached) and
+  checks the foreground title starts with `data.title`. That is what scopes
+  the bare-number rule to pinned pages with no AHK process in the loop.
+
 ## Extension reload behaviour
 
 - **Re-injection.** On install/reload, `injectOpenTabs()` injects the fresh

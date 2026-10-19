@@ -41,6 +41,14 @@ servers would have bought a page load's worth of speed and cost:
   — the stale-code trap);
 - the reader (5,000 lines) would swamp the rest.
 
+**This is a default, not a rule (Jamie, 2026-10-19):** "I really don't care
+about" a crash taking more than one page down. A new page may live as another
+route on an existing server when it reuses that server's machinery. The Writing
+page is the first one: it is `/write` on the new tab server, because it is the
+new tab's panels with different content ([[WRITING_PAGE]]). Choose by what the
+page reuses, not by isolation. A big, independent page like the reader still
+gets its own server. `apps.json` rows may share a port and differ by `path`.
+
 If one address ever matters, the new tab server can **proxy**
 (`/meditate/` → :8295) later without rewriting a page. Not built; not needed
 unless switching ever feels slow.
@@ -105,7 +113,7 @@ Saying "jump 7", or just "7", clicks the control labelled 7 on any local page.
   bar's ⚙. `Kit.openSettings(<any system>)` also adds it as an "All pages"
   section to the bottom of every page's own panel, and those rows save to
   `pages`, not to the page's system.
-- **Which pages have numbers:** new tab, music folders, timers, reminders
+- **Which pages have numbers:** new tab, music folders, timers, reminders, the poem studio (print + carousel),
   (section nav + check-in buttons) and meditation. Meditation packs are pinned
   to the number the card already shows. Its tracks are unmarked, because they
   already show their series number. Health has no controls, so nothing is
@@ -147,8 +155,9 @@ Saying "jump 7", or just "7", clicks the control labelled 7 on any local page.
 
 - "Watching" has no page of its own yet (it's a new tab panel), so it's not in
   the header.
-- Proofread (:8765) and the poem studio (:8296) are left out (the studio needs
-  a poem to open). The alarm clock is in, but its own page shows the header only
+- Proofread (:8765) is left out. The poem studio (:8296) joined 2026-10-18: header
+  link opens the carousel (`/carousel/` = the last poem), both its pages load kit.js
+  and number their buttons (option grids pin 1..N). The alarm clock is in, but its own page shows the header only
   after its server next restarts. It holds live timers, so it wasn't restarted.
 - Moving existing pages' own CSS onto shared tokens. Only the header was added
   to them.

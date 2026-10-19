@@ -1,7 +1,7 @@
 ---
 tags: [programming, poetry, design, printing, instagram, clipart, ahk, miller]
 created: 2026-10-05
-status: print-built-rest-designed
+status: print-and-carousel-built-poster-designed
 related: ["[[POETRY_SYSTEM]]", "[[SETTINGS_SYSTEM]]", "[[ART_SYSTEM]]"]
 ---
 
@@ -13,7 +13,7 @@ or shareable, all started from a poem in the `open poems` Miller:
 | Output | What | State |
 |---|---|---|
 | **Print** + **print studio** | Letter paper, title + "by Pollen" + poem; a live page where she sets size / wrapping / pages / font and prints | **BUILT 2026-10-05** |
-| **Instagram carousel** | 1080×1350 slides, minimal background, text across pages, optional image slide after | designed |
+| **Instagram carousel** + **pick-an-option** | 1080×1350 slides on paper grain; Layout / Background / Images picked from numbered options; PNG export | **BUILT 2026-10-18** |
 | **Art poster** | text-first layout + clipart she places by hand (drag editor) | designed |
 | **Clipart search + picker** | find clipart that fits the poem, by search and by suggestion; place, drag, resize | **v1 BUILT 2026-10-05** (in the print studio) |
 
@@ -213,19 +213,98 @@ becomes a dot screen and reads light and soft. Text is now `#000` (`INK` in
 poem_layout.js); the PDF test asserts it. The version mark went from 5pt `#c4c4c4`
 (printed invisible) to 7pt `#8c8c8c` — readable, still quiet.
 
-## Instagram carousel (designed)
+## Instagram carousel (BUILT 2026-10-18)
 
-- 1080×1350 (4:5) slides, minimal background (flat colour / subtle paper texture).
-- **One font size across the whole carousel**, chosen with the print rule's shape:
-  floor → slide count → grow to fill those slides.
-- Breaks only between stanzas; title on slide 1; byline on the last text slide;
-  small `2/4` marker.
-- Long lines: turned lines (same as print). A 71-char line unwrapped would force
-  ~28px on a 1080 slide — too small on a phone.
-- **Image slide is optional and comes AFTER the text**, its own slide, so it can
-  never touch the text size.
-- Output: `E:\Media\Poetry\instagram\<slug>\01.png…`, opened as a folder.
-- Shares the print engine's measure/paginate JS (factor it out when building).
+`http://127.0.0.1:8296/carousel/<slug>` -- AHK `OpenPoemCarousel(id)` (PoemsFunctions.ahk),
+Miller row **Instagram carousel…** under Print studio, and the ◇ pages header ("Poem studio").
+
+| Piece | Where |
+|---|---|
+| Page | `Scripts\poems\studio\carousel_studio.html` (read per request) |
+| Store + export | `Scripts\poems\carousel.py` (`export <id> [--opts-file] [--json]`) -- per-poem picks in `E:\Media\Poetry\instagram\carousel_settings.json`, PNGs to `E:\Media\Poetry\instagram\<slug>\01.png…` (old numbered PNGs cleared first) |
+| Server routes | `/carousel/*`, `/api/carousel/{poem,save,reset,export}`, `/paper/<name>` in `poem_studio_server.py` |
+| Settings | Settings → Poems → Carousel: `carousel_min_pt` 20, `carousel_max_pt` 60, `carousel_margin_in` 1.0, `carousel_paper` (ambientcg-paper001), `carousel_paper_strength` 0.2, `carousel_out_dir` |
+
+- Engine `shape: 'instagram'`: 1080×1350, small gray `2/4` bottom-right, byline AFTER the last
+  stanza (its own slide rather than squeezed), title on slide 1, one size across all slides,
+  breaks between stanzas (or a stanza continues -- `splitStanzas`).
+- Long lines turn with the same `/ ` convention as print. Her rule: avoid turns unless they
+  make the text substantially bigger, and then only a couple.
+- The page = slides on the left, a panel of rows on the right: the three ASPECTS (Layout 1,
+  Background 2, Images 3 -- pinned voice numbers) then −/+ rows (size, side margins, top +
+  bottom, line spacing, stanza space, paper grain, font, alignment) and Export PNGs.
+  ↑ ↓ rows, ← → change, Enter opens / presses. Autosave like print (only what differs).
+- Every button has a kit.js voice number; title ends " - Pages", so the shared bare-number
+  rule ("3") works with no Caster change.
+- Images are placed over the finished slides (her model), anywhere they fit -- top right /
+  bottom right beside the shortest lines, as big as possible, the same spot on every slide
+  (`images[i].every`) or a different spot on each. "Shown as a last slide" was my wrong
+  reading -- there is no image slide.
+
+## Pick-an-option studio (BUILT 2026-10-18)
+
+Her idea: single out ONE thing (spacing, background, images…), see a handful of genuinely
+DIFFERENT fixes side by side, big, numbered; say or type the number; on to the next aspect.
+"There are multiple different optimal solutions depending on what you are optimizing for" --
+each option is the best answer to one goal. Least clicking for the best options.
+
+- `Scripts\poems\studio\poem_variants.js` -- the generators, pure JS over the engine:
+  - `layout()` -- spacing, size and margins as ONE aspect (she sees them as one solution
+    space; margins are NOT their own aspect). Early-slide gap fixes (smaller text ≤ 8%,
+    tighter line spacing, less stanza space, smaller top + bottom margins, let a stanza
+    continue, a little of both), plus bigger-text options (narrower side margins; a line or
+    two turned for ≥ 8% bigger, never past maxPt; one page/slide fewer; one MORE page/slide
+    when small text gets ≥ 15% bigger). An option is offered only if it leaves no early-page
+    gap, and near-copies are dropped. Lots of space on the LAST slide is fine (her words).
+  - `background()` -- plain white, plain cream, every paper grain at the current strength,
+    and "its colour" only where the paper's colour is visibly not cream.
+  - `images()` -- one picture: every-slide corners, biggest spot on each slide, last-slide
+    corners / biggest free spot, first-slide corners, and TEXT FLOWS AROUND IT (right / left /
+    middle-with-text-above-and-below, each on the first and last slide, plus "few turns" = the
+    biggest that turns at most 2 more lines). Free space comes from `PoemLayout.boxes(R)`.
+- `Scripts\poems\studio\option_grid.js` -- the full-window numbered grid, shared by BOTH
+  studios: sizes itself so every option is on screen at once (tries every column count),
+  pinned voice numbers 1..N, the page's own numbers parked while it is open, digits pick
+  (a second digit waits 0.9 s, or Enter), arrows + Enter, Esc = back unchanged.
+- **Two views** (her ask, 2026-10-18 evening): **grid** (all at once) and **one at a time**
+  (full screen, as big as it fits -- "I can't hardly see them at that size"). Tab switches
+  and the view she switches to is remembered per aspect. One-at-a-time: ← → / PgUp PgDn /
+  scroll wheel (one step per burst, so the Chrome pedals' 11-notch scroll is one step) /
+  poem-studio pedals swap, wrapping around; **Space** = auto-advance on/off for now;
+  **Enter** picks the one showing; numbered chips along the bottom jump straight to one
+  (voice). Settings → Poems → Pick-an-option: `options_view_layout` (grid),
+  `options_view_background` (one), `options_view_images` (grid) -- each grid / one /
+  one_auto -- and `options_auto_seconds` (6). Read via `/api/options`, written through
+  `/api/setting` one at a time (two quick switches raced once and stored the first).
+- **Ranking = her affinity system** (2026-10-18): one view ↑ / ↓ = +1 / -1 (← → still
+  swap), grid Shift+↑ / ↓, ▲ Like / ▼ Less buttons for voice. Scored per aspect + option KEY
+  (a paper, a kind of layout fix, a kind of placement) -- what recurs across poems -- on the
+  SHARED scale via `Scripts\poems\studio\option_affinity.py` -> `MediaCatalogffinity.py`
+  (bands favorite/loved/essential, buried below zero, a dated log). Store
+  `E:\Media\Poetry\option_affinity.json`, routes GET/POST `/api/option-affinity`. Order is
+  set when a screen OPENS: as-it-is first, then liked, buried last -- never re-sorted while
+  she ranks.
+- Grid fit: card chrome is MEASURED from a real card, then re-fitted (a guessed label
+  height pushed the bottom row off the screen); labels are one line, ellipsised.
+- **Foot pedals**: context `INIDATA\Contexts\poem_studio.json` (title ends " — Carousel /
+  Print - Pages"), bindings set2 left/middle/right = Left / Space / Right in pedal mode
+  default. Set2 IS her right set (confirmed 2026-10-18). Set1 keeps its Chrome scrolling,
+  which the one view also treats as next / previous.
+- Print studio: "Pick from options" section at the top -- **Layout options** (1) and
+  **Place an image…** (2; after the picker, the placements open; Esc keeps the default spot);
+  each image row has **Move…**. A one-option result says "nothing better to offer" instead of
+  opening. `poem_print.py` OPT_KEYS gained `marginYIn`, `splitStanzas`.
+- Shared clipart picker module `clip_picker.js` (the carousel uses it; the print studio still
+  has its inline copy -- move it over when next touching the print picker).
+
+### Text around images (engine, BUILT 2026-10-18)
+
+`images[i].wrap = true`: rows beside the picture get narrower (`seg.dx/w`), rows with under
+30% of the width are skipped (`seg.pre`) so the lines go below it. TEXT FIRST holds: the size
+is chosen with no wrap-images, then the text flows around them at that size (more turns or a
+page, never smaller text). `splitStanzas` is honoured there too (a bug caught in testing: the
+first version dropped it and the early-slide gap came back). Tests pin: same pt with and
+without the picture, no line box overlaps it, nothing lost, boxes match the DOM.
 
 ### Page shapes in the engine (BUILT 2026-10-18 -- step 2 below, done first)
 
@@ -252,13 +331,15 @@ strength. Overlay over a mid-gray tile was tried first and was invisible on near
 paper even at 30%. 12 in the library: the 7 old poster ones + ambientCG CC0 Paper001/002/
 003/006 + Cardboard002. Option sheet: 20% = quiet, 45% = clearly paper.
 
-### Bottom gaps (2026-10-18)
+### Bottom gaps on slides that aren't last (2026-10-18)
 
-"Assemblage" on two slides left ~1/3 of each slide empty -- it "almost looks like the
-poem ends". The size is set by the LONGEST LINE, not the height, so the fixes are:
-centre up-and-down (each slide, or the same top on every slide), narrower margins
-(0.75in: 26.1 -> 27.5pt), let the longest line(s) turn so the text grows (28.1pt, 2
-turned), looser line spacing, or all of them (30pt). Sample sheet rendered; her pick next.
+Her correction: lots of space on the LAST slide is fine; lots of space on an EARLIER
+slide is the problem (it reads as the poem ending). Cause: a stanza that doesn't fit
+starts the next slide. Engine options added: `marginYIn` (top/bottom apart from the
+sides) and `splitStanzas` (a stanza may continue on the next slide at a line break,
+2+ lines each side). Survey of all 481 poems as slides (Arial, 1in, floor 20pt): 53
+need 2+ slides, 29 of those have an early-slide gap over 1.6 lines, and the gap
+generator closes it in 27 of the 29.
 
 ### What other poets do (research, 2026-10-18)
 
@@ -391,47 +472,34 @@ value / + / Auto, ← → steps it. `R.titlePt`, `R.titleRows`.
 
 The panel is three columns at ≥1750px wide, so every section fits open at 2000×990.
 
-## Where we are + next steps (2026-10-18) — START HERE in a new chat
+## Where we are + next steps (2026-10-18, evening) — START HERE in a new chat
 
-**Done:** the print studio (`OpenPoemPrintStudio` / Miller "Print studio…" / :8296) —
-auto sizing, phrase splits + manual splits, title size, autosave per poem, pure-black
-text, the clipart picker (suggest / ideas / favorites / CLIP search), images placed +
-dragged + resized, room for images, every-poem settings. Jamie's verdict on paper:
-"they look fantastic". Tests: `Scripts\codebase_tools	ests	est_poem_print.py`.
+**Done today:** engine page shapes (Letter / Instagram) + marginYIn + splitStanzas + paper
+grain + every-slide images + text around images + `boxes()`; the paper library (12, subtle by
+construction); the carousel page + PNG export; the pick-an-option grid in BOTH studios; voice
+numbers on both pages; studio in apps.json. 29 tests in `test_poem_print.py`; all 481 poems
+print byte-identical to before the refactor (checked with an old-vs-new engine diff).
 
 **Next, in order:**
 
-1. **Instagram carousel** — a second page on the SAME studio server
-   (`/carousel/<slug>`), reusing poem_layout.js with a 1080×1350 page size instead of
-   Letter (make PAGE_W/H an option), the same sections/keyboard/autosave pattern, the
-   same picker. Slides break between stanzas, one size across all slides, title on
-   slide 1, byline last, `2/4` marker, optional image slide after the text. Export =
-   PNGs via Playwright screenshots (not PDF) to `E:\Media\Poetry\instagram\<slug>\`.
-   Decide: background (flat colour / paper texture?), Instagram margins, whether turned
-   lines use the same `/` convention on a phone.
-2. **Shared "page" engine refactor** — DONE 2026-10-18 (see § Page shapes). Before (1): pull page size, folio and ink
-   colour into options so print, carousel and poster are ONE engine with three page
-   shapes. Keep the PDF-matches-preview invariant (tests).
-3. **Art poster** — the drag editor already exists (images on the print page); the
-   poster is a page shape + background + bigger image freedom (bleed, opacity,
-   rotation, layering order). Optional layered export for Photopea/GIMP.
-4. **Picker improvements** — text flowing around an image (optional, never shrinks
-   text); per-image opacity/rotation/flip; "bury" (hide a picture forever); browse by
-   source/collection; more clipart (the old wishlist: hand-drawn line art, memento mori,
-   Doré) via `Scripts\poem_poster\ingest.py` then `clipart_index.py build` +
-   `clip_search.py build`.
-5. **Retire poem-poster** — once the carousel + poster replace it: archive
-   `Scripts\poem_poster\` render code (keep `sources/` ingest + `_process.py` modes,
-   which the clipart pipeline still uses), update POETRY_SYSTEM.md, `printer poster`.
-6. **Small polish** — voice phrases ("print this poem", "poem studio"), Stream Deck
-   button, chord-line auto mono (low priority — she doesn't print songs), untitled
-   poems: no title vs date written.
+1. **Jamie tries it** on a real poem: `OpenPoemCarousel` / Miller "Instagram carousel…",
+   say 1 / 2 / 3, pick, Export. Tune from her picks (which options she never takes = drop).
+2. **More aspects** in the same grid: Font (the print font list, side by side), Title
+   (size / hidden / own slide), maybe Image style (the clipart variants: ink / cut out /
+   stamp…) for a placed picture.
+3. **Print studio picker** -> move its inline picker onto `clip_picker.js` (one copy).
+4. **Art poster** -- a third page shape on the same engine; the grid + images() already do
+   most of it (add bleed, opacity, rotation, layering).
+5. **More subtle papers** if she wants them (ambientCG has more; `paper_textures.py import`).
+6. **Retire poem-poster** (unchanged from before).
+7. Small polish: voice phrases ("poem carousel", "print this poem"), Stream Deck button.
 
-**Known facts to not re-learn:** stale-code — the studio server holds poems.py /
-poem_print.py / clipart_index.py / clip_search.py in memory: `poem_studio_server.py
-restart` after editing them (page + engine are read per request). CLIP warms ~25 s
-after a restart. Saved per-poem settings: `E:\Media\Poetry\print\print_settings.json`;
-picker prefs: `E:\Media\Poetry\poster\clipart_prefs.json`.
+**Known facts to not re-learn:** stale-code -- the studio server holds poems.py /
+poem_print.py / carousel.py / clipart_index.py / clip_search.py in memory:
+`poem_studio_server.py restart` after editing them (pages + JS are read per request; the
+browser may cache /static/*.js -- reload). CLIP warms ~25 s after a restart.
+**This repo's worktree sessions can't edit the main folder with Write/Edit** (the desktop
+app's worktree guard); start studio sessions WITHOUT a worktree.
 
 ## Old order (superseded by the list above)
 

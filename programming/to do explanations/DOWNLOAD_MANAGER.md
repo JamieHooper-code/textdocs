@@ -127,6 +127,7 @@ still marked live.
 | UI | `Helpers/DownloadsMenu.ahk` + `Scripts/DownloadsViewer.ahk` | `open downloads` |
 | Producer — books | `Scripts/anna_fetch.py` (`track()`) + `anna_download_watch.py` (`_track()`) | queued / active / downloaded / imported / sent / oversized / failed+stage |
 | Producer — torrents | `Scripts/acquire/pipeline.py` (`_track_job`, hung off `set_job`) | queued / active / filed / failed / skipped |
+| Finished toast | `Scripts/downloads/finished_toast.py` (`announce()`) | the one "Books — N finished" toast |
 
 ## The menu
 
@@ -200,6 +201,39 @@ Rules for a producer:
   `set_job()` — the one place a job's state changes — so a state added later is
   tracked for free instead of being silently missed. Look for the equivalent
   before instrumenting a dozen places.
+
+## The finished toast (2026-10-19)
+
+Jamie sets a few books going and walks away; the pipeline's tooltips are gone
+by the time she is back. So every book that reaches its END — its final step,
+or wherever it failed — is added to ONE toast:
+
+```
+Books — 3 finished, 1 failed
+✗ Braiding Sweetgrass — Download failed (server #2, 502)
+⚠ Capital Vol 1 — In library, too big to e-mail (84 MB)
+✓ The Dispossessed — Sent to Kindle
+```
+
+- `announce(source, item_id, title, outcome, line)` in
+  `Scripts/downloads/finished_toast.py`. Outcomes: sent / imported / linked /
+  duplicate / oversized / failed.
+- **Callers announce, the fold does not decide.** `imported` is both a stop on
+  the way to `sent` and a final outcome (send skipped), so "is this the end?" is
+  only known at the call site. Anna's ending points: every return in
+  `anna_download_watch._import_and_send` + its two no-file failures, and
+  `anna_fetch` (download failed, link expired, file missing, already owned).
+- The list is "everything finished since this toast appeared": re-raised with
+  `replace_key` so it updates in place; once it is gone (clicked, X'd or cleared
+  by presence) the next book starts a fresh list. A retry that succeeds replaces
+  its own failed line (same md5).
+- **No sound** (her call). Clears 20s after she is seen at the computer
+  (`downloads.finished_toast_present_seconds`; presence = `Helpers/Presence.ahk`,
+  see `docs/toasts-and-mail-watching.md` § "Clearing when she is back").
+  Click = `OpenDownloads`.
+- The tooltips stay, for when she is watching.
+- A new producer (torrents) = add a `SOURCES` row (noun + click action) and call
+  `announce` at its endings.
 
 ## Gotchas
 

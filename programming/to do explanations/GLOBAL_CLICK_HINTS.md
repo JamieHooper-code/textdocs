@@ -477,6 +477,202 @@ Topics:
 Rule: new data = a new topic, never a bespoke push. Full design, data shapes
 and tests: [[CHROME_BRIDGE_EVENTS]].
 
+## Pinned numbers — "stay 13" (built 2026-10-19)
+
+**What it is.** While click hints are up, saying **"stay 13"** pins hint 13: on
+that kind of page, 13 always means that element. By default the number stays
+drawn on the page with no "make click" running, and saying the bare **"13"**
+clicks it. Built for Amazon, where Vimium keys misbehave and "Add to Cart" is
+the button she always wants.
+
+**UPDATE, same day: the pin window is gone; "open pins" is a Miller.** Jamie
+flagged the picker as a lazy UI. It closed and reopened its window on every
+toggle, and needed a "bare Enter always saves" workaround. Now:
+
+- **`Helpers\ClickPinsMenu.ahk` + `Scripts\ClickPinsViewer.ahk`** ("Click
+  Pins", its own process, scaffolded). The tree is site / app → pin → its
+  settings: All like this · Always show · Look › (Normal / Minimal ✓) ·
+  Which pages › (kind / page / site ✓, or any window / this title) · Number ·
+  Name · Delete (asks first through `_ConfirmationModalGui`).
+- **Every setting saves the moment it changes.** A leaf that doesn't close
+  makes the engine re-run that level in place. Builders re-read the store via
+  `ClickPins_Get`, so there is no Save step and Esc loses nothing.
+- **Values from a set are picked from a list, never cycled or typed** (the
+  gui-conventions rule). Only Number and Name are typed.
+- **"stay N" pins at once** with the defaults: the lowest free number plus the
+  `clickpins.*` settings. It shows a "pinned 1 — …" tooltip and opens the
+  Miller drilled straight into the new pin (`OpenClickPins(pinId)` →
+  `initial_path`). The family it saw is kept as `family_offer`, so "All like
+  this" can be turned on later from the Miller.
+- **Settings (⚙ at the root):** `clickpins.default_always`,
+  `clickpins.default_look`, `clickpins.default_pages`,
+  `clickpins.host_scan_ms` (the app-pin host reads it).
+- Edits go through `ClickPins_Update(id, fn)` / `ClickPins_Delete` /
+  `_CPSetGroup` / `_CPSetPages` in ClickPins.ahk.
+- The old pin-window voice rule (`click_pin_window_commands.py`) is deleted.
+  The Miller is voice-pickable for free ("3", "look", ...).
+- **Verified:** opening on a pin; "1" turned All like this on (1–7, family
+  selector applied); Always show toggled; Look › Minimal ✓ redrew in place;
+  Delete › confirm emptied the store; "stay" with a test draft pinned it as 1
+  (not the hint's 13) and opened on it. GUI tests: 2/2.
+
+The historical design of the replaced picker window follows.
+
+**The pin window** (numpad picker, `_PersistentLoopPickGui`; the title is
+`Pin 13 — amazon.com`):
+
+| # | Line | Notes |
+|---|---|---|
+| 1 | Save | **Bare Enter always saves**, whatever was just changed (the selection snaps back to line 1 every loop; an early build left it on the changed line, and Enter re-toggled it) |
+| 2 | Always show | on = drawn on the page all the time; off = only reserves the number inside make click |
+| 3 | Number | any number, not just the one she said |
+| 4 | Look | normal (amber-bordered badge) / minimal (small amber number, no box) |
+| 5 | Which pages | cycles: this kind of page → this page only → whole site |
+| 6 | Name | shown in "open pins" |
+| 7 | All like this | only when the element has a family: number all N of them n, n+1, ... |
+| 8 | Delete | existing pins only |
+
+Saying "stay N" on an already-pinned element opens THAT pin for editing.
+Voice inside the window: bare numbers, "save pin", "pin cancel"
+(`rules\click_pin_window_commands.py`, scoped by the window title).
+
+**"This kind of page"** keeps only the path words that name a kind of page:
+short, lowercase, no digits, at most one hyphen. So
+`/Laptop-Stand/dp/B0ABC/ref=sr_1_3` becomes `(^|/)dp(/|$)`, which matches any
+product page and not the cart. Pure and tested (`_CPKindPathRe`,
+`Helpers\Tests	est_click_pins.ahk`).
+
+**"All like this"** (`pins.family` in content.js): drop one `:nth-of-type` at a
+time from the element's selector, deepest first, and also try tag plus stable
+classes. The smallest family of 2..60 same-tag, visible elements wins. On
+Amazon this gave `span.a-button.a-button-thumbnail`, 7 thumbnails, numbered
+13–19. A single pin keeps its exact selector; if that selector later matches
+several, the one with the pinned name wins.
+
+**Amazon trap:** `a-autoid-N` ids are handed out in page order, so the same
+id is a different button on the next product. `stableId` in content.js now
+rejects any id containing `autoid`, which also protects recorded macros.
+
+**Pieces:**
+- Store: `INIDATA\click_pins.json`. The only writer is `Helpers\ClickPins.ahk`.
+- Copy: `pins.set` puts it in `chrome.storage.local`, so every tab and every
+  browser start has it. If the JSON is edited by hand, say "sync pins".
+- Page: content.js § pins draws the badges in their own closed shadow root,
+  which steps aside while make click is drawing. `pins.press` clicks by number
+  with a DOM click, so the pointer stays put and it works when scrolled off
+  screen. The page emits the `pins` event topic.
+- make click: `scan` tags candidates with `pin`, and pass 0 of
+  `_CHAssignNumbers` gives them their number before the session memo or the
+  remembered numbers can.
+- "stay N" is window message code 6 → `_CHStay` (ClickHintsDom.ahk), which
+  writes `%TEMP%\click_pin_draft.json`, quits the overlay (its digit hotkeys
+  would eat the window's input) and runs `MAINFUN ClickPinFromHint`.
+- Bare "N": `rules\click_pins_commands.py` → `ClickPinPress`. It is scoped by
+  the `pins` event state file plus the foreground title, and is off while the
+  overlay is up.
+- "open pins" / "sync pins" are generic-store commands.
+
+**Verified live 2026-10-19** on an Echo Dot product page. The 7 thumbnails
+were pinned as a group 13–19 and drawn. `ClickPinPress 16` switched the main
+image to the 4th picture. "stay 14" through a real overlay (message code 6)
+opened the existing 13–19 pin. The look toggled to minimal and rendered. The
+scope check is true on the page.
+
+### In other apps (built 2026-10-19, same day)
+
+"stay N" works in any app click hints can number. The pin window is the same;
+line 5 becomes "Which windows" (any window of the app, or only windows with
+this exact title).
+
+- **Identity = a recorded-macro step.** An app pin carries `sel`
+  {type, name, aid}, an `anchor` ancestor when the name isn't unique, and
+  `rel` (window-relative spot). It is re-found with the recorded-macro
+  runner's own tested rules (`RecMacro_Candidates` / `RecMacro_Dedup` /
+  `RecMacro_Pick`). So an ambiguous pin draws no badge and clicks nothing,
+  rather than guessing. Shared resolver: `Helpers\ClickPinsUia.ahk`, with pure
+  tests in `test_click_pins_uia.ahk`.
+- **All like this** = the same type under the same direct parent (Notepad:
+  File/Edit/View under the menu bar), numbered in reading order.
+- **The host** `Scripts\ClickPinsHost.ahk` is its own process. It ticks every
+  600 ms and costs one WinGetProcessName unless a pinned app is in front.
+  Then it UIA-scans that window every 1.5 s and draws click-through badge
+  windows, which hide while make click is up. Its hidden window is titled
+  `ClickPinsLive` while pins resolve (otherwise `ClickPinsIdle`). Caster
+  scopes the bare number on that title and posts WM_APP+2 (wParam = number)
+  straight to it. The click is `_RmClick`, the runner's guarded click.
+- **Who starts it:** saving an app pin, "sync pins", and the context
+  detector's `ClickPinsWake` observer (`AlwaysOn\ContextDetector.ahk`) when an
+  app with pins comes to the front. So nothing runs for people with no app pins.
+- **Stale-code trap:** the host holds its code from when it started. After
+  editing it, stop its AutoHotkey64.exe process; the next wake starts the new
+  code.
+- make click keeps app pins' numbers too (`_CHTagAppPins` before pass 0).
+
+**Verified live 2026-10-19 in Notepad:** "stay 7" on File (window scope)
+opened the pin window, found the family (3) and saved it as 7–9. The host
+started on save and drew 7/8/9 beside File/Edit/View. The voice scope check
+was true. Posting 8 exactly as Caster does opened the Edit menu. The test pin
+was deleted afterwards.
+
+**Trap hit while testing:** a `try WinGetPos(&x, ...)` that throws can leave
+the output variables UNSET, even when they were assigned defaults first. A
+fake hwnd of 0 in the tests made the next read throw "local variable has not
+been assigned". The resolver now reads into scratch variables and copies them
+on success.
+
+### Numbering, right and double (2026-10-19, later the same day)
+
+**Lowest free numbers.** A new pin no longer takes the hint number it was
+said on. It gets the lowest free block on that site or app
+(`ClickPins_LowestFree`, tested): the first pin is 1, a group of 7 is 1–7, and
+the next pin is 8. While the number has never been set by hand (`n_auto`),
+turning "all like this" on or off re-picks the lowest block that fits the new
+size. Typing a number on line 3 fixes it.
+
+**"right 13".** Right-clicks the pinned element, then opens click hints on
+the menu that appeared (`ClickHintsPopup` → host `start ... popups=1` →
+`CH_POPUPS`). Every rescan numbers the app's open popups first, if any:
+untitled same-process windows, or ones owned by the window (`_CHPopupWindows`
+/ `_CHPopupRescan`, clipped to the whole screen because a menu can hang
+outside its window). Once the menu closes the overlay carries on as normal
+make click over the window. Backspace or Escape ends it, as always.
+
+**"double 13".** Double-clicks.
+
+**How Chrome does right and double.** A synthetic event never opens
+Chrome's own context menu, so these use the REAL mouse. The content op
+`pins.rect` scrolls the element into view and reports its rect plus viewport
+facts. `ChromeBridge_ViewportOrigin` (moved into ChromeBridge.ahk from
+ClickHintsDom so click hints and pins share one copy) turns that into a
+screen point. The `pointer` op checks the aim and corrects it once, the same
+way click hints aim. A plain left press is still the DOM click, so the
+pointer doesn't move.
+
+**Apps:** the host already took an action code in lParam; a right-click now
+also runs `MAINFUN ClickHintsPopup`.
+
+**`RecMacroFind.ahk` split.** The recorded-macro runner's re-finding rules
+(candidates, dedup, anchor, pick, scan, ancestors, click) moved into
+`Helpers\RecMacroFind.ahk`. The runner `#Include`s it, MAINFUNCTIONS lists it
+explicitly (the closure checker doesn't follow a helper's own includes), and
+both click-pin hosts include only it. Without the split, the hosts dragged in
+the runner's Chrome / key-action / capture references, and `ahk_warnings`
+flagged them.
+
+**Verified live 2026-10-19:**
+- Chrome, Amazon thumbnails renumbered 1–7: "double 3" landed with the aim
+  verified by the page.
+- "right 3" opened Chrome's own context menu, and the hints numbered it 1–16.
+- Picking 11 (Bitwarden) opened its submenu, numbered 17–23, while the first
+  menu kept its numbers. Backspace ended the overlay.
+- Notepad (a temporary pin on its tab): "right 1" opened the WinUI tab menu,
+  numbered 1–2, and double-clicking worked. The test pin was removed and the
+  host went idle.
+
+**Bug found live:** `_CHPopupRescan` filtered before loading the profile, so
+`CH_PROFILE["types"]` was empty and the host died ("Item has no value" at
+_CHFilter). The profile now loads before the scan loop.
+
 ---
 
 ## v1 (2026-07-27) — original design, kept for history

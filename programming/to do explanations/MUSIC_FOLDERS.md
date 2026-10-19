@@ -3,7 +3,7 @@ tags: [programming, design-doc, music, spotify, local-viewer, ahk, caster]
 created: 2026-10-10
 updated: 2026-10-14
 status: v1 built 2026-10-10 — Spotify only; YouTube / local albums later
-related: ["[[MUSIC_GRAPH]]", "[[MEDIA_SYSTEM]]", "[[LOCAL_APP_HUB]]", "[[SPOTIFY_SCRAPING_INTERNALS]]", "[[REMINDERS_SYSTEM]]"]
+related: ["[[LOCAL_PLAYER]]", "[[MUSIC_GRAPH]]", "[[MEDIA_SYSTEM]]", "[[LOCAL_APP_HUB]]", "[[SPOTIFY_SCRAPING_INTERNALS]]", "[[REMINDERS_SYSTEM]]"]
 ---
 
 # Music folders — our own playlist folders
@@ -233,6 +233,9 @@ sub-folders survive, promoted to the top), and the dialog says how many first.
 - Page: `music_folders_server.py` (:8297, `restart` after editing it or the
   store module, because of the stale-code trap) + `music_folders_page.html`
   (read per request).
+- Now-playing bar: `spotify_player.py` (Spotify's player via the Chrome bridge).
+- Playing a search-only album + the big cover: `Helpers/SpotifyAlbumSearch.ahk`
+  (`SpotCloseOverlays` / `SpotPageCards` sit in `LinkManager.ahk`).
 - AHK: `Helpers/MusicFolders.ahk`. Voice: `rules/spotify_commands.py`,
   `rules/spotify_global_commands.py`.
 
@@ -355,8 +358,70 @@ Jamie's decisions:
   focus/programming, tender/grief, joyful, cathartic, cozy winter, summer heat,
   walking, cleaning.
 
+## Playing from the page, the big cover, and the now-playing bar (built 2026-10-19)
+
+**Search-only albums** (most of a best-of list / Daily: no known Spotify link)
+used to run `SpotPlayTopSearchResult`, which is a TRACK search: it plays a song
+row and follows the playbar into the album. An album search has no song rows,
+so every such click ended "couldn't find … (the search is open)". Now
+`MusicFolderOpenUrl` (kind `search`) calls `SpotPlayAlbumByName`
+(`Helpers/SpotifyAlbumSearch.ahk`): take over the Spotify tab, close the big
+cover if it is up, open `/search/<artist album>/albums`, read the cards through
+the Chrome bridge's `list` op ("Sun Giant\n\n2008 • Fleet Foxes" + the
+/album/ link), and accept a card only when the ARTIST and the TITLE match
+(exact, or equal once "(Deluxe)" / "- Remastered" is stripped). Then the normal
+start (`SpotOpenInChrome`: same tab, Play pressed) and `music_smart.py learn`
+so the next click goes straight there. **No match plays nothing** and says so:
+Spotify's search never comes back empty ("Joanna Newsom Divers", not on
+Spotify, returned Lady Gaga's "Joanne"), and a wrong album would also be
+LEARNED. Pinned by `Helpers/Tests/test_spotify_album_search.ahk`.
+
+**The big cover:** after any album start from the page, `SpotShowAlbumArtwork`
+clicks the album page's "View album artwork" button (bridge `selectorclick`),
+so the cover sits large in the middle of the screen. Setting
+`music.show_artwork_on_play`. `SpotOpenInChrome` closes it first
+(`SpotCloseOverlays`, Esc) so a new album is never typed underneath it. Its one
+tell is a VISIBLE button reading "Close": Spotify keeps several hidden
+`[role=dialog]`s in every page, so "a dialog exists" is always true.
+
+Saved albums were already going through `SpotOpenInChrome` (same tab, Play
+pressed); a "new page" only happens when no Spotify tab is open at all.
+
+**Recommendation cards** (every stored folder's green-line section, and mood
+folders): two numbered buttons, **+ Add** and **▶ Listen** (↗ Open for an
+artist), each with its own jump number drawn inside it (`data-jump-pos="inline"`).
+The card itself is no longer a jump target. "three five nine" still only ADDS:
+the `kit:jumpmany` handler keeps just the + Add buttons.
+
+**Now-playing bar** (bottom of the page; `Scripts/music_folders/spotify_player.py`,
+`GET /api/nowplaying`, `POST /api/np`): cover, album, track · artist, then
+⏮ ⏯ ⏭, ♥ Favorite (same affinity store as every heart; right-click = one
+less), ＋ Library, ↗ Spotify, 📁 Folder. Everything is Spotify's OWN player read
+and pressed through the bridge with `args.tabUrl = "open.spotify.com"`, which
+reaches the Spotify tab even while she is looking at this page — no media keys
+(those go to whatever Windows calls the media session). The album url is the
+bar's title link (it points at the album); the album NAME comes from
+`music_folders.lookup` on a background thread. **＋ Library never unsaves:**
+the album page's button toggles, so the tab is routed to the album with an
+in-app click on the bar's link (music keeps playing; a typed url would reload
+the player) and pressed only when it reads "Save to Your Library".
+📁 Folder opens a short list of her most-used folders (entries filed in the
+last 60 days count triple), numbered 1-9 while open (pinned `data-jump`), with
+✓ on any that already hold the album, plus "All folders…". The bar is a
+`data-jump-cover` (a kit.js option added for it): cards scrolled behind it are
+not numbered.
+
+**Trap found on the way:** Spotify's og:title became "Listen to <album> - Album
+by <artist> | Spotify" (2026-10). `lookup` strips the prefix; before that fix
+every newly filed album would have been titled "Listen to …".
+
+## Local albums
+
+Albums on the drive play here, not on Spotify: see [[LOCAL_PLAYER]] (mpv, gapless,
+scrobbled, theater view, the Local albums smart folder, format badges on cards).
+
 ## Later
 
-YouTube links (thumbnail), local albums (folder art) — the entry shape already
+YouTube links (thumbnail) — the entry shape already
 allows any `{url, title, creator, cover}`. Drag-to-reorder. A Media hub Miller
 branch.

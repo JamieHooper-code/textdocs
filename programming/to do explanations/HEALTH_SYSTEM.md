@@ -112,6 +112,13 @@ the data will be there:
 
 ## The check-in window (built)
 
+> **2026-10-19:** the check-in now asks in the shared question window
+> (`Helpers/Gui/QuestionWindow.ahk`) — the same one "log skating" uses — and
+> the questions were reworded (evening = today, morning = what's knowable on
+> waking). Keys changed: 1 answers at once, Enter = 10, arrows, PgUp back.
+> Sleep times are one 15-minute list ±2 hours. See [[CHECKIN_SYSTEM]]; where
+> this section disagrees, that doc wins.
+
 **Answers go through an inbox.** The window never shells Python per keypress:
 each answer is one JSON line FileAppended to `inbox.jsonl` (instant, and quick
 answers like 7-5-3-9 cannot race a load-modify-save), and `health.py` folds the
