@@ -321,6 +321,21 @@ py Scripts/MeditationPacks/med_packs.py add-playlist <pack> --playlist <url>
 `add-playlist` harvests and attaches. Both are idempotent. Then say
 **"reboot caster"** so the `<med_pack>` Choice re-reads packs.ini.
 
+**A video pack** (yoga): add `--media video --section Yoga --log-as yoga`.
+The downloader then keeps the picture: best stream up to 1080p, AV1 preferred
+(smallest; ~5-7 MB a minute with audio), m4a audio, merged to .mp4. Video packs
+are page-only (see [[MEDITATION_PAGE]] § Yoga). Seated Yoga, 2026-10-28:
+
+```bash
+py Scripts/MeditationPacks/med_packs.py register seated_yoga \
+    --playlist "https://www.youtube.com/playlist?list=PLui6Eyny-Uzwadfy44g9nYlDcTt8IB-3T" \
+    --display "Seated Yoga" --style yoga --media video --section Yoga --log-as yoga \
+    --aliases "seated yoga,seated,chair yoga,yoga"
+```
+
+The next yoga playlist should take its own aliases; `yoga` alone currently
+belongs to Seated Yoga.
+
 ## Known limits / still open
 
 - **Loudness is not normalised yet.** `sound_source.py` already does

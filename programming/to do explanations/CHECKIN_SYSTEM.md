@@ -40,6 +40,17 @@ loop that adds questions as she goes. That is the whole reason for the
 (splice the questions of a ticked activity in, ask who she hung out with,
 keep adding questions until she stops) branch in their own code.
 
+**A fixed list needs no loop (2026-10-28):** `res := qw.AskAll(questions,
+Map("header", name))` asks them in order with PgUp back, 0 skip, 0 0 stop
+(keeps answers) and Esc-on-the-first = cancel already handled, and returns
+`Map(ok, answers: key -> value, notes, ended)`. This is the default way any new
+feature asks Jamie a few things: a list of question Maps, never a new GUI
+(hand-built ones are hard for her to drive by voice and keyboard). Reference
+caller: `MarkPoem` (`Helpers/PoemMarks.ahk`, voice "mark poem") -- rank (scale,
+`ends` = ["weakest", "best"] labels the scale), status (choice, Enter keeps the
+current one), special / in progress (multi), title (text, pre-filled), saved as
+one `poems.py set-marks` write.
+
 ## Answer types (data, `kind` on the question)
 
 | kind | keys |

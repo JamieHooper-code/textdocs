@@ -420,8 +420,127 @@ every newly filed album would have been titled "Listen to …".
 Albums on the drive play here, not on Spotify: see [[LOCAL_PLAYER]] (mpv, gapless,
 scrobbled, theater view, the Local albums smart folder, format badges on cards).
 
+## "mark favorite" everywhere (2026-10-29)
+
+"mark favorite" / "mark unfavorite" is ONE global command (generic store →
+`MarkFavorite(by)` in `Helpers/MediaMarking.ahk`). It replaced "make favorite",
+the reading room's own "mark favorite", and Spotify's. It routes by what is in
+front: reader → `ReaderFavorite`, art viewer → `ArtFavorite`, Spotify →
+`MusicFavoriteThis`, a **YouTube video** → `Scripts/MediaCatalog/favorite_url.py`,
+anything else → the playing Plex episode. On YouTube the url is looked up library
+by library (`LIBRARIES`; today: music.json by video id). A match gets a music-folders
+heart keyed by its url, so it shows in **every folder holding the video** and in
+the Favorites smart folder. It also gets the catalog tag `favorite` and a line in
+its pack's favourites file (wow_favorites.txt…). The tooltip names the folders. A
+video in no library is reported, not filed. A new library = one find/mark pair,
+never a new command. The old function names `MakeFavorite` / `UnmakeFavorite`
+still work.
+
+**It is affinity everywhere, never a yes/no flag** (Jamie: "a proper affinity
+system universally"). One scale, `Scripts/MediaCatalog/affinity.py`: each mark
++1, each unmark −1, **through zero** to *buried* (−1…−3), with derived band tags
+favorite ≥1 / loved ≥3 / essential ≥5 / buried <0 (now in `media_tags.json`).
+- Reader, art: already affinity.
+- Music-folder hearts (Spotify, cards, YouTube videos): went below zero on
+  2026-10-29. ⊘ on the page, right-click any heart = one less. Buried things are
+  never recommended and never in Favorites. Filing into Favorite Albums lifts one
+  to 1.
+- Catalog items (Plex episodes, the YouTube videos' music.json records):
+  `media_catalog.bump_item_affinity` / `set_item_affinity`. The old `favorites`
+  tag is gone. `now_playing.py favorite` bumps the episode.
+- The pack favourites files (wow_favorites.txt…) stay yes/no because the lockout
+  reads them. They're kept as "listed iff score ≥ 1".
+- `affinity_migrate.py` converted the old flags: 10 tagged items, plus 133 pack
+  favourites → score 1 (and a heart on each video's card).
+- Already affinity elsewhere: quotes, poems, stories, tarot.
+- Converted 2026-10-30, and now reached by "mark favorite":
+  - **Birds**: `local_viewer.Store` holds `affinity {key: n}`, and `favorites` is
+    derived from it (≥1, highest first). On the page: ★n / ⊘, F for more, Shift+F
+    or right-click for one less. Voice marks the bird open now (newest recent).
+  - **Meditation**: the score is stored in `meditation_progress.json`
+    `affinity`. The pack favourites file (the lockout overlay reads it and its
+    F key toggles it) = listed iff ≥1, and **the file wins** on disagreement.
+    Voice marks the recording played last (`last_played`).
+  - **Smut**: `affinity` on the record, `favorite` derived. `smut.py favorite|affinity
+    <key> --by N`. The menu shows ★n / ⊘ with "+1" and "One less". In the reader
+    it's routed by entry type (`read_server` → smut CLI).
+  - An old yes/no favourite reads as a score of 1 in all three. No migration run
+    was needed. Tests: `test_affinity_everywhere.py`.
+
+## Recommendations: familiar first (2026-10-29)
+
+Jamie: discovery was pushing out albums she already loves and has forgotten. A
+(non-mood) folder's Recommended section now runs in three tiers
+(`music_recs.familiar_cards`, `SECTIONS` order):
+1. **Albums you play: fits here, maybe forgotten.** From her own `listens`
+   (music_graph), restricted to the folder's artists + its ranked neighbours.
+   Weight = artist fit × sound³ × log(listening) × *when* (`_when_weight`). The
+   tier is for FILING her albums, so recent listening is never a penalty: played
+   in the last month ×1.5, 1–6 months ×1.0, a year or more up to ×1.5. Sound = 60% the album's tags against the folder's tags
+   **with year tags dropped** ("2020" made Lenker's folk look like Ambient) + 40%
+   the listening embedding. Each part is turned into a rank among the candidates.
+   The embedding alone knows what she plays *together*, so it put Jeff Buckley
+   "near" Ambient. At most 2 per artist. The card note says "you've played it N
+   times · last 15 months ago".
+2. **More from artists you know.** One album she hasn't played (≤3 plays) from
+   each of the artists she plays (≥ `KNOWN_PLAYS` scrobbles) who fit.
+3. **New to you / Artists / Lists**, as before, but only artists she does NOT
+   already play, so the tiers don't repeat.
+Mood folders are unchanged (they already split familiar / new).
+
+## Play log, sorting, edit mode, the Ambient folder (built 2026-10-29)
+
+**Play log.** `Scripts/music_folders/music_plays.py` is the ONE writer of
+`MusicData/catalog/plays.jsonl`: one line per *start*: `{at, via, url, title,
+creator, local, catalog_id, artist, album, spoken, source}`. Writers: `spot`
+(`SpotResolve` → `MusicLogPlay` in LinkManager.ahk, fire-and-forget), the folders
+page (`_launch_entry`: click / Random / Similar / dial), and book soundtracks
+(`OpenAmbientForBook`). **Time a tab stays open is deliberately NOT counted.**
+Jamie leaves videos open for hours, so it says nothing. A card's plays = every row
+sharing an identity key (YouTube id, canonical Spotify url, local path, catalog id,
+artist|album), so `spot teldrassil` and a click on the Teldrassil card are one
+count. Spotify albums also scrobble: plays = max(logged starts, scrobbles ÷
+distinct tracks), never the sum. CLI: `music_plays.py top|recent|backfill`. The
+log was backfilled with 41 starts from the ~month the rotated `ahk_event.log`
+still held (rows marked `backfill`).
+
+**Per-folder view settings** (stored on the folder, set from the page's toolbar):
+- `sort`: custom / recently added / recently played / most listened / release
+  date / artist / title. **Custom** = `pos`. An unplaced entry sorts as -added, so
+  an unarranged folder still reads newest-first, and a new entry in an arranged
+  folder goes on top. Each card's ··· menu has "Move to the top / bottom" (no
+  drag yet).
+- `group`: none / source / artist. **Source** = the catalog `pack` (WoW, Elden
+  Ring…), else YouTube / Albums / Playlists. That's where the music came from, not
+  Spotify-vs-YouTube.
+- `source_pref`: youtube | local, for videos that are also downloaded. It is
+  **inherited** from the parent (set on Ambient, so WoW follows). The ··· menu
+  has "Play from the drive / on YouTube" for one play. Voice: `spot <name> local` /
+  `spot <name> youtube` (`SpotResolveLocal` / `SpotResolveYouTube`).
+- Artist filter: a page-only menu, not stored.
+
+**Edit mode**: the "✎ Edit" button, key **E**, or voice `edit folder`. Every card
+gets a numbered red ✕. "7" removes one; "three five nine" removes three as ONE
+batch (the `kit:jumpmany` handler). **No confirm step** (Jamie's call): the
+safety net is **Undo** (button, key U, voice `undo remove`), which restores the
+folder's newest batch with its old id, pos and added stamp (`trash` in the
+store, last 200 kept). `done editing` / Esc leaves. Voice phrases are generic-store
+rows scoped to the `music_folders` context; they press the page's keys
+(`MusicFolderEdit/Undo/EditDone`). Ops: `remove-entries`, `undo-remove`,
+`folder-option`, `entry-edge`.
+
+**Shuffle cards.** `kind: "shuffle"` + `spot: "<name>"`: a click runs
+`SpotResolve <name>` (the OSRS card: 454 short loops are one shuffle, not 454 cards).
+
+**The Ambient folder** was seeded by `Scripts/music_folders/seed_ambient.py`
+(re-runnable). It holds ~40 things she actually plays (logged videos, Last.fm
+ambient albums, lofi radio + albums, Greek ambience, four WoW zones, the OSRS
+shuffle). Inside it are **WoW** (all 279 WoW videos, `wow_favorites.txt` first),
+**Elden Ring** and **Skyrim** (their favourites files). Albums with no known
+Spotify url are `search` cards: the first play finds and learns the url. Tests:
+`Scripts/codebase_tools/tests/test_music_folder_sorting.py`.
+
 ## Later
 
-YouTube links (thumbnail) — the entry shape already
-allows any `{url, title, creator, cover}`. Drag-to-reorder. A Media hub Miller
+Drag-to-reorder (custom order is already `pos`). A Media hub Miller
 branch.

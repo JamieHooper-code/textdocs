@@ -1,9 +1,9 @@
 ---
-tags: [programming, design-doc, events, gainesville, scraping, calendar, local-viewer, chrome-extension, local-llm, music]
+tags: [programming, design-doc, events, gainesville, scraping, calendar, local-viewer, chrome-extension, local-llm, music, partiful, google-calendar]
 created: 2026-10-18
-updated: 2026-10-18
-status: phase 1 built 2026-10-18 (31 sources, scoring, page on :8300, calendar feed, nightly task, new tab rows); springs + stargazing generated readers added same day; Google Calendar publishing, band-first lookups next
-related: ["[[LOCAL_APP_HUB]]", "[[NEW_TAB_PAGE]]", "[[GLOBAL_CLICK_HINTS]]", "[[SPECIAL_TODAY]]", "[[MUSIC_GRAPH]]", "[[HEALTH_SYSTEM]]"]
+updated: 2026-10-30
+status: phase 1 built 2026-10-18 (31 sources, scoring, page on :8300, calendar feed, nightly task, new tab rows); springs + stargazing generated readers added same day; Google Calendar publishing; 2026-10-30 her own events in (Partiful RSVPs + her Google Calendar); band-first lookups + "grab event" next
+related: ["[[GRAB_EVENT]]", "[[LOCAL_APP_HUB]]", "[[NEW_TAB_PAGE]]", "[[GLOBAL_CLICK_HINTS]]", "[[SPECIAL_TODAY]]", "[[MUSIC_GRAPH]]", "[[HEALTH_SYSTEM]]"]
 ---
 
 # Gainesville events — scrape the town's calendars, keep only what she'd go to
@@ -37,6 +37,8 @@ INIDATA/events/bands.json ──────►        │
 |---|---|
 | CLI: sync / test / picks / status / feed / today | `Scripts/events/events.py` |
 | Readers | `Scripts/events/events_readers.py` |
+| Her own events (Partiful, Google Calendar) | § "Her own events" below; secret address in gitignored `INIDATA/events/private.json` |
+| Tests | `Scripts/codebase_tools/tests/test_events_own_sources.py` |
 | Scoring, duplicates, repeats | `Scripts/events/events_score.py` |
 | Store + config IO | `Scripts/events/events_store.py` |
 | Page server (:8300) + page | `Scripts/events/events_server.py`, `events_page.html` |
@@ -46,6 +48,63 @@ INIDATA/events/bands.json ──────►        │
 | Chrome reads | Macro Bridge op `ext.fetchpage` in `ChromeExtensions/macro-bridge/background.js` |
 | Local model | task `event_extract` in `Scripts/local_llm/tasks.json` (qwen2.5:14b) |
 | Recon (every candidate site + how hard to read) | § "Source recon" below |
+
+## Her own events: Partiful + Google Calendar (2026-10-30)
+
+Jamie: scrape my Partiful "with knowledge of whether it's just something I was
+invited to or something I marked as maybe or going", and "anything that I put on
+the calendar to also show up in my events".
+
+Two rows at the top of `sources.json`, both `"feed": false`:
+
+| Row | Reads | RSVP |
+|---|---|---|
+| `partiful` (group `partiful`, every 6h, needs Chrome) | `partiful.com/events` through her Chrome (the sign-in is Firebase, client side, so plain HTTP sees nothing). Each card `<a href="/e/<id>">` holds a badge: 👍 Going / 🤔 Maybe / Canceled / Can't go / none. Details come from `/e/<id>`'s `__NEXT_DATA__` (UTC start/end, location, hosts, description, price, image) over plain HTTP; a guests-only event withholds its address and hosts unless signed in, so a page with no `location` is re-read through Chrome. | going / maybe / invited (no badge). Can't go, Canceled and "TBD" (no date yet) are skipped. |
+| `gcal` (group `calendar`, every 6h) | natehoop@gmail.com's **secret iCal address** with the `ics` reader. `url_secret: gcal_ical_url` points into the gitignored `INIDATA/events/private.json`. Not the Calendar API: her OAuth app is in Testing, where refresh tokens die after 7 days, and an unattended nightly job can't re-auth. | `rsvp: going` on the row: everything she put on her calendar is a plan. |
+
+- **RSVP is a tag, not a mark.** Readers tag `rsvp:<value>`; `events_score.annotate`
+  uses it as the mark only when she hasn't marked the event herself (going →
+  going, maybe → up/Keep; invited = picked + badge, no mark). So changing an RSVP
+  on Partiful changes the page on the next sync, and Hide here still wins. These
+  derived marks do NOT train the learner (it reads the marks table only), which
+  keeps "the therapy" from teaching anything.
+- **Chores are filtered on the row:** `skip_free_all_day` drops all-day entries
+  marked Free (every chore on her calendar is exactly that: VACUUM, INSECT SPRAY,
+  Clean Filter), and `exclude_titles` (`birthday`, `inject`, `spanish class`, `therapy`; private appointments she doesn't want on the events page, 2026-10-30) drops the rest. The
+  ics parser now returns `transp`.
+- **Duplicates fold.** Partiful copies rank first (richest), calendar copies last
+  (barest). Her calendar titles are casual ("gay soup" for "GAYSOUP 4 U @ SUPERETTE"),
+  so `_same_own` adds one looser rule just for calendar copies: same start to the
+  minute + one title with spaces squeezed out contains the other (5+ letters).
+  `rsvp`, `own_cal`, and a missing address are carried onto the kept copy.
+- **Never published back.** `feed_text` drops anything with `own_cal` (set if any
+  merged copy came from a `"feed": false` source): her calendar entries are already
+  in Google, and she subscribes to Partiful's own calendar there.
+- **Page:** a pill after the title: "Going on Partiful" (filled) / "Maybe on
+  Partiful" / "Invited on Partiful" (dashed) / "On your calendar". Her recurring
+  calendar things (Poetry Jam, FNB, Sunday potluck) show up as Regulars.
+- Re-fetch the secret address (if she resets it): Google Calendar → Settings →
+  natehoop → Integrate calendar → Secret address in iCal format. Google shows a
+  "don't share" warning first; the address is only ever written to private.json.
+
+## When and how everything is read (2026-11-02)
+
+- **Scheduled task `GainesvilleEventsSync`**: 5:15 am and 5:15 pm (runs late
+  if the PC was off). Each run reads only sources that are DUE by their
+  `every_hours` (6h to 7 days), so most runs touch a handful.
+- **Chrome sources go together**: if any is due, the ones due within the next
+  12h come along, sorted to the end so they run back to back. They read in a
+  separate **minimized, unfocused Chrome window** the extension makes for the
+  batch and closes 15s after the last read (`ext.fetchpage`, worker window in
+  background.js), never as tabs in her window. Measured: her foreground window
+  never changed. This also fixed "No current window" failures when Chrome ran
+  with no window open.
+- **Opening the page** syncs when the last run is >12h old, but WITHOUT the
+  Chrome sources (plain web reads only). "Update now" and "Read it now" do
+  everything.
+- **The local model** (qwen2.5:14b) reads the 10 prose pages; its answer is
+  cached by page content for 7 days, so it only runs when a page changed.
+- Nothing polls: the page re-checks failures only when opened or returned to.
 
 ## Readers: build by PLATFORM, not by site
 
@@ -66,6 +125,7 @@ is one row in `sources.json`; only a new platform needs code.
 | `wildapricot` | Alachua Astronomy Club | events list: `eventDetailsLink`, then `When <d Mon yyyy> <time>` |
 | `springs` | Springs days (Gilchrist Blue, Rum Island) | **generated**, not scraped: Open-Meteo daily forecast; see § Springs + stargazing |
 | `stargazing` | New moon weekends, clear dark nights | **generated**: moon phase computed locally + Open-Meteo night cloud cover |
+| `partiful` | Her Partiful invites with her RSVP | the Upcoming list through her Chrome, then each event page; see § Her own events |
 | `page` | everything else | fetch (plain, or `"via": "chrome"`), then JSON-LD, then any embedded Google Calendar id, then the local model reads the text (cached by content hash for a week) |
 
 **Found while building, worth knowing:**
@@ -77,7 +137,18 @@ is one row in `sources.json`; only a new platform needs code.
   The library's is an `attend.aclib.us/widget?...` iframe, also plain.
 - `theatlanticgainesville.com` is a fake SEO site, not The Atlantic.
 - Alachua Audubon's robot check does not clear in a background tab. Off, with a note.
-- Main Street Daily News' events widget doesn't draw in a background tab. Off for now.
+- Main Street Daily News' events widget doesn't draw in a background tab, and the
+  site 403s plain reads. **Solved 2026-10-30:** the widget is CitySpark, whose JSON
+  API is open (`POST portal.cityspark.com/api/events/GetEventsByDay/Mainstreet`,
+  ppid 9168). Kind `cityspark`, one request per day for 45 days (multi-day asks cap
+  each day at 5). Trap: `DateStart` is LOCAL wall time despite its "Z"; `StartUTC`
+  is the real UTC. ~1,200 events, 27 picks no other source has. `boost diy -2`
+  because its library/sports listings say "all ages welcome".
+- gainesvilleshows.com started 403ing plain reads 2026-10-29 and its redesign made
+  `/upcoming` show only today + tomorrow until scrolled. Now `"via": "chrome"` on
+  `/upcoming/map`, which carries every upcoming show (~750k of page data; the
+  bridge's 800k cap). 7 events → 92, and it covers The Bull, The Atlantic,
+  Lightnin' Salvage and Signal, the "Instagram only" venues.
 
 ## Reading through her Chrome (`"via": "chrome"`)
 
@@ -155,6 +226,67 @@ the occurrence's own mark is cleared. A series counts once in training. A
 Grove Street market, Poetry Jam, Books 2 Prisoners). A two-night Fest show is a plan,
 not a regular. Every date of a regular is still in the calendar feed (she goes).
 
+## Your tastes, Places, and failures (2026-11-02)
+
+Jamie: the scoring was "blind backend algorithmic work"; she wanted to rate
+things herself, see what isn't being read, and never find out months later
+that a source broke. Engine: `Scripts/events/events_tastes.py`; tests
+`Scripts/codebase_tools/tests/test_events_tastes.py`.
+
+**Tastes tab: her 0-10 ratings** (`INIDATA/events/ratings.json`). One scale everywhere:
+
+| Rating | Means |
+|---|---|
+| 0 | never shown (unless she marks the event herself) |
+| 1-4 | push down, -0.6 per point below 5 |
+| 5 | neutral = unrated; keywords + the learner decide |
+| 6-9 | like / love, +0.6 per point (9 = +2.4, one word short of a pick) |
+| 10 | special: always picked, "✦ special" badge, +6 in For you. **Never marks Going** (Jamie: she goes to ~10% of CMC's events) |
+
+- **Venues, bands/artists, sources**: add to the pick score (above).
+- **Styles** (the categories): multiply that category's keyword points by r/5
+  (0 = ignore the category, 10 = double it).
+- **Keywords**: replace the word's weight with (r-5)*1.2 (10 = +6; below 5 it
+  becomes an avoid word).
+- Lists are sorted by upcoming events. In a box: type or SAY a number and it
+  saves itself and moves down (a lone "1" waits ~1s in case it becomes 10);
+  Enter / Down = save + next, Up = save + previous, Right / Left = +1 / -1
+  (empty counts as 5); empty + Enter = neutral. Voice works through kit: the
+  boxes carry `data-takes-number`, so a bare spoken number ("eight", "zero")
+  is typed into the focused box instead of clicking control 8
+  (`Scripts/viewers/kit/kit.js`; `LocalPageJump` and the `<n>` rule in
+  local_pages_commands.py accept 0 for this). Saves are optimistic and
+  serialized server-side (`WRITE_LOCK`): two fast key presses once overwrote
+  each other. "Learned"
+  shows what her marks suggest (the learner's affinity as 0-10). Cards say
+  "you rated Heartwood: 8" in their why-line.
+- **Venue merging**: names are keyed with punctuation and a leading "The"
+  dropped; `aliases` in ratings.json merges the rest. 93 were seeded
+  2026-11-02 (library rooms -> their branch, "Phillips Center for the
+  Performing Arts" -> "Phillips Center"...); each venue row has a "same place
+  as..." picker for new ones.
+
+**Places tab** (`INIDATA/events/places.json`):
+- **Your "should read" list**: everything she flagged. "Go through the events
+  wishlist" = Claude builds readers for these.
+- **Ideas**: added by name (+ link, note); adding one flags it.
+- **Seen elsewhere, not read**: venues that only appear via aggregators (Visit
+  Gainesville, Main Street, gainesvilleshows, Eventbrite, her calendar,
+  Partiful, grabbed) and that no direct source lists. 268 on 2026-11-02.
+  "Not interested" hides one. This is the guard against "we haven't been
+  reading the Fine Arts Association for 3 months".
+- **Not reading**: switched-off sources with their notes. **Reading**: every
+  source with its last result.
+
+**Failures at the very top of EVERY view** (list, calendar, Tastes, Places,
+Settings, the grab editor), re-checked when the page opens or she comes back
+to it, and after any read (no timer; it only reads the local database):
+an enabled source whose last read failed, that came back with 0 events 2+
+times after having some, or that hasn't been read in 3x its interval. Each
+has "Read it now" and "Hide until it changes" (keyed on the problem's level +
+start, so a NEW failure shows again). Two "Read it now" presses queue rather
+than the second being dropped.
+
 ## The page (:8300)
 
 Picks (by day, with why + Going / Keep / Hide), Calendar (a rolling six weeks from
@@ -203,7 +335,8 @@ after editing them. The page itself and the JSON config are re-read on every req
   the primary calendar needs the Calendar API (open question for her).
 - **Band-first lookups** (Bandsintown per artist for touring bands she likes). The
   bands list is empty so far; local bands she adds already match by name.
-- **Instagram** (deliberately parked by Jamie, 2026-10-18).
+- **Instagram**: no scraping (parked by Jamie, 2026-10-18). Planned instead as a
+  manual "grab event" voice command on a post or story: [[GRAB_EVENT]] (BUILT 2026-10-30: source `grabbed`, opens an editor at `/#edit=<id>`).
 - Gainesville Iguana (calendar inside a PDF newsletter; doctext could read it),
   Alligator roundups, Main Street, Audubon.
 - **Springs + stargazing extras**: water level / flow (USGS gauge on the Santa Fe at
@@ -248,14 +381,14 @@ C = model reads it, D = Instagram only / blocks reads.
 | Source | Grade | Status |
 |---|---|---|
 | Visit Gainesville | A | on (tribe) |
-| gainesvilleshows.com | B | on |
+| gainesvilleshows.com | B (Chrome, /upcoming/map) | on, 92 shows |
 | Glory Days (High Dive, Wooly, Signal) | B | on |
 | Eventbrite | A- | on (jsonld, 5 pages) |
 | Mobilize | A | on |
 | Bandsintown / Songkick | C | not built (band-first later) |
 | Gainesville Iguana | C | not built (PDF) |
 | Alligator roundups | C | not built |
-| Main Street Daily News | D | off (widget won't draw in a background tab) |
+| Main Street Daily News | A (CitySpark API) | on, 2026-10-30 |
 | City of Gainesville | D → Chrome | on |
 | Heartwood Soundstage | B | on |
 | The Ox | A (found theoxfl.com) | on |

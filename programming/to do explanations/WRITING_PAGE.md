@@ -37,7 +37,8 @@ highlights the row whose path best matches the page.
 | Constraint Cards | a form + a rule (`INIDATA/writing/constraint_cards.json`) | new-poem box |
 | Collisions | adjective+noun, noun+verb, noun+noun from the practice word store | `StartPracticeOn` |
 | Line Seeds | a line from her own unfinished poems or scraps | new-poem box |
-| Look, Then Write | one work from the art library (favourites likelier) | opens the art, then the new-poem box |
+| Cards, Moon & Dreams | a tarot card from her deck (+ keywords), tonight's moon from `Scripts/tarot/sky.py`, her latest `dream` entry; what each invites is data in `INIDATA/writing/mystic.json` | journal box (the tarot card also opens on the tarot page) |
+| Look, Then Write | one work from the art library (favourites, and myth / nature / sea / night subjects, likelier) + Rattle's Ekphrastic Challenge image of the month | opens the art (or the Rattle image in Chrome), then the new-poem box |
 | Your Poems | in progress · needs editing · nearly there · from the archive | `EditPoem` |
 | A Poem to Read | the poem-of-the-day pair | `ReadPoemOfTheDay` |
 | On This Day | journal entries + poems from this date in earlier years (this week if none) | entry / `EditPoem` |
@@ -77,9 +78,17 @@ Families, styles and moods are DATA in `INIDATA/writing/prompt_styles.json`.
 | Platform | Sources | How |
 |---|---|---|
 | `pw` | Poets & Writers "The Time Is Now" | list pages carry the whole prompt + type + date; ~1,800 back to 2011 |
-| `reedsy` | Reedsy weekly contest prompts, 17 mood/genre categories | `<h3 class="text-prompt">`; the category becomes a mood hint |
+| `reedsy` | Reedsy weekly contest prompts, 17 mood/genre categories — **OFF since 2026-10-29** (plot-first, not her feel) | `<h3 class="text-prompt">`; the category becomes a mood hint |
 | `wordpress` | NaPoWriMo (a prompt a day every April since 2013) | REST API; model lifts the prompt out |
-| `substack` | Sheetghost, Poetry Unbound, Poetry Outdoors, 100 Poems, Art of Flash Fiction, Prompted, The Writer's Den, Writers' Hour, The Clearing, The Isolation Journals, Daily Journal Prompt, Pen Pals, Earth Poet | `/api/v1/archive` + `/api/v1/posts/<slug>`, FREE posts only, 4 s between requests (Substack answers 429 to a burst); model lifts the prompt out |
+| `substack` | Sheetghost, Poetry Unbound, Poetry Outdoors, 100 Poems, Art of Flash Fiction, Prompted, The Writer's Den, Writers' Hour, The Clearing, The Isolation Journals, Daily Journal Prompt, Pen Pals, Earth Poet, + (2026-10-29) Writing Toward Nature, Wild Roof Journal, Root and Branch | `/api/v1/archive` + `/api/v1/posts/<slug>`, FREE posts only, 4 s between requests (Substack answers 429 to a burst); model lifts the prompt out |
+| `sun` | The Sun's Readers Write topics | og:description holds "Topic / Due … / paragraph"; only upcoming topics are listed, so it grows weekly; 403s a non-browser user agent |
+| `list` | Jungian Vault's 30 shadow-work questions (one-time import, vetted by her votes) | every `<li>` that reads as a prompt |
+
+**Looked for and not added (2026-10-29):** no Indigenous-led prompt feed
+exists that we could find — her Kimmerer highlights reach the page through
+From Your Books instead. Sophie Strand, Sharon Blackie and Matt Syrdal write
+essays, rarely prompts (Blackie mostly paid). Martin Shaw and Toko-pa Turner
+are not on Substack at the obvious address.
 
 **The model may not write prompts.** Task `writing_prompt_extract` is told to
 copy the author's words. Two checks back that up, because the first live run
@@ -98,6 +107,23 @@ Reading is resumable (`INIDATA/writing/source_state.json` lists the posts read).
 the script appends its output to `INIDATA\writing\refresh.log`. A run from Git
 Bash does NOT exercise that path (pythonw inherits the shell's pipes); launch
 it detached to test.
+
+## Taste: what the page leans toward (2026-10-29)
+
+Jamie wants indigenous, mystical, magical, nature, otherworldly, philosophical,
+psychological, deep-emotional-processing prompts, and will vote for a while
+and then review sources. Three pieces:
+
+- **Moods** gained `mystical`, `mythic`, `psychological`, `philosophical`,
+  `earthy`, and everything was relabelled (`classify --relabel`).
+- **Tilt** (`prompt_styles.json` → `tilt`, `writing_prompts.tilt_factor`):
+  STATED favoured moods ×2 and favoured sources ×1.6; LEARNED from votes, each
+  ▲/▼ moves every other prompt sharing its moods (0.15 a vote) and its source
+  (0.1 a vote), clamped to 0.3–3 so votes alone never silence a source.
+- **Review + off switch:** `py Scripts/writing/writing_prompts.py sources`
+  prints per source: prompts, shown, ▲, ▼, written from, lean, OFF; then net
+  votes per mood. `"enabled": false` on a source row stops reading it AND
+  takes all its prompts off the page (`disabled_sources()`).
 
 ## The day's draw
 
