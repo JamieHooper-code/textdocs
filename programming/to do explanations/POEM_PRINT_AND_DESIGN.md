@@ -12,8 +12,9 @@ or shareable, all started from a poem in the `open poems` Miller:
 
 | Output | What | State |
 |---|---|---|
-| **Print** + **print studio** | Letter paper, title + "by Pollen" + poem; a live page where she sets size / wrapping / pages / font and prints | **BUILT 2026-10-05** |
-| **Instagram carousel** + **pick-an-option** | 1080×1350 slides on paper grain; Layout / Background / Images picked from numbered options; PNG export | **BUILT 2026-10-18** |
+| **The studio** (one page, Shape switch) | Print (Letter) and Instagram (1080×1350) on one page, one store, shared choices linked — § "One studio, every shape" | **BUILT 2026-11-03** |
+| **Print** + **print studio** | Letter paper, title + "by Pollen" + poem; a live page where she sets size / wrapping / pages / font and prints | **BUILT 2026-10-05** (page merged into the studio 2026-11-03) |
+| **Instagram carousel** + **pick-an-option** | 1080×1350 slides on paper grain; Layout / Background / Images picked from numbered options; PNG export | **BUILT 2026-10-18** (page merged into the studio 2026-11-03) |
 | **Art poster** | text-first layout + clipart she places by hand (drag editor) | designed |
 | **Clipart search + picker** | find clipart that fits the poem, by search and by suggestion; place, drag, resize | **v1 BUILT 2026-10-05** (in the print studio) |
 
@@ -287,7 +288,7 @@ each option is the best answer to one goal. Least clicking for the best options.
 - Grid fit: card chrome is MEASURED from a real card, then re-fitted (a guessed label
   height pushed the bottom row off the screen); labels are one line, ellipsised.
 - **Foot pedals**: context `INIDATA\Contexts\poem_studio.json` (title ends " — Carousel /
-  Print - Pages"), bindings set2 left/middle/right = Left / Space / Right in pedal mode
+  Print - Pages"), bindings left-set pedals (left:left / left:middle / left:right) = Left / Space / Right in pedal mode
   default. Set2 IS her right set (confirmed 2026-10-18). Set1 keeps its Chrome scrolling,
   which the one view also treats as next / previous.
 - Print studio: "Pick from options" section at the top -- **Layout options** (1) and
@@ -472,7 +473,420 @@ value / + / Auto, ← → steps it. `R.titlePt`, `R.titleRows`.
 
 The panel is three columns at ≥1750px wide, so every section fits open at 2000×990.
 
-## Where we are + next steps (2026-10-18, evening) — START HERE in a new chat
+## The library: the Poetry Studio as the whole poetry home (phase 1 BUILT 2026-11-03)
+
+Jamie (2026-11-03): convert the poems Miller into the basis for the Poetry Studio, so either
+one can do ALL the poetry handling -- search, browse, read, edit, mark, print -- not just printing.
+
+**One definition, two surfaces.** `Scripts/poems/poem_library.py` defines the shelves (the
+Miller's root, Browse by rank/status/person/tag/year, Scraps, Google Doc, More), one poem's
+actions + marks, and the pick-lists (rank, status, tags, scrap type). Each row carries a `do`
+(a `poems.py` verb, a MAINFUN function, a picker, a link). The studio page draws it from
+JSON; the Miller (`Helpers/PoemsMenu.ahk`) draws it from `--feed` TSV through the generic
+`Helpers/Gui/MillerFeed.ahk` (format: `Scripts/viewers/miller_feed.py`) -- phase 2, BUILT
+2026-11-03. PoemsMenu.ahk went from ~700 lines to ~170 (openers + the Doc check). A new
+shelf or action is added ONCE, in poem_library.py.
+
+**Page:** `studio/library.html` at `http://127.0.0.1:8296/` (and `/poem/<slug>`); the print
+studio moved to `/print/`. Three panes: shelves + list | the poem | Do + Marks. Endpoints
+`/api/lib/*` in `poem_studio_server.py`; writes go through `poems.py` (the one writer) or
+`MAINFUN.bat`, both checked against `SET_VERBS` / `MAINFUN_FNS`. The page polls
+`/api/lib/stamp` and redraws in place when the store or Doc state changes (writing-box saves
+show up by themselves). Opening it starts a background Doc check, like the Miller.
+
+**Voice + keys:** every control has an inline kit number, EVERY TEXT BOX TOO (she asked:
+"numbered like any other link, so I can jump into them"). Pinned (2026-11-05: pins live in 11-29, never the 80s/90s): 11 back, 12 shelves,
+13 search, 14 open in the Miller; 15-29 the most-used panel rows (read 15, edit 16, mark 17,
+favorite 18 / less 19, rank 20, status 21, tags 22, title 23, print studio 24, print 25,
+carousel 26, journal 27, special 28, in progress 29); a poem shows more rows than fit, so the
+rare ones run on just past: kind 30, send/copy doc 31/32, versions 33, open doc 34, trash 35,
+Doc warnings 36-38. `PINS` in `Scripts/poems/poem_library.py`. List rows read 1-10, then
+carry on past the pins. A pick-list covers the page and numbers only its own choices
+(11 = its filter box, 12 = Done).
+Keys follow the Miller: Up/Down, Right/Enter in, Left/Escape/Backspace out, a letter starts a
+search, digits + Enter = say that number. Trash needs two presses. Context `poem_library`
+(pedals: left Up, middle Enter, right Down). Voice `open poetry studio`; setting
+`poems.open_with` (miller | studio) decides what "open poetry" opens -- default miller.
+
+**The shared kit (BUILT 2026-11-03, same day):** the page code moved out of the studio into
+`Scripts/viewers/kit/feed_page.js` + `.css` and `Scripts/viewers/feed_routes.py`; the spec
+contract into `Scripts/viewers/feed_spec.py`. Stories is the second system on it
+(`story_library.py`, page on the shared `feed_server.py` :8302, voice `open stories page`,
+setting `stories.open_with`, context `stories_page` + the same pedals). New systems start
+from `new_feed_system.py <Name>` (tested with a throwaway system, then `--undo`).
+`poems.open_with` is now `studio`: "open poetry" opens this page. Reading is the third
+(`Scripts/reading/reading_library.py`, page :8302/reading/, setting `reading.open_with`,
+context `reading_page`; see [[READING_HUB]]). Ideas for next systems:
+practices, reminders' parts, the journal.
+**A system whose page is fully fleshed out opens the PAGE by default** (Jamie,
+2026-11-03): `<x>.open_with` defaults to the page, and "open <x> miller" opens the Miller.
+Poems ("open poetry miller"), Stories ("open stories miller") and Reading ("open read
+miller") all do this. A freshly generated system starts on the Miller until its page is
+real, then flips.
+Every kit Miller links to its page ("Open the page", under Settings) and every kit page to
+its Miller (quiet button at the foot of the list, voice 14) -- built into the kit, not the
+specs (Jamie, 2026-11-03).
+
+## Her first real use (2026-11-03) — START HERE in a new chat
+
+**Papers she likes** (▲ on the Background screen, `option_affinity.json`): 9 of 12 —
+Cotton paper (ambientcg-paper001), Fibre paper (paper006), Smooth card (cardboard002),
+Speckled paper (paper002), Aged parchment 1/2/3, Antique parchment, Kraft. NOT liked:
+linen-neutral-01, parchment-aged-dark-01, ambientcg-paper003. "Get more like those."
+- Those 3 are now `"hidden": true` in `backgrounds.json` (kept on disk, not offered;
+  `carousel.papers()` skips them). A paper's display name can live in its registry row
+  (`label`), so a new paper needs no code.
+- **8 more papers** (2026-11-03): ambientCG Paper004 "Kraft lines", Paper005 "Smooth tan"
+  (CC0; Cardboard001/003/004 skipped — torn corrugated) + 6 public-domain Wikimedia
+  Commons photos of old paper (`commons-old-paper-*`: spotted, mellow, foxed, pale,
+  folded, burnt-edge). ambientCG has no more papers; Poly Haven has none. 17 offered now.
+- **A new carousel starts on a RANDOM favourite paper** (her ask: not the same one every
+  time). `carousel.starting_paper(poem_id)` = her liked papers (affinity > 0) picked by a
+  hash of the poem id — random across poems, stable for one poem. No favourites = the
+  `carousel_paper` setting. Liking more papers widens the pool.
+
+**Plain turned lines (BUILT 2026-11-03).** Engine option `turnStyle`: `slash` (default,
+"/ " + indent) | `plain` (a turn is just a new line — same split point, no slash, no
+indent). Her words: some turns read as a real line break ("Even my Rosemary Bush, / who I
+know is far too established"). Button in both studios ("Turned lines": With / | New line),
+saved per poem; the default is the setting `poems.turn_style` (Settings → Poems → Print),
+now **plain** (her call, 2026-11-03) — so a poem with no saved choice uses new lines.
+Width checks, `boxes()` and the PDF all honour it. Checked: 482 poems × print + carousel
+render byte-identical with the default; test `test_plain_turns_are_a_new_line_...` (30 tests).
+
+**Clipart search, "tree stump".** Nothing came up because the pool had NO stumps (0 of 3,168
+records mentioned one) — not a search fault. Hence:
+
+### Find more online (BUILT 2026-11-03)
+
+In the clipart picker (`clip_picker.js`, so every studio shape has it): **🌐 Online (14)**
+looks for the search words on **Wikimedia Commons** (searched as "<q> engraving",
+"<q> illustration", "<q>", line art sorted first) and **Openverse** (Flickr Commons,
+museums), **public domain / CC0 only**, and lists what is not in the library yet under a
+blue line below the library's own pictures. It runs **by itself when the library has fewer
+matches than `poems.clip_online_below` (12)**. Then:
+- **pick one** (its number / Enter / click) → downloaded, cut out, added, placed (~10–15 s);
+- **Download all N (15)** → every online result into the library (the tiles say "getting…");
+- **Get 30 more like this (16)** → `poems.clip_online_more` more in the background. It is
+  STRICT: it only takes results whose title names every searched word, because nobody is
+  picking them — a loose full-text hit ("Sanctuary Wood" for "tree stump") is fine to SHOW,
+  never to download unasked. The first test run without that rule pulled 3 WWI paintings.
+15/16 sit in the top bar (always on screen), not down in the grid.
+
+Engine `Scripts\poems\studio\clip_online.py` (CLI `search` / `get`): files go to
+`E:\Media\Poetry\poster\clipart\_samples\online\<stem>.jpg` + `<stem>.json` sidecar
+(title, tags = searched words + title words, source, page url, licence, creator, query);
+variants `online.cutout\` + `online.alpha-light\` via poem-poster's `_process.py`;
+`clipart_index.add_originals()` adds just those records (no 3,500-file walk; a full
+`build` honours the sidecars too); `clip_search.build()` embeds only the new ones. Every
+download is a line in `poster\online_provenance.jsonl` — its key is what hides a result
+already in the library. Jobs: one worker thread in the studio server; routes
+`/api/clip/online/{search,get,more,job}`. Tests `test_clip_online.py`.
+
+**Traps found building it:** Commons now serves only its STANDARD thumbnail widths
+(…330, 500, 960, 1280, 1920) — a 320px or 1600px thumb URL silently returns nothing, so
+the tiles drew blank; Openverse caps anonymous `page_size` at 20 (40 = 401) and went
+unresponsive for minutes on the day (curl too), so after one timeout it is skipped for 10
+minutes and Commons answers alone in ~4 s; a fast burst of full-size Commons originals
+earns a 429 (hence the 1920px thumbs); `np.load` without `with` keeps the CLIP `.npz`
+locked on Windows, so the next build's replace failed "Access denied".
+
+**One studio, not two — BUILT 2026-11-03, see § "One studio, every shape" below.**
+
+## One studio, every shape (BUILT 2026-11-03)
+
+Her words: two separate studios drift apart and need double maintenance, and she'll often
+print a poem and make its carousel at once, with different settings per shape. So the print
+studio and the carousel studio are now ONE page.
+
+| Piece | Where |
+|---|---|
+| Page | `Scripts\poems\studio\studio.html` → `http://127.0.0.1:8296/studio/<slug>?shape=print\|instagram` |
+| Old addresses | `/print/<slug>` and `/carousel/<slug>` serve the same page on that shape; it moves itself to `/studio/` |
+| Store | `Scripts\poems\studio_store.py` → `E:\Media\Poetry\studio_settings.json` (poem → `shared` + one bucket per shape) |
+| Routes | `/api/studio/{poem,save,reset,export}` in `poem_studio_server.py` (the old `/api/save`, `/api/carousel/*` still work, same store) |
+| AHK | `OpenPoemStudio(id, shape)`; `OpenPoemPrintStudio(id)` / `OpenPoemCarousel(id)` are one-line wrappers. Miller + library rows "Print studio…" / "Instagram carousel…" open it on that shape (`poem_library.py`) |
+| Context | `poem_studio`: title ends " — Studio - Pages" (regex still accepts the old " — Print / Carousel") |
+| Retired | `print_studio.html`, `carousel_studio.html` (copies in `E:\Media\Poetry\_backups\old_studio_pages\`); `print_settings.json` + `carousel_settings.json` migrated (backups `_backups\*.premerge-20261103-*.json`, originals left in place, no longer read) |
+
+- **Shape switch** at the top (section "Shape", ← → or voice **4** Print / **5** Instagram).
+  A shape = an entry in `studio_store.SHAPES` + an engine shape (`poem_layout.js` SHAPES) +
+  an export — the 3:4 slide and the art poster are meant to be added that way.
+- **Linked vs per shape.** Linked (`SHARED_KEYS`): font, alignment, turned-line style + per-line
+  styles, line splits + split mode, showing the title, showing the byline, the small-text
+  swap. Per shape: size, margins, top + bottom, line/stanza spacing, pages/slides, paper +
+  grain, images, room for images, **title SIZE** (a pt that suits Letter is a third of what a
+  1080px slide needs, so only show/hide is linked). Linked sections say "⛓ all shapes".
+- **Linking rule (`studio_store.save`)**: a shared choice she CHANGES becomes the poem's linked
+  value and any shape's own copy of it goes; one she didn't touch is left exactly as stored —
+  so saving the slides never quietly rewrites the print. The migration put a shared key in
+  `shared` only when both old stores agreed; otherwise it stayed in its shape's bucket (no
+  output changed) and links the first time she changes it. "Back to defaults" clears this
+  shape's own settings AND the linked choices; the other shape keeps its own.
+- **Everything both pages did is on it**: print's hand line splits, pages, small-text font,
+  title size, version mark (print only), printer/PDF, Settings for every poem (print only);
+  the carousel's Layout **1** / Background **2** (slides only — print paper stays white) /
+  Images **3** option screens (`option_grid.js` + `poem_variants.js`, affinity ranking),
+  paper grain, PNGs. Print got the option grid too. Pictures use `clip_picker.js` on both
+  shapes (the print studio's inline picker is gone); a new picture is placed under the text,
+  then the placement options open (Esc keeps it). After a pick the next aspect's button
+  takes the keyboard focus.
+- **Export row**: Print · PNGs · Both, then Print on parchment · Open PDF · Back to defaults.
+  The shape on screen goes out as it looks now; the other shape as it is saved
+  (`/api/studio/export`, what = print | pdf | pngs | both).
+- Fits her 2000×990 window on both shapes with nothing scrolling (3 columns, checked in the
+  built-in browser).
+- **A new carousel still starts on a random favourite paper**, stable per poem
+  (`carousel.starting_paper`) — that is the Instagram shape's base.
+
+### Turn, flip and fine-move a picture (BUILT 2026-11-03)
+
+Her ask: flip a picture, full rotation, and arrows / + − in very small steps "so that I
+could theoretically do it all without the touchscreen". Image fields `rot` (degrees
+clockwise about its centre), `flipX`, `flipY`; x/y/w stay the UNROTATED box.
+Engine: `PoemLayout.imgTransform(im)` (CSS; '' when untouched, so every existing page
+renders byte-identical, checked over 482 poems x 2 shapes) and `PoemLayout.imgBox(im)` =
+the box it really covers, which text-around-images wraps and the resize handle sits on.
+Studio, a selected picture: a toolbar just ABOVE it on the page preview (never over the
+panel), voice-numbered: rotate 15 / 1 degree both ways, Straight, 90 degrees, Flip left/right,
+Flip upside down, size -5 / -1 / +1 / +5 %, remove. Keys: arrows 1 px (Shift 10), + / -
+1% (Shift 5%), [ / ] 1 degree (Shift = { } 15 degrees), H / V flip, Del, Esc. PNG, print
+PDF and slides PDF all draw it (same render). Test `test_a_picture_can_turn_and_flip...`.
+
+### Byline: under the title or at the end (BUILT 2026-11-03)
+
+Her ask: "I should be able to move the byline to the beginning or the end" (she could
+in the old poster, not in the new studio). Engine option `bylineAt` ('top' | 'end') was
+already there as a SHAPE default (Letter = top, slide = end); now it is an option she
+sets: Byline section → **Where: Under the title · At the end**. Per shape (the two
+shapes start in different places); show / hide stays linked. `bylineAt` is in
+`poem_print.OPT_KEYS`, so both shapes store it.
+
+### One folder per poem (BUILT 2026-11-03)
+
+Her ask: a picture she placed and moved must be "permanently linked with this poem", so she
+can grab the image on its own, with the PNGs "saved alongside the poem and everything".
+`Scripts\poems\poem_assets.py` → `E:\Media\Poetry\poems\<slug>\` (setting
+`poems.poem_folder_root`):
+- `poem.json`: title, version, text, the studio settings as stored (shared + each shape),
+  every picture (id, title, variant, the copied file, its original, where it sits per
+  shape: page / x / y / w / every / wrap, and for online pictures the source, licence,
+  page url, creator), and the exports present.
+- `pictures\`: a COPY of each placed picture: `<id>.<variant>.png` (as on the page) and
+  `<id>.original.<ext>`. Copied once (same size = left alone).
+- `instagram\01.png…` (carousel export now writes here), `<slug>.pdf` (the print PDF now
+  writes here), `<slug> slides.pdf`.
+Refreshed after every studio save (a thread off the request) and every export. The
+store (`studio_settings.json`) is still the truth; the folder is the poem's durable,
+self-contained copy. The old `carousel_out_dir` / `print_out_dir` settings are retired
+(undeclared); Assemblage's slides moved from `instagram\assemblage\` to its folder.
+
+### Print the slides on paper, background off (BUILT 2026-11-03)
+
+Her ask: "I just made this Instagram slide, which I think is perfect, but I also want to
+print it as a normal poem … without the background." Instagram shape, Export: **Print slides
+on paper · PDF of slides**, and **Background on paper: Off · On** (remembered in the page,
+off by default). `carousel.py slides-pdf <id> [--background] [--print] [--parchment]`: the
+slides exactly as designed, one per Letter page, 7.5in wide and centred, as VECTORS (sharp
+text, not the PNG blown up); background off = white paper, no grain. Route:
+`/api/studio/export` what = `slides` | `slidesPrint`. (The Print shape is still its own
+design; this prints the slide design.)
+
+### Finished images: Mark finished, Mark posted, the gallery (BUILT 2026-11-03)
+
+Her ask: "Post to Instagram" marks the poem in her catalog as posted; a place in the
+studio to browse every posted flyer and every one that is done editing but not posted;
+"Mark finished" / "Mark posted" buttons, "not in terms of the poem itself ... in terms
+of the image flyer."
+- `Scripts\poems\flyers.py`: marks on the poem's catalog record, `rec["flyers"][shape]`
+  = finished / posted / posted_to / posts[] / dir. NOT the poem's status; never touches
+  its text, `modified` or the Google Doc. CLI `mark | show | list`.
+- Every mark COPIES the images as they are: `<poem folder>\marked\instagram-finished\`,
+  `instagram-posted-<YYYYMMDD-HHMM>\` (one per post), `print-finished\` (the PDF + a PNG
+  per page). Later layout edits never change what the gallery shows. Unmarking drops the
+  mark, keeps the copies. Posting also sets finished; unfinishing also unposts.
+- Studio section **Finished post / Finished print**: Mark finished · Mark posted
+  (Instagram only) · All finished images…; each turns into Unmark. Marking ON exports
+  that shape first with the live options. "Post to Instagram" marks posted (account =
+  `poems.instagram_account`) when pressed, as she asked; it still stops before Share.
+- `/flyers` (studio/flyers.html): tabs Posted · Finished, not posted; a paged grid
+  (no scroll at 2000x990); Enter = every slide large, ← → slides then the next image,
+  S studio, F folder, Esc back; Tab switches tabs. Routes `/api/flyers`,
+  `/flyer/img/<slug>/<sub>/<file>`, `/api/flyers/open`, `/api/studio/mark`.
+- Catalog: the row detail says "posted to Instagram" / "Instagram image finished", the
+  panel meta "Instagram image: posted Nov 3, 2026 (@pollens_poems)", and the library
+  root has "Finished images…" (page only). poem.json carries `flyers`.
+
+### In progress, and three tabs (BUILT 2026-11-05)
+
+Her ask: a "Mark in progress" button -- for the image, not the poem -- and sections for
+the in-progress images, the finished-but-unposted ones, and every posted one.
+- `flyers.py`: a third mark, `in_progress` (ISO time). Marking finished clears it;
+  marking in progress clears finished. A posted image stays posted, so one being
+  reworked shows under In progress AND Posted. In progress is NOT copied: the gallery
+  shows the CURRENT exports (`instagram\*.png`; for print, page PNGs of `<slug>.pdf` in
+  `marked\print-progress\`, remade when the PDF is newer). `entries()[].tab` =
+  progress | finished | posted.
+- Studio: the section is now "Instagram image" / "Print image", ONE row of toggles:
+  In progress · Finished · Posted (lit ✓ = marked, press again to unmark; spoken
+  names "Mark in progress" etc. via aria-label) · All images…. One row because the
+  three columns are full at 2000x990.
+- Same day, to stay scroll-free: Byline's two rows became one (Show · Hide · Under
+  title · At the end) and the 3-column gap between sections went 7px -> 5px (Print's
+  middle column was 2px over).
+- `/flyers` is now "Poem images": tabs In progress · Finished, not posted · Posted
+  (voice 1 2 3; Tab / Shift+Tab). Catalog rows say "Instagram image in progress".
+
+### Every version kept; PNGs open as just the image (BUILT 2026-11-05)
+
+Her ask: "every time I mark a poem finished or save the PNG, I want to save the
+versioning so that if I do it five times, I can look through the folder and see every
+version", and a PNG export should open "the PNG as a tab in my Chrome, showing just the
+image as large as possible", not Explorer.
+- One folder per poem: `<poem folder>\versions\<YYYY-MM-DD HH-MM-SS> <shape> <reason>\`,
+  reason = export | finished | posted. Never overwritten (two in one second get " 2").
+  `flyers.save_version()`; every PNG export (studio Export → PNGs / Both) and every
+  Mark finished / post makes one. The old `marked\` folder is gone (nothing was marked
+  yet); print's in-progress page PNGs moved to `<poem folder>\print-pages\`.
+- `/view/<slug>/<sub>` (studio/png_view.html): black page, the slide as large as fits,
+  ← → / click halves step slides, "1 / 2" corner count. The studio opens the tab
+  ITSELF at the click (window.open before the export runs; a tab opened after the
+  await would be blocked as a pop-up) and points it at the new version. If that tab
+  can't open, the server opens it (`_open_in_front`: os.startfile + macro bridge
+  ext.focus, since a tab opened from outside Chrome lands behind the current one).
+
+### Turned lines, one line at a time (BUILT 2026-11-03)
+
+Her ask: a poem can mix "with /" and "new line". Engine option `turnStyles: {lineText:
+'slash'|'plain'}` (keyed by TEXT like `splits`) overrides `turnStyle` for that line;
+`R.turned[i].style` / `.ownStyle` say what each got, segments carry `plain`. In the studio:
+click a turned line (yellow) → **/** (or T) flips that line, ← → still moves its split, Del =
+automatic for both, Esc done; the "Turned lines" section shows **This line: With / · New line ·
+Like the rest**. Linked across shapes.
+
+**Checked:** all 482 poems × print + carousel render BYTE-IDENTICAL from the old engine + old
+stores vs the new engine + merged store (964 renders; old engine copy `%TEMP%\poem_layout_premerge.js`); 41 tests in
+`test_poem_print.py` (per-line styles, render-unchanged default, boxes, the store's linking /
+reset / migration, both modules on one store).
+
+## Instagram caption + real hashtags (BUILT 2026-11-03)
+
+Studio, Instagram shape → **Caption** section. Top to bottom: `CW: …` (picked from a list,
+her earlier ones first) · her note · title (Show/Hide) + poem · thanks (ONLY what she writes —
+she asked for no default) · hashtags. Live count against Instagram's 2,200, red when over.
+Every change writes `<poem folder>/instagram/caption.txt` (UTF-8, LF), as does every PNG
+export — the file `InstagramPostPoem` pastes; **Post to Instagram** runs it (stops before
+Share). Note + thanks are written in the kit writing box (`/kit/writing-box.js`, Ctrl+Enter
+keeps, Esc puts away, the draft survives). Engine `Scripts/poems/caption.py`; fields in
+`studio_settings.json` → poem → `caption`.
+
+**Hashtags are never invented** (her rule: "a real list … I don't want to just make them up").
+A first version asked the local model for hashtags; it was dropped the same day.
+- `Scripts/poems/hashtags.py` — the LIBRARY. Styles in `INIDATA/PoemHashtags/styles.json`
+  (Poem, Queer › Sapphic / Lesbian / Trans, Love, Heartbreak, Grief, Sad, Mental health,
+  Healing, Body, Disability, Nature, Political, Memory, Short, Free verse, Prose, Funny), each
+  with seed hashtags + `match_tags` (her poem tags that pre-tick it). Scrapes
+  best-hashtags.com (robots allow `/hashtag/`; 1.6 s apart; cached on
+  `E:\Media\Poetry\hashtags\cache`, refreshed after `poems.hashtag_rescrape_days`): each seed's
+  "top 10 used on the same posts" with share %, its best sets, and size tables; then each
+  candidate's own page (its size, and whether ITS posts carry the seed). General poetry tags
+  are discounted inside other styles (the Poem style carries them). Output
+  `INIDATA/PoemHashtags/library.json`: style → ranked tags with post count, size band and
+  the evidence for each. Junk goes in `block` (`hashtags.py block <tag>`).
+- `Scripts/poems/ig_sample.py` — the CHECK: each style's tag page opened briefly in her
+  Chrome through the AHK Macro Bridge (`ext.readtab` active, `list` the post links, close),
+  then ~18 top posts read in the hidden worker window (`ext.fetchpage` → og:description =
+  caption); hashtags counted once per poet. `→ INIDATA/PoemHashtags/ig_samples.json`,
+  merged by `hashtags.py build`. Bridge gotcha: `/cmd` waits 4 s unless the body has
+  `timeout_ms`.
+- **Studio:** the first time a poem's caption opens (and on Post with nothing chosen) it asks
+  **"What are the main styles of this poem?"** — numbered chips, pre-ticked with Poem + styles
+  from her tags + the local model's guess (task `poem_styles`, cached per text; it only picks
+  STYLE ids). Enter fills the closest N (`poems.caption_hashtag_count`, 20): each tag's score
+  summed over the chosen styles, taken big / medium / small in a 25 / 40 / 35 mix (≥1M /
+  50K–1M / <50K posts), round-robin so every style is in it. She trims; "More for these
+  styles" and "Your usual" (only tags she has used) sit under it, chips show post counts.
+- **Adding a style:** the picker's "＋ Style" (name + starting hashtags, scraped in the
+  background, ~1 min), or `py Scripts/poems/hashtags.py add-style "Witchy" witchypoetry`.
+- **Cleanup pass (2026-11-03, after simulating fills on 16 of her poems):** all 20 styles
+  sampled on Instagram. ~60 tags blocked: global junk (`2000s`, meme / quote / support-group /
+  campaign tags, too-broad `nature` `sad` `selflove` `memories`), and per-style strays (free-verse
+  tags under Trans, breakup tags under Grief, haiku tags under Nature, yoga / HAES under Body).
+  Memory and Body re-seeded from POETRY tags (`#memorypoetry`, `#bodypoetry`) so a remembered
+  lover doesn't get `#childhoodmemories`. A sampled Instagram tag page counts as a seed even
+  when best-hashtags.com has no page for it. `ig_sample.py` falls through to the next seed when
+  a tag page won't load (`#lesbianpoetry` always drops the connection; `#lesbianpoet` works).
+  Each style has an `about` line, which the model sees; it now picks Poem + at most 3 styles and
+  keeps Heartbreak = a romance ending, Grief = a death or permanent loss. Before this it put
+  Heartbreak + Grief + Sad on nearly everything.
+  To re-check: pick styles, fill, read the chips; junk → `hashtags.py block <tag>`, or for a
+  single style add it to that style's `block` in `styles.json`, then `hashtags.py build`.
+- **5 hashtags (2026-11-03): Instagram's limit since 2025-12-18 (was 30).**
+  - The fill is now **1 big + 2 medium + 2 small**. The big one is a general poetry tag from
+    the Poem style (`#poetry`); the other four go to her styles, round-robin.
+  - A style with nothing in a size fills its slot with its own next-best tag, never with
+    another style's. Near-twins (`#griefpoetry` / `#griefpoems`) never share the 5.
+  - The picker pre-ticks Poem + at most 2 styles (her tags' styles first, then the model's
+    guess, which is now told 1–2). It warns past 3 styles.
+  - The count reads `n / 2,200 · n / 5 #`. Past either limit it turns red, Post greys out,
+    and Copy refuses. Hashtags typed into her note count too. The server refuses an
+    over-limit post as well.
+  - When all 5 are in, the spare list is "Swap in": tap a spare, then the tag it replaces.
+  - Setting `poems.caption_hashtag_count` is 1–5, default 5. The model's cached guesses
+    carry `GUESS_VERSION` (caption.py); bump it when the `poem_styles` prompt changes.
+- **Spending the 5 well (2026-11-03, measured on Instagram):** ~24 top posts read per tag.
+  Median likes of a tag's top posts: `#poetry` 12,000, `#poetrycommunity` 6,451,
+  `#transpoetry` 2,897, `#queerpoetry` 605, `#queerpoet` 119, `#nonbinarypoetry` 99,
+  `#nonbinarypoet` 48, `#queerpoetics` 41, `#sapphicpoetry` 41, `#queerpoetsofinstagram` 31.
+  A small account is seen only in the small ones. So:
+  - **No big slot.** The mix is 2 medium + 3 small. Big general tags are never offered as
+    spares either.
+  - **Standing tag `#queerpoet`** on every post (setting `poems.standing_hashtags`, counts
+    toward the 5). About half its top posts are queer poets' poems that aren't about being
+    queer: tagging the poet, not the poem, is normal. It doesn't block `#queerpoetry`
+    (different grid); the near-twin rule only applies between filled tags.
+  - **Polluted, blocked:** `#transpoet` and `#transpoets` (mostly trucks / "transport"),
+    `#transpoems` (general poetry).
+  - **Checked by hand and added** (a style's `checked` list in `styles.json`):
+    `#nonbinarypoetry`, `#nonbinarypoet`, `#queerpoetics` under Trans;
+    `#queerpoetsofinstagram`, `#queerpoetics` under Queer.
+  - **Search words** (caption field `keywords`, up to 6): a plain line such as
+    `grief · a dog · winter` just above the hashtags. Instagram searches caption text, so it
+    finds readers without spending a hashtag. Picked from the poem's tags, its styles and
+    words used before (`caption.word_choices`).
+  - Mosseri (2025): hashtags help search and labelling, not reach. They decide where the
+    post can be found, not how far it goes.
+- **Standing tags now `#queerpoet #nonbinarypoet`** (Jamie, 2026-11-03). Poems filled earlier
+  keep their old tags until refilled.
+- **When to post (researched 2026-11-03; she schedules, Gainesville = Eastern):**
+  - Default slot: **Tue / Wed / Thu at 8 pm ET**. Second choice: **Sunday 8–9 pm ET**.
+    Avoid Friday and Saturday.
+  - Basis: Buffer (9.6M posts) has Wednesday best, Wed 6 pm in its top three, and Fri/Sat
+    weakest. Sprout's windows run Tue 1–7 pm and Wed 12–9 pm. Sociality (335K posts) finds
+    8 pm – midnight best, Sunday night the most consistent. No study is about poetry;
+    evening suits slow, reflective reading.
+  - Timing matters less than consistency (2–3 posts a week, same slots) and the first hour:
+    Mosseri's top signals are likes per reach and sends per reach, and early responses decide
+    whether a post reaches non-followers. Schedule when she'll be around to answer comments.
+  - Replace all of this with her own data once pollens_poems is a professional account with
+    100+ followers: Insights → Total followers → Most active times. Until then, alternate
+    Wed 12 pm and Wed 8 pm for ~6 weeks and compare reach.
+- **Poetry-only (2026-11-03, Jamie: every hashtag "very much poetry-related"):** setting
+  `poems.hashtags_poetry_only` (on by default). The fill and the swap spares only take tags
+  with a poetry / writing word (`hashtags.POETRY_WORDS`), e.g. `#transpoetry` not `#trans`,
+  `#bodypoetry` not `#bodyacceptance`. Tags she adds herself are never filtered. Body, Memory
+  and Disability have just one poetry tag each, so their fills lean on general poetry tags.
+- **"It asks when a poem is decided queer":** hand-tagging a poem queer / sapphic / lesbian /
+  trans (or their `match_tags`) while it has no styles yet marks it `ask_styles`
+  (`poems.add_tags` → `caption.on_tags_added`). The studio then opens the style picker on
+  its next visit, in either shape, and asks once (closing it clears the mark). It also asks
+  on Post when no hashtags are chosen.
+- **Composer check (2026-11-03, assemblage):** the real Post flow put the caption into
+  Instagram's composer with stanza blank lines, the `———` lines and the 5 tags intact.
+  Stopped before Share; the draft was discarded. Not yet checked: whether the PUBLISHED
+  post keeps the blank lines.
+
+## Where we are + next steps (2026-10-18, evening)
 
 **Done today:** engine page shapes (Letter / Instagram) + marginYIn + splitStanzas + paper
 grain + every-slide images + text around images + `boxes()`; the paper library (12, subtle by
@@ -487,7 +901,7 @@ print byte-identical to before the refactor (checked with an old-vs-new engine d
 2. **More aspects** in the same grid: Font (the print font list, side by side), Title
    (size / hidden / own slide), maybe Image style (the clipart variants: ink / cut out /
    stamp…) for a placed picture.
-3. **Print studio picker** -> move its inline picker onto `clip_picker.js` (one copy).
+3. ~~Print studio picker -> `clip_picker.js`~~ — done in the merge (2026-11-03).
 4. **Art poster** -- a third page shape on the same engine; the grid + images() already do
    most of it (add bleed, opacity, rotation, layering).
 5. **More subtle papers** if she wants them (ambientCG has more; `paper_textures.py import`).

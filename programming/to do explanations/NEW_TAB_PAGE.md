@@ -2,7 +2,7 @@
 tags: [programming, new-tab, dashboard, local-viewer, quotes, completion-log, projects, mindfulness]
 created: 2026-03-25
 updated: 2026-10-07
-related: ["[[COMPLETION_LOG]]", "[[QUOTES_SYSTEM]]", "[[Personal]]", "[[SPECIAL_TODAY]]"]
+related: ["[[READING_HUB]]", "[[COMPLETION_LOG]]", "[[QUOTES_SYSTEM]]", "[[Personal]]", "[[SPECIAL_TODAY]]"]
 ---
 
 # New Tab Page
@@ -99,12 +99,12 @@ Bell: Helpers/MindfulnessBellPoller   reads the `checkin` pool (see "The bell")
 | Panel | Reads | The page can |
 |---|---|---|
 | Programming / House To-Do | `projects.py list programming\|house`, todos only, open first | tick, add, delete (with a confirm) |
-| Reading | `clog book-current`, the same rows as `open read` | click → `ReadBookHere <id>` |
-| Watching | `watchlist.py recent`, the same list as `open watch` | click → `WatchShow <url> <service>`; open-in-new-tab opens the show itself |
+| Reading | `clog book-current`, the same rows as `open read` | click → `ReadBookHere <id>`; header **all ↗** → `OpenReadingPage` (127.0.0.1:8302/reading/, [[READING_HUB]]) |
+| Watching | `watchlist.py recent`, the same list as `open watch` | click → `WatchShow <url> <service>`; open-in-new-tab opens the show itself; header **all ↗** → `OpenWatchlist` |
+| Album Anniversaries | `release_dates.py today` (was Special Today's music section until 2026-11-03), top 5 | each row a Spotify link; header **all ↗** → `OpenMusicFolders anniversaries` (the `smart_anniversaries` folder, under Daily) |
 | Rotation | `clog last <template>` for each `ROTATION` row | log Outside or Stretches for today; Reading and Meditation are logged for her already, so they show "auto" |
 | Done Lately | `clog feed`: "Today: N things" + the 5 newest log entries, `auto`/`claude` pills | any row opens the log page, `/log` (add box, filters, delete). See [[COMPLETION_LOG]] § "The log as a record of the day" |
-| Check-In | pool `newtab_checkin` | ▲/▼; Edit: text, kind (body / breath / mind), add, delete |
-| Pacing (was "Brain / Productivity") | pool `newtab_pacing` | ▲/▼; Edit: text, add, delete |
+| Check-In | pools `newtab_checkin` + `newtab_pacing`, drawn together (Pacing was its own panel, id `brain`, until 2026-11-03) | ▲/▼; Edit: text, kind (body / breath / mind / pacing), add, delete |
 | Quotes to Remember | pool `newtab` (group `remember`) | ▲/▼; Edit: text, add, delete |
 
 **The draw.** A pool panel shows a weighted sample: weight = 1 + score, and a
@@ -124,8 +124,12 @@ hidden line comes back.
 **One list, two surfaces.** Reading and Watching run the exact commands the
 Millers run, so the page and `open read` / `open watch` can never disagree. A
 row's spoken word shows as a pill ("darkness", "blinders"). Panel ids never
-change, which is why Pacing is still `brain` and kept its place and its Random-9
-setting.
+change.
+
+**"all ↗" (2026-11-03).** A panel with `more` in panels.js gets a header link
+that opens the full list it is a slice of. The action lives on the server
+(`SOURCES[...]["more"]`, checked against `ACTIONS`); the page posts
+`/api/action {source, more: true}`. The title stays the collapse link.
 
 **Collapse.** The title is an `<a href>`. It toggles `panel_collapsed_<id>` in
 `storage.json`, and CSS hides the body and gear. It is excluded from the title
@@ -381,12 +385,12 @@ links (no AHK action), which is why `buildLinks` checks `row.external` rather
 than `row.href` -- Watching rows have an href too.
 
 **Sections (2026-10-14).** The panel is drawn in sections, in this order:
-birthdays · zines · poems of the day · the journal question · music
-anniversaries, with ONE thin grey rule where each section starts (never between
+birthdays · zines · poems of the day · the journal question · events
+(the music anniversaries moved to their own panel, Album Anniversaries,
+2026-11-03), with ONE thin grey rule where each section starts (never between
 rows). The server tags each row with `section` (`SPECIAL_SECTIONS` /
 `fetch_special` in newtab_server.py, sources fetched side by side), and the
-page's `sectionedItems` + `.section-start` draw it. The panel's row limit trims
-only the music (`capped` rows); every other section always shows. Poem rows and
+page's `sectionedItems` + `.section-start` draw it. Every section always shows. Poem rows and
 the journal question carry an inline **↻** button (`row.reroll` -> write op
 `reroll`, `_special_reroll`): "a different one today". See [[POEM_OF_THE_DAY]].
 

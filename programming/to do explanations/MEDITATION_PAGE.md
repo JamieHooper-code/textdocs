@@ -118,6 +118,12 @@ yoga" / "meditate yoga" / "meditate chair yoga".
   `section = Yoga`. Card numbers, "jump N" and the 1-9 keys run across all
   groups in display order. More yoga playlists = more cards under Yoga; if a
   group ever wants its own drill-in level, that is a page change, not data.
+- **Fixed numbers (11–29, 2026-11-05; most-used lowest).** Pack cards 1–11,
+  Begin 12, Sit with lockout 13, player bar 14–23 (play 14, back 15, scrub 16,
+  forward 17, listen-only 18, full 19, YouTube 20, keep 21, favourite 22,
+  next 23), filter tabs 24–27, Settings 28. That fills the range, so the rare
+  keep-mode buttons run just past it: 29–32 (audio, video, link, open playlist). Only the first 11 packs
+  are pinned (`PACK_PINS`); a 12th+ card is numbered by kit after the pins.
 - **One player.** `#audio` is a `<video>` element inside the hero's video box.
   Mp3 packs play through it with the box hidden; a video pack shows it.
   **Listen only** (button or V) hides the picture and keeps playing, and is

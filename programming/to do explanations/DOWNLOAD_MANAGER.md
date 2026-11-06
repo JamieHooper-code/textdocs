@@ -1,269 +1,51 @@
 ---
-tags: [programming, downloads, media, ahk, python, miller, design-doc, books, tv, movies, music]
+tags: [programming, design-doc, downloads, music, bandcamp, google-photos, google-voice, local-viewer, chrome-extension]
+created: 2026-11-02
+updated: 2026-11-02
+status: built 2026-11-02 — page on :8301, 5 actions, Bandcamp auto rule, Bandcamp smart folder, jump N on Bandcamp
 ---
 
-# Download manager — did everything I started actually finish?
+# Download manager
 
-**Authoritative doc.** Read before touching `Scripts/downloads/downloads.py`,
-`Helpers/DownloadsMenu.ahk`, or adding a new producer.
+One place to pick what's in Downloads and do something to it. Not built per source: the sources (Bandcamp, Takeout, shared photo albums...) all land in `E:\Downloads`, and what changes is what she *does* with each kind of file.
 
-Related: [[ANNAS_ARCHIVE_PIPELINE]] · [[MEDIA_SYSTEM]] · [[COMPLETION_LOG]]
+Say **"download manager"**, or use the Downloads link in the page header.
 
----
+## The three pieces
 
-## The problem
-
-Downloads happen in several unrelated subsystems — Anna's Archive books via
-aria2, TV/film/music via qBittorrent, more later — and **none of them could
-answer "did everything I started actually finish?"**
-
-Each knew only its own live state, and only while it was running:
-
-- **The Anna queue actively DELETED finished rows** when it drained (*"finished
-  rows are history, not state"* — my own comment, and wrong). A book could fail
-  and leave no trace at all.
-- **`acquire_media_log.jsonl` does not fill the gap.** It is a *filing* log: it
-  records moves that already succeeded. A download that never completed never
-  appears in it, by construction.
-- **AcquireMenu's "Downloading" list is live qBittorrent state**, with no
-  history at all.
-
-So there was nowhere that *"this started and never finished"* was written down —
-which is exactly the thing that goes unnoticed, because nothing is on screen to
-notice.
-
-## The shape
-
-An **append-only event log**: `INIDATA/downloads.jsonl`, one line per state
-change, never rewritten. Current state is **derived** by folding the events.
-
-```json
-{"at":"2026-09-01T09:50:08","source":"anna","kind":"book",
- "id":"c7e49af174931d9f205f0e10c394b1db","title":"A Psalm for the Wild-Built",
- "state":"active","path":"E:\\Downloads\\A psalm … .epub"}
-```
-
-**Append-only is the entire point.** A store that is updated in place can lose
-the row you are looking for — which is literally what happened — while a log
-that is only ever appended to cannot. It also means a crash mid-write costs at
-most the last line, and that a corrupt line is skippable rather than fatal (one
-bad line must not hide the whole history and reintroduce the blind spot).
-
-**`id` is stable per item** — the md5 for a book, the infohash for a torrent —
-so repeated events fold onto one row instead of piling up. For books that is the
-*same* key the metadata merge and the provenance log already use, so the manager
-joins to both without inventing a new identity.
-
-**Rows are keyed per `(source, id)`**, so two subsystems can never overwrite each
-other.
-
-**The first event's timestamp survives as `started`.** An item that never
-finished still shows when it began, which is the question actually being asked
-of a lost download.
-
-## States are STAGES, not pass/fail
-
-A download is a chain, and **the most useful thing the log can tell you is where
-it stopped**. "It failed" is not actionable; "it downloaded fine and then the
-Kindle send failed" is — the file is on disk, the library has it, and only the
-last step needs redoing.
-
-```
-queued -> active -> downloaded -> imported -> sent          (books)
-queued -> active ----------------------------> filed        (torrents)
-```
-
-| State | Means | Bucket |
+| Piece | File | Job |
 |---|---|---|
-| `queued` `active` | in flight | still owes work |
-| **`downloaded`** | **file arrived, nothing imported it** | **still owes work** |
-| `imported` | in the library, not e-mailed | done |
-| `sent` | delivered to the Kindle | done |
-| `filed` | torrent moved into the TV/film/music library | done |
-| `oversized` | in the library, **cannot** be e-mailed | done |
-| `skipped` | looked at it, left it alone | neither |
-| `failed` | stopped, with the `stage` it stopped at | failed |
+| Items | `Scripts/downloads/dm_items.py` | What's waiting (finished downloads from `INIDATA/downloads.jsonl` + loose files in `E:\Downloads`) and what **type** each is: album zip, photos folder, image, book... |
+| Actions | `Scripts/downloads/dm_actions/*.py` | One file per action. Each says which types it takes. **New action = new file**; the page picks it up without a restart. |
+| Runner | `Scripts/downloads/dm.py` | Runs an action, writes one line per item to `INIDATA/download_actions.jsonl`, applies the auto rules. |
 
-**`downloaded` is deliberately a LIVE state.** A row sitting there is the
-sneakiest outcome of the lot: the file is in `E:\Downloads` at full size and
-looks completely fine, and no library has it. Nothing on screen used to say so.
-It gets its own menu section for that reason.
+Page: `dm_server.py` + `dm_page.html` (`http://127.0.0.1:8301`). AHK: `Helpers/DownloadManager.ahk`.
 
-**`oversized` is a success, not a failure.** It imported fine and simply cannot
-be e-mailed (Gmail's 25 MB cap) — it needs the USB or web uploader, not a retry.
-Filing it as failed would send Jamie chasing a bug that does not exist.
+## Actions (2026-11-02)
 
-**`skipped` is neither.** "Looked at it and left it alone" — a torrent that
-turned out not to be music — is a real answer to "what happened to that?", and
-must not be dressed up as either outcome.
+1. **Add to music library**: unzip, strip Bandcamp's `Artist - Album - ` track prefix, split multi-album downloads (discographies by folder; an album + its demos sharing one folder by album tag, 2+ tracks per group), file with `acquire/library.py sort --all` (one Artist/Album per album, CD1/CD2 folded), index for the local player, zip to the Recycle Bin, remember the source.
+2. **Upload to Google Photos**: via `gphotos.py`; picks a side album or none.
+3. **Text to someone**: opens the Google Voice thread and pastes the images; she presses send.
+4. **Show in Explorer**.
+5. **Move to Recycle Bin**.
 
-**`stage` is separate from `state` and from `note`.** The state says the chain
-stopped; the stage says how much of it succeeded (`download` / `import` /
-`metadata` / `send`); the note is the raw error. `describe()` leads with the
-stage, because "where did it get to" is the question actually being asked.
+An item is *handled* (hidden unless "show handled") once an action with `handles: True` succeeds on it, or its file is gone.
 
-**A stale note must not haunt a finished row.** Only truthy fields overwrite
-during the fold, so an earlier stage's note survives — `unpacking` hanging off a
-row that finished ten minutes ago reads exactly like a stuck job. Notes are
-suppressed on `DONE_STATES`.
+## Numbers (voice and numpad are one set)
 
-## History vs progress
+Every control has a speakable number drawn into the page (kit.js inline jump numbers, new-tab-page look): rows on screen read 1, 2, 3… in their gutter; actions are pinned at **11–15**; "show handled" is **16** (pins stay in 11–29, easy to say; kit skips them, so rows read 1–10 and carry on at 17). The picker covers the page and numbers only its choices. In the box, `N` Enter = jump N (several: `3 5 9`), bare Enter = first action that fits, `0` = clear / close the picker. Saying "four five" picks both.
 
-**Progress is deliberately NOT in the log.** A percentage is a property of a
-transfer happening right now, not an event; writing progress lines would swamp
-the log to record something stale a second later.
+## Automatic rules
 
-So: **history comes from the log, progress is read from the source** — the
-part-file on disk for aria2 (it writes straight to the target name, so its size
-*is* the progress), the qBittorrent WebUI for torrents — and only for items
-still marked live.
+`INIDATA/download_rules.json`. The Chrome bridge consumer (`chrome_bridge/consumers/downloads_consumer.py`) runs `dm.py auto` on every finished Chrome download; the first matching rule runs its action and a tooltip says what happened. The download log now records each download's URL so rules can match on the source.
 
-## The pieces
+Starting rule: album zips from `bandcamp.com` / `bcbits.com` → music library.
 
-| Layer | File | Owns |
-|---|---|---|
-| Engine | `Scripts/downloads/downloads.py` | `record()`, `fold()`, live progress, the CLI |
-| Store | `INIDATA/downloads.jsonl` | append-only events (version-controlled) |
-| UI | `Helpers/DownloadsMenu.ahk` + `Scripts/DownloadsViewer.ahk` | `open downloads` |
-| Producer — books | `Scripts/anna_fetch.py` (`track()`) + `anna_download_watch.py` (`_track()`) | queued / active / downloaded / imported / sent / oversized / failed+stage |
-| Producer — torrents | `Scripts/acquire/pipeline.py` (`_track_job`, hung off `set_job`) | queued / active / filed / failed / skipped |
-| Finished toast | `Scripts/downloads/finished_toast.py` (`announce()`) | the one "Books — N finished" toast |
+## Bandcamp
 
-## The menu
+- `jump N` on the collection page (`bandcamp.com/jamiemaybe`) clicks album N's download link, makes sure the format is FLAC, and clicks Download. The rule above files the zip. Contexts: `bandcamp_collection`, `bandcamp_download`.
+- Music Folders has a **Bandcamp** smart folder (under Local albums), read from `MusicData\catalog\album_sources.json`.
 
-`open downloads` / `MAINFUN.bat OpenDownloads`:
+## Related
 
-```
-Still unfinished (3)              started but never reported finishing
-Downloaded, never imported (1)    the file is on disk, the library does not have it
-Failed (1)                        shows which STEP it died at
-Too big to e-mail (1)             in the library - needs USB or the web uploader
-Books · TV · Films · Albums
-Everything (8)                    newest first
-↻ Refresh
-```
-
-**The first four rows are the alarm; everything below is browsing.** "Still
-unfinished" is first because an item there started and never reported an ending.
-"Downloaded, never imported" gets its own row despite being a subset of it,
-because it is the one that LOOKS fine — full-size file on disk, no library
-entry — and would otherwise hide among the in-flight rows.
-
-`MAINFUN.bat ShowDownloadSummary` answers the same question as a tooltip without
-opening anything.
-
-## Retry (row action `2`)
-
-What "retry" means depends on where the chain stopped, so the action branches:
-
-| State | Retry does |
-|---|---|
-| `downloaded` | re-runs **just the import** (`anna_download_watch.py --complete <path>`) — the file is already on disk; re-downloading it would be silly |
-| `failed` (anna) | **reopens the book page**, from which one `jump` runs the whole thing again |
-| anything else | says there is nothing sensible to retry, rather than pretending |
-
-A failed download's url is dead by then (partner links expire after 2h), which
-is why the failed path reopens the page rather than re-queueing the url. The
-book page is rebuilt from the row with nothing extra stored — **the row's `id`
-IS the md5**, and that is what the page is keyed by.
-
-**The menu reads `list --json`, not the formatted line.** It used to parse the
-human-facing output, which has no id in it — and a retry needs the id to know
-WHICH book. Parsing a display string for machine fields was going to rot anyway.
-Every field read goes through `_DlGet`, because the engine omits empty fields to
-keep the log small and a missing key is a THROW in AHK v2: a menu that dies on
-the first row with no `stage` is worse than one that shows "".
-
-## Adding a producer
-
-Two lines. Import the module and call `record()` on each state change:
-
-```python
-sys.path.insert(0, str(AHK_BASE / "Scripts" / "downloads"))
-import downloads as _dl
-_dl.record(source="acquire", kind="tv", item_id=infohash,
-           title=name, state="done", dest=str(target))
-```
-
-Rules for a producer:
-
-- **Guard the import.** Every pipeline here predates the manager and must still
-  run if it is ever missing. `anna_fetch.track()` is the reference.
-- **Never let tracking break a download.** `record()` returns `False` rather than
-  raising, and callers ignore the result. Tracking is the least important thing
-  in any of these pipelines.
-- **Use a stable id**, not the title. Titles get cleaned, truncated and
-  re-derived; an md5 or infohash does not.
-- **Kinds are a closed set** (`book · tv · movie · album · other`). A typo'd kind
-  would silently create a category no menu section shows, so unknown kinds are
-  coerced to `other` rather than accepted.
-- **Hook the chokepoint, not the call sites.** The torrent producer hangs off
-  `set_job()` — the one place a job's state changes — so a state added later is
-  tracked for free instead of being silently missed. Look for the equivalent
-  before instrumenting a dozen places.
-
-## The finished toast (2026-10-19)
-
-Jamie sets a few books going and walks away; the pipeline's tooltips are gone
-by the time she is back. So every book that reaches its END — its final step,
-or wherever it failed — is added to ONE toast:
-
-```
-Books — 3 finished, 1 failed
-✗ Braiding Sweetgrass — Download failed (server #2, 502)
-⚠ Capital Vol 1 — In library, too big to e-mail (84 MB)
-✓ The Dispossessed — Sent to Kindle
-```
-
-- `announce(source, item_id, title, outcome, line)` in
-  `Scripts/downloads/finished_toast.py`. Outcomes: sent / imported / linked /
-  duplicate / oversized / failed.
-- **Callers announce, the fold does not decide.** `imported` is both a stop on
-  the way to `sent` and a final outcome (send skipped), so "is this the end?" is
-  only known at the call site. Anna's ending points: every return in
-  `anna_download_watch._import_and_send` + its two no-file failures, and
-  `anna_fetch` (download failed, link expired, file missing, already owned).
-- The list is "everything finished since this toast appeared": re-raised with
-  `replace_key` so it updates in place; once it is gone (clicked, X'd or cleared
-  by presence) the next book starts a fresh list. A retry that succeeds replaces
-  its own failed line (same md5).
-- **No sound** (her call). Clears 20s after she is seen at the computer
-  (`downloads.finished_toast_present_seconds`; presence = `Helpers/Presence.ahk`,
-  see `docs/toasts-and-mail-watching.md` § "Clearing when she is back").
-  Click = `OpenDownloads`.
-- The tooltips stay, for when she is watching.
-- A new producer (torrents) = add a `SOURCES` row (noun + click action) and call
-  `announce` at its endings.
-
-## Gotchas
-
-**The Anna queue keeps its own history now too.** `QUEUE_HISTORY_LIMIT` caps it,
-and `status --history` shows it. That is deliberately redundant with this log:
-the queue's copy is operational (it is what the worker reads), this log is the
-durable record.
-
-**Keeping queue history exposed a latent bug.** The de-dup test was
-`state != "done"`, which — once failed rows stopped being deleted — would have
-treated a FAILED row as still queued and silently refused to retry the very book
-most likely to need it. It now tests `state in LIVE_STATES`.
-
-**The menu shells the engine once per build and caches it** for the life of the
-viewer process. A Miller previews the highlighted row eagerly, so a subprocess
-per preview would stutter the UI — the same reason `SettingsStore` reads its
-JSON natively. `↻ Refresh` re-reads.
-
-## Voice
-
-`open downloads` opens this menu. It used to open the downloads FOLDER, via the
-generic `open <directory>` Choice — that entry was renamed to
-**`downloads folder`**, so:
-
-| Say | Get |
-|---|---|
-| `open downloads` | this manager |
-| `open downloads folder` | `E:\Downloads` in Explorer |
-
-The rename lives in `INIDATA/VoiceChoices/directories.json`; the manager's phrase
-is a generic-store row (`voice_wizard.py assign`). **`voice_index check` will
-report a stale COLLISION until the grammar dump is refreshed** — it reads the
-last `make catalog` dump, which still lists the old `downloads` key.
+[[GAINESVILLE_EVENTS]] (same local-page pattern) · [[LOCAL_APP_HUB]] · [[LOCAL_PLAYER]]

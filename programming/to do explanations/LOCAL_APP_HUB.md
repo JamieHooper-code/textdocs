@@ -107,7 +107,14 @@ Saying "jump 7", or just "7", clicks the control labelled 7 on any local page.
   450ms when it's said), and the page styles the number itself. The new tab page
   uses it: each row's `›` turns into its number in the panel's accent colour, and
   ↻ reads "↻ 22". `jump_labels` off removes the numbers and the `›` comes back.
-  Use it on any page that has a gutter of its own; the overlay stays the default.
+  Use it on any page that has a gutter of its own.
+- **Every control, inline, is the default for new pages (2026-11-02).** Jamie:
+  all options on a page get speakable numbers, built into the design like the
+  new tab page. New pages mark every control `data-jump data-jump-pos="inline"`
+  and draw the number (rows: left gutter; buttons: before the label); pinned
+  numbers for action bars, `data-jump-cover` on overlays, and a numpad box calls
+  `Kit.jump` so typed and spoken numbers are one set. Rules: `frontend-design`
+  skill § local Chrome pages. Example: [[DOWNLOAD_MANAGER]].
 - **Settings:** the shared `pages` settings system (`jump_labels` on/off,
   `jump_size` 12-20 px, `jump_opacity` 40-100 %). It is reached from the hub
   bar's ⚙. `Kit.openSettings(<any system>)` also adds it as an "All pages"
