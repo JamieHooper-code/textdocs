@@ -419,3 +419,8 @@ journal prompt".
 A second board on this server at `/write`: the same page and app.js with
 `write_panels.js` and its own storage namespace (`write:` keys). Prompts, journal
 questions, her poems, constraint cards, letters. See [[WRITING_PAGE]].
+
+## Today's Goals (2026-11-13)
+
+The very top-left panel: today's goal (usually one), how far along it is (dots for a count, a tick for one), and a quiet `+ goal` that opens the picker (recent goals as chips, or type one). Edit shows the goal list (rename, how many times, what counts it by itself) and the goals she typed once, with `add to list`. Source `goals` in newtab_server.py over Scripts/goals/goals.py; view `goals` in app.js; `place: "top-left"` in panels.js puts it there the first time. Shows nothing about past days by design. Full design: [[DAILY_GOALS]].
+

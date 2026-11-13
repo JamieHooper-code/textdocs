@@ -886,6 +886,103 @@ A first version asked the local model for hashtags; it was dropped the same day.
   Stopped before Share; the draft was discarded. Not yet checked: whether the PUBLISHED
   post keeps the blank lines.
 
+## Images, checking and the panel (BUILT 2026-11-06)
+
+Everything she stacked on the Poetry system on 2026-11-06, in one place.
+
+**Pictures**
+- **Ink is the default for every picture** (`clipart_index.LINE_ART_ORDER`): she mostly uses
+  line art, and the cut-out model (made for photos) guesses one "subject" and erases the
+  rest — Pinocchio vanished from his own page. Only her own fig/cedar photos (no Ink
+  version) stay on Cut out.
+- **Which version** opens after every pick (Ink / Original scan / Stamp / Cut out …, each
+  with a one-line note), then **where it goes**. The version button in the Images list opens
+  it again. Each version's height is read from the file, so a swap keeps the centre.
+- **Backlog** (`studio_store` "backlog", per poem, every shape): "Save to backlog" is
+  placement option 1; ✕ on a slide moves a picture there (never gone); "＋ Backlog" / B in
+  the picker keeps one without placing it (online ones download first). Copied into the
+  poem folder's `pictures\` and listed in `poem.json`.
+- **Image editor** (`/studio/<slug>?mode=images`, 🖼 in the pick row): the panel steps aside
+  for a tray of every picture (on the slides, then the backlog) with version buttons; drag
+  any picture onto any slide (placed ones are copied — duplicates fine).
+- On the slides: **Ctrl+Z / Ctrl+Y** undo anything; drag a picture onto another slide to
+  move it; **Ctrl+C**, click a slide, **Ctrl+V** copies it (also into another poem).
+
+**Online search (clip_online.py, 2026-11-06)**: thumbnails are re-ranked by what they
+SHOW (CLIP: "an engraving / line drawing of q" minus half "a photograph of q"); puppet /
+marionette words also search old-caption phrases ("wire master", "puppet master",
+fantoccini); Openverse titles are HTML-stripped and its line-art call keeps to museum /
+archive sources. Not yet: Library of Congress / Met / patent sources (research notes: the
+best marionette line art lives in book scans and patents — Tony Sarg Marionette Book,
+A Book of Marionettes (Gutenberg 66391), US 2,860,446).
+
+**Checking (`layout_check.js` + `layout_check.py`)** — her "we are working blind" ask.
+The checker draws each page's pictures onto a canvas exactly as the page does and counts
+dark ink under every text line, plus pictures off the slide / nearly blank / overlapping,
+lines too wide, slides ending early. It runs after every change (listed under the title,
+outlined red/orange on the slides), ranks the placement options (a spot with ink under the
+words is marked ⚠ and offered last), and runs headless:
+`py layout_check.py <poem> [--shape both] [--shot <folder>]` or `--all` (every poem with
+studio settings, ~3 s). `--opts '{...}'` tries changes without saving. Use it instead of
+writing throwaway debug code or eyeballing screenshots.
+
+**Settings**
+- Each stepper shows its **default** under the value (blue = moved off it); click the value or
+  Delete = back to the default.
+- **📸 Save snapshot / Snapshots…** (`studio_store` "snapshots", per shape): the whole option
+  set, browsed in the option screen, picking one goes back to it.
+- **Stanzas…**: every different way the stanzas can fall across the slides, each by the
+  smallest change (one knob, two, or a little of each — her own move).
+- **Defaults vs her picks**: every export / Mark finished appends to
+  `E:\Media\Poetry\defaults_vs_final.jsonl`; `py studio_store.py drift` sums it up.
+- **Panel**: sections live in groups (Poem, Text, Spacing, Long lines, Images & paper,
+  Output) that fold as one; modes (All / Text + spacing / Images / Print + post) show only one
+  job's groups; ⇥ Hide (or `\`) hides the whole panel, ☰ brings it back. Headers are buttons
+  (Vimium can reach them).
+- **Tall windows** (her portrait second monitor) stack the slides instead of squeezing them.
+
+**Poems**: `note` (plain text, its own field — not the Doc's `===` notes, which a pull
+replaces) and **credit** (`author`, `editor`: "by Charli, edited by Pollen" on print, slides
+and the caption). Library fields Note / Author / Edited by (39–41); writing-box markers
+`{note …}` `{author …}` `{editor me}`.
+
+## Letters in the studio (BUILT 2026-11-12)
+
+Letters (journal entries, [[LETTERS_SYSTEM]]) open in this same studio through a
+print copy: kind `letter`, stored in the poem store's `data["letters"]` list, so
+no poetry reader ever lists one and the Doc sync refuses them. `poems.find()` sees
+them; the studio re-copies the text from the journal on every load. A poem inside
+a letter (`{poem}`…`{end poem}`) stays verse while the letter wraps as prose:
+payload fields `verse` / `wrapDefault`, read by `poem_layout.js` only when present.
+Folder `E:\Media\Poetry\letters\<slug>`.
+
+## Studio Instagram flow fixes (BUILT 2026-11-13)
+
+- **Post / Send make the slides themselves.** The page sends its live options; the
+  server (`_slides_first`) exports the PNGs from what's on screen, then starts
+  `InstagramPostPoem` / `InstagramSendPoemTo`. No more "export the PNGs first".
+- **Auto re-layout.** The page polls `/api/studio/poem/sig` every 3 s while visible
+  (a hash of title + text; the server only re-reads the store when its file changed).
+  Any edit — Edit poem, voice, library, Doc, a letter's journal entry — lays it out
+  again, keeping the scroll position.
+- **Auto In progress.** The first save that really changes a shape's settings marks
+  it In progress (`flyers.wants_auto_progress`): not if it's already marked anything,
+  and never again once she unmarks In progress by hand (`progress_off`).
+- **No long-press menu on pictures** in the preview (touchscreen drag).
+- **New poem → Poetry Studio.** Finishing a new poem in the writing box opens its page
+  (`AddPoem`, setting `poems.open_studio_on_new`).
+- **Caption add-ons** (`caption_snippets.py`, `INIDATA/PoemCaption/snippets.json`):
+  named groups of her own versions (Poetry Jam reminder, "share with lovely gay
+  people"). The Caption section's Add-ons row opens a sheet: tap to add/remove for
+  this poem; on picks the version used longest ago, "Other version" steps on. New
+  add-ons / versions are typed in her writing box (`EditCaptionSnippet`). Caption
+  field `extras`.
+  - Round-out (same day): each add-on has **Goes: after your note / at the end**
+    (after the thanks, above the hashtags) and **On for new captions** (seeded once,
+    the first time a caption is shown — `extras_set` — never onto a posted image).
+    Versions are picked by least recent use (`used` times), not a plain rotation.
+    The Poetry Jam reminder starts at the end and on for new captions.
+
 ## Where we are + next steps (2026-10-18, evening)
 
 **Done today:** engine page shapes (Letter / Instagram) + marginYIn + splitStanzas + paper

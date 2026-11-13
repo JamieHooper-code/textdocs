@@ -182,7 +182,7 @@ afterwards sees the new route. Triggers:
 One event per url.
 
 ```
-data: {kind: load|spa|restore, url, title, host, settledMs, sinceNavMs, visible}
+data: {kind: load|spa|restore, url, title, host, settledMs, sinceNavMs, visible, prelude}
 ```
 
 Live: YouTube and Google Voice route changes arrived as `kind: spa` (settled
@@ -231,6 +231,25 @@ is a producer under its rules:
 Live: an httpbin attachment went created → filename → complete and showed up
 in `downloads.py list` as `saved`.
 
+### `parked` (background.js, `parkedWindow`; added 2026-11-11)
+
+The extension had to MAKE the "Parked · desk 3" window: one permanent Chrome
+window (its marker tab is the extension's `parked.html`) where background
+reads (`ext.fetchpage`, `ext.openhidden`) open their tabs. An extension can't
+move a window between virtual desktops, so `parked_consumer.py` runs
+`Scripts\notif_watch\gv_app.py park-parked --wait` (pyvda) to send it to
+desk 3. By hand: `MAINFUN.bat ParkChromeWindow` / voice "park chrome". At boot,
+`gv_app.py boot` re-parks it after Chrome restores it on desk 1. `findTab`
+treats it like an app window, so "open X" never focuses one of its tabs.
+
+```
+data: {windowId, created: true}
+tab:  {}
+```
+
+Live: made by hand and by a background read; the read's tab opened in the
+parked window on desk 3, closed itself, and she stayed on her desk.
+
 ### `input.focus` (content.js)
 
 A text field or contenteditable gained or lost focus. The value is never
@@ -266,6 +285,23 @@ after every tab switch. The live test caught it.
 The probe also gets contenteditable editors right (the ChatGPT composer),
 which the UIA "edit" check misses. Coordinated with the click-hints session
 before editing `ClickHintsEngine.ahk`.
+
+### `page.prelude` (content.js; added 2026-11-11)
+
+BEFORE HINTS: does this tab's page have a step to run before Vimium's link
+hints? A local page asks for one with kit.js `Kit.beforeHints(fn)`, which sets
+`<html data-kit-before-hints>`. Only CHANGES to that mark are sent (a
+meditation opened in the reader); every load and route already carries it as
+`page.ready`'s `prelude` field, so a tab that left a page with a step is reset.
+
+```
+data: {on, why: mark|visible|reinjected, url}
+```
+
+Listener: `Helpers\BeforeHints.ahk` (in Parent), which keeps one "armed"
+boolean from this + page.ready + input.focus + tabs and catches `a` only
+while armed. Op `hints.prelude` runs the step (re-checks text focus and
+whether Vimium's hints are already up) and waits for it, max 1.5 s.
 
 ### `pins` (content.js)
 

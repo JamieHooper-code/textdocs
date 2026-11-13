@@ -163,6 +163,46 @@ COPY, verify, repoint `OpenPoetryMenuAt` and `~\.claude\scripts\printer.ps1`
 (`$PoemPosterRoot`), then archive the old folder. `poems\*.txt` becomes an export from
 the store keeping the old `NNNN-slug` stems that `completed/` and `out/` are keyed by.
 
+### Series (built 2026-11-09)
+
+Jamie: a "Charli" series made of "Charli: Relationship" and "Charli: Breakup", each in an
+order she sets, to read and edit as one and post to Instagram in order; series carry tags;
+a fast way to tag poems by number. Decisions (her numpad answers, 2026-11-09): series live
+in the poem store; series nest and a poem may sit in several; adding a poem gives it the
+series' tags (once accepted -- see below); start in the Doc's order then reorder by number; the stray `charlie` tag was
+merged into person Charli; "BY CHARLIE: Visions of Ripley" is left out (Charli wrote it).
+
+- **TENTATIVE vs ACCEPTED** (her follow-up, same day): a poem sits in a series as
+  tentative (Claude's Charli split; no series tags) or accepted (added by hand or said
+  yes to: Accept, voice 89). Accepted poems get the series' tags as src="series" rows,
+  re-derived after every series write (`resync`), so changing a series' tags moves only
+  those. Her own tags win: manual/doc rows are never removed by a series; tagging a
+  series-derived tag by hand makes it hers; removing one by hand is kept in the poem's
+  `series_off`. No voice commands: everything is on the page and the Miller.
+- **Engine** `Scripts/poems/poem_series.py` (`poems.py series <verb>` forwards to it):
+  `data["series"]` in `poem.json`, members `{poem}`/`{series}` in order, `dismissed`,
+  `history` (last 200). Adding a poem applies the tags + people of the series AND every
+  series above it; `candidates` = poems with those tags/people not yet anywhere in the
+  family (a parent's "not this one" holds for its children). Tests `test_poem_series.py`.
+- **Studio page** `/series[/<slug>]` (series.html + series_routes.py): rows numbered by
+  their place (voice "7" = poem 7), pinned actions 90 up a level, 91/92 move, 93 move to,
+  94 open, 95 read as one, 96 remove, 97 export, 98 quick tag. Text + slides side by side;
+  series tags with "Give every poem its series tags"; Might belong here / Not this one.
+- **Reader** spec `series:<name>` (`resolve_poem_series`), no filter pane, no re-sort.
+- **Instagram export** -> `E:\Media\Poetry\series\<slug>\NN <title>\` + caption.txt +
+  order.txt; a poem without slides is exported with its saved studio options first; the
+  previous export moves to `_previous\<stamp>\`.
+- **Quick tag** `/tag?set=untagged|all|scraps|series:<n>|person:<id>|tag:<t>` (tag.html +
+  tag_routes.py): common tags fixed at 1-30, recent 31-40 (`INIDATA/poem_tag_recent.json`),
+  type a number + Enter or say it; the Doc gets a poem once, when she moves off it.
+- **Miller / library**: root rows "Series…" and "Quick tag…"; each poem has a Series field
+  (pin 42) = toggle list of every series.
+- **AHK** `OpenPoemSeries [name]`, `ReadPoemSeries name`, `OpenQuickTag [set]`,
+  `OpenQuickTagSeries name` (PoemsFunctions.ahk).
+- **TRAP fixed with it:** `poem_doc_sync.py auto id id ...` pushes ALL first, then pulls
+  ONCE. A pull after each push re-read the Doc while later poems were still old there and
+  put their old {tags} line back (a merged `charlie` came back on the first try).
+
 ### Doc sync (built 2026-10-10)
 
 Jamie kept writing in the Doc instead of the store because the Doc is reachable from
@@ -186,7 +226,7 @@ as natehoop@gmail.com, token `~\.claude\secrets\google\poems_doc_token.json`.
 days** -- the MCP's token had died that way (expiry April). Every failure raises
 `GDOC_AUTH_EXPIRED`; the auto push toasts it. Fix for good = publish the consent
 screen app to "In production" (personal use, no verification needed for 1 user;
-Google shows an "unverified app" screen once). Re-auth: `py gdoc.py auth`.
+Google shows an "unverified app" screen once). Re-auth: `py gdoc.py auth`, which clicks itself through Google's screens (`google_auth/google_reauth.py`, see GOOGLE_PHOTOS.md "Account and sign-in"). An expired login during a sync starts `poem_doc_sync.py reauth --notify` by itself, and the sync after it pushes everything waiting.
 
 **Pull (Doc -> store)** = fetch + `sync`. Matching is one-to-one, strongest first:
 heading id -> unit key -> title+date -> text similarity >= 0.75. Then per field
@@ -419,6 +459,64 @@ Implementation: `poem_doc_sync.py check` (records `checking` / `checked` in
 `_PmStartDocCheck` (launches it with pyw, polls the state file each second, `MillerActiveRefresh` on
 change). The script redirects stdout to `poem_doc_sync.out.log` BEFORE its imports when started without
 a console -- under pyw stdout is None and an import-time print killed the run with exit 1, silently.
+
+## A dashed ending above the tags, and people in the Tags picker (2026-11-13)
+
+- **Poem endings in the Doc.** A push now writes the poem, an empty line, a full row of
+  dashes, an empty line, then `{tags} : …` (setting `poems.doc_end_rule`, default 110
+  hyphens — Arial 11 on her 468 pt line fits ~127; blank turns it off). Dash lines are
+  separators to the importer, so both readers skip that run on purpose
+  (`poem_import.end_zone`: empties + separators directly above a `{tags}` line): the
+  tags stay the poem's, in dash-era containers too, and `_block` includes the run so a
+  replace doesn't leave an old ending behind. `_shape` ignores it.
+- **Every poem got it once** (`poem_doc_sync.py add-endings [--dry-run]`): 33 poems
+  with a `{tags}` line inside the poem — 23 new, plus 10 where she'd hand-typed a
+  30-dash line with no gaps, now the same shape. Only the gap above `{tags}` is
+  rewritten; the store is never written, so no `modified` moved (checked: 0 of 1001).
+  Poems edited in the Doc since the last sync are skipped.
+- **Smart chips are text now** (`gdoc.paragraphs`). A "POEM: …" link chip has no text
+  run, so the reader saw it as an empty line; the endings pass deleted two (For Charli
+  v2, Stairs v1), restored from the snapshot as linked text to the same headings. The
+  reader now uses a chip's title (rich links, people), so blocks bound correctly.
+  Before/after snapshots: same 9,651 lines in the same order.
+- **Missing tags lines added** (same day): 7 poems tagged in the store had no `{tags}`
+  line in the Doc (Galadreal, Rose, Love of Two, I only ever see you in the soft light,
+  Meet Me At the Fig Tree, For Cedar, For Nata): ending + tags inserted after the last
+  line, nothing else touched, no `modified` moved, pull 999 unchanged. Not a gap: For
+  Charli v2 / Stairs v1 (tags below the POEM: link) and Secret Letters / My life has not
+  prepared me / I'll paint you a little red star (tags after a second part under her own
+  dash line). Open: **Soup for Charli v1** -- the store holds only its first stanza (the
+  importer ended it at the first empty line); the Doc has the whole poem and its tags.
+- **Soup for Charli v1 fixed.** A stray `-` under its heading made the importer read the
+  whole container as dash-era, so one empty line ended the poem and the other four
+  stanzas became scraps. Now only a `-` with text above AND below is a stanza mark
+  (`poem_import.inner_dash`, used by the importer and `_block`); Soup was the only poem
+  this changed. Full text pulled in; the one-stanza text is kept as a revision (its
+  `why` says this); `modified` put back to its original. The four fragments are kept,
+  trashed (restorable) with `merged_into` / `merged_at` / `merged_why`; the poem lists
+  them in `merged_from`.
+- **Secret Letters' seed scrap** ("You make me want to share all those words…") was
+  flagged missing from the Doc: she trimmed it into the poem. Linked `grew_into` /
+  `grew_from`, and `missing_ok` + `missing_why` set. Nothing needs attention now.
+- **Keeping the history** (her ask: "we're not losing old data"):
+  - Snapshots: the newest 60 *and the first of every month* are kept for good
+    (`gdoc._prune`, which now only touches dated folders). The September import's own
+    snapshot had already been pruned away.
+  - `doc_snapshots\_milestones\`: Doc versions saved from Google's revision history --
+    the version from just before the 2026-09-14 import, the oldest Google has
+    (2026-01-25), and the last of every month since. Never pruned.
+  - `_milestones\import_map_2026-11-13.json`: every unit the importer reads from today's
+    Doc -- unit key, store id, kind, era, reason, confidence, paragraph range -- so how
+    each record was cut out of the Doc can be traced later.
+  - Old split poems: [[POEM_SCRAP_RUNS_REVIEW]] lists 102 runs (462 scraps, nearly all
+    bold era) of untitled scraps sitting together that may be one poem. Not merged;
+    hers to review. Data: `_milestones\scrap_runs_2026-11-13.json`.
+- **Clover = Cody.** "Clover" is an alias on person:cody (a `{Clover}` token reads as
+  Cody); the separate `clover` tag was dropped from the one poem that had it.
+- **People in the Tags row.** `{Cody}` is a tag in the Doc but a *person* in the store,
+  so the library's Tags row and picker missed it. The row now lists people after tags,
+  and the picker ("Tags and people") toggles them with `poems.py link-person` /
+  `unlink-person` (both push to the Doc).
 
 ## Doc sync fixes (2026-10-13)
 

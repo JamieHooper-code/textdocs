@@ -58,7 +58,7 @@ one `poems.py set-marks` write.
 | `scale` (1-10) | 1-9 answer at once. Enter = 10. Arrows ← 2 · ↓ 4 · → 6 · ↑ 8. 0 = skip. A letter as the first key starts a NOTE in the box (no Tab); Enter keeps the note, then answer. |
 | `duration` | numbered list from `INIDATA/durations.json`. A number picks (waits a beat only when a longer number could still follow: 4 when there are 40+ rows). Tab = type one ("80", "1h20", "1:20", "1.5h"). Answer = minutes. |
 | `time_range` | 15-minute times in columns, the guess marked. Enter alone = "that's right". N Enter M Enter = start and end (either order). Voice "4 to 28" does both. |
-| `choice` | numbered options, a number picks. |
+| `choice` | numbered options, a number picks. `other: true` adds "Something else..." (or Tab) to type one; the answer is then `Map(other: text)`. Built 2026-11-13 for today's goal ([[DAILY_GOALS]]). |
 | `multi` | numbered options to tick; the last can be "Something else..." (typed). Enter finishes. |
 | `text` | box focused, Enter saves, Enter on empty skips. |
 

@@ -245,6 +245,49 @@ aria2's fact.
 
 ### One at a time, account-wide
 
+> **Tested 2026-11-09: parallel across MACHINES works.** Two aria2 transfers ran
+> side by side for the full 52 s of the shorter one: server #3 (momot.rs,
+> 93.123.118.12) and server #5 (wbsg8v.xyz, 45.3.63.28), both at their capped
+> rate, both exit 0, both md5-verified. The countdown page itself now says
+> *"please only download one file at the same time **per server**"*, not per
+> account. The same-machine case was deliberately NOT tried, since it is
+> exactly what the page asks you not to do.
+> Trap hit while testing: aria2 run with `stdout=PIPE` that nobody reads
+> freezes after ~30 s when the pipe buffer fills, which looks exactly like a
+> server stall. (anna_fetch uses subprocess.run, which drains it — fine.)
+>
+> **Built the same day — one transfer per MACHINE, with fallback.** The section
+> below is the original design; what changed:
+> - **Machines:** #1/#2/#5/#6 = 45.3.63.28, #3/#4/#7/#8 = 93.123.118.12
+>   (`INIDATA/anna_server_hosts.json`, refreshed by every harvest). The worker
+>   still holds one lock, but runs a transfer per machine in threads, never two
+>   on one machine. Imports run one at a time.
+> - **A spare link, up front:** `anna_fetch.py add` starts
+>   `anna_links.py harvest <md5>`, which opens a countdown page in the Macro
+>   Bridge's minimized worker window (new ops `ext.openhidden` /
+>   `ext.tabtext` / `ext.closehidden`) and saves the link with its server,
+>   machine and expiry. **One spare per machine, not per server** (Jamie: don't
+>   waste their bandwidth or risk a block): a `jump N` opens ONE extra page, on
+>   the other machine; a retry opens one per machine. A machine's next server
+>   is opened only if its first page fails. First version opened all 8 at
+>   once (~8 s) — dropped the same day.
+> - **Fallback:** a failed server records an attempt and puts the book back
+>   in line; its next turn takes another saved link on whichever machine is
+>   free. It fails for good only when every link is tried or expired.
+> - **Nothing is lost:** `INIDATA/anna_books/<md5>.json` (the detail-page
+>   capture, now kept after the merge) and `<md5>.links.json`. These used to
+>   live in %TEMP%\anna_meta, and Windows cleaned them out, which is how the
+>   2026-10-03 outage books lost their records.
+> - **Coming back later:** `py Scripts/anna_fetch.py retry <md5...>` or
+>   `--all-failed` (`--no-send` to skip the Kindle) collects fresh links with no
+>   click-through and queues the books again. All four 2026-10-03 outage books
+>   are back in the library.
+> - **Expiry has two shapes:** `/s/<ts>/` and `/f2/<ts>/` (servers #5-8).
+> - **Trap found live:** kindle_import sweeps EVERY book in E:\Downloads, so
+>   with two transfers running, one book's import moved the other while aria2
+>   was still writing (Roget's survived only because a same-drive move keeps
+>   the open handle). The sweep now skips any file with `<name>.aria2` beside it.
+
 Anna's Archive allows **one concurrent download across all partner servers**, so
 `anna_fetch.py` is a queue with exactly one worker — not a pool. Firing a second
 transfer does not go faster, it gets refused.

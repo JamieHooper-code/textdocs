@@ -16,7 +16,11 @@ Built 2026-10-30. Related: [[JOURNAL_SYSTEM]], [[GLOBAL_CLICK_HINTS]] (the Macro
 
 jamieeehooper@gmail.com (three e's). The OAuth client is the same one gdoc.py uses (Google Cloud project 526439768965). The Photos Library API and the Photos Picker API were enabled on it 2026-10-30.
 
-While that Google app is in **Testing**, the sign-in dies 7 days after the Allow click. The fix is `GooglePhotosSignIn` (or `py gphotos.py auth`), one click. Moving the app to Production would end this for Photos and the poems doc together. That's still to do.
+While that Google app is in **Testing**, the sign-in dies 7 days after the Allow click. Moving the app to Production would end this for Photos and the poems doc together. That's still to do.
+
+**The sign-in now does itself (2026-11-09).** `Scripts/google_auth/google_reauth.py` runs the OAuth flow in a small Chrome app window in the bottom-right corner and presses Google's screens through UIA: the account, "Continue" past the unverified-app warning, "Select all", "Continue". It takes about 10 seconds. Chrome only shows a page to UIA once its window has had real focus (the extension could read the DOM the whole time, while UIA saw only the frame), so it waits for a 2-second gap in her typing, focuses the window for the presses, then gives focus back. **Desk 3 doesn't work** for the same reason: a window there can't be focused without taking her there. A password or 2-step prompt is handed to her. Lock and 30-minute cooldown on a failed try; log in `INIDATA/GoogleAuth/reauth.log`. `py gphotos.py auth --by-hand` is the old click-it-yourself version.
+
+**Nothing she grabs is lost.** `gphotos.upload_or_queue` (what the CLI `upload` and the download manager use) puts any file that didn't upload into `INIDATA/GooglePhotos/pending_uploads.json`, with its album key and description. An expired sign-in also starts `gphotos.py reauth --notify` in the background, which signs in, drains the queue, copies album photos into her real album, and shows a tooltip. Every later successful upload drains the queue too. A file is dropped from the queue after 6 failed tries (it stays listed with `gave_up`), or when it no longer exists on disk. `py gphotos.py pending` / `drain` / `status` (which shows the pending count). The poems Doc uses the same sign-in: `gdoc.py auth`, which `poem_doc_sync.py` starts by itself on an expired login. Its queue is the poems not yet in the Doc.
 
 ## Albums: why there are "(grabs)" albums
 
